@@ -1,8 +1,8 @@
-# cultural-bias-red-team
+# Interplay
 
-Synthetic red-team probe generation for evaluating cultural bias in LLMs, expanded to full-spectrum adversarial red teaming.
+Adversarial and red-teaming library: culturally grounded probe generation plus seven attack methodologies for testing model robustness. Formerly `cultural-bias-red-team`.
 
-Implements the **Singapore AI Safety Red Teaming Challenge methodology** (IMDA + Humane Intelligence, Feb 2025) using [NeMo Data Designer](https://github.com/NVIDIA-NeMo/DataDesigner), plus 7 attack methodologies for comprehensive adversarial testing.
+Implements the **Singapore AI Safety Red Teaming Challenge methodology** (IMDA + Humane Intelligence, Feb 2025) using [NeMo Data Designer](https://github.com/NVIDIA-NeMo/DataDesigner), plus 7 attack methodologies for comprehensive adversarial testing (see [docs/METHODOLOGY.md](docs/METHODOLOGY.md)).
 
 ## Why
 
@@ -19,21 +19,23 @@ This tool generates both probe types, grounded in specific cultural contexts rat
 
 | Method | Description | Use Case |
 |--------|-------------|----------|
-| **Garak** | 100+ built-in probes | Comprehensive vulnerability scanning |
-| **TAP** | Tree of Attacks with Pruning | Search-based jailbreak with evaluator pruning |
-| **PAIR** | Prompt Automatic Iterative Refinement | Iterative refinement with attacker + judge loop |
-| **Crescendo** | Multi-turn benign-to-harmful escalation | Gradual escalation using model's own responses |
-| **GOAT** | Generative Offensive Agent Tester | Agentic strategy switching with reasoning |
-| **SLIP** | Self-Jailbreaking via Lexical Insertion | Target model guides its own compromise |
-| **Multimodal** | Image payload attacks | Bypass text-only guardrails with image payloads |
+| [**Garak**](docs/attacks/garak.md) | 100+ built-in probes | Comprehensive vulnerability scanning |
+| [**TAP**](docs/attacks/tap.md) | Tree of Attacks with Pruning | Search-based jailbreak with evaluator pruning |
+| [**PAIR**](docs/attacks/pair.md) | Prompt Automatic Iterative Refinement | Iterative refinement with attacker + judge loop |
+| [**Crescendo**](docs/attacks/crescendo.md) | Multi-turn benign-to-harmful escalation | Gradual escalation using model's own responses |
+| [**GOAT**](docs/attacks/goat.md) | Generative Offensive Agent Tester | Agentic strategy switching with reasoning |
+| [**SLIP**](docs/attacks/slip.md) | Self-Jailbreaking via Lexical Insertion | Target model guides its own compromise |
+| [**Multimodal**](docs/attacks/multimodal.md) | Image payload attacks | Bypass text-only guardrails with image payloads |
+
+Details, parameters and examples for each: [docs/attacks](docs/attacks/README.md).
 
 ## Quick Start
 
 ### Probe Generation (Cultural Bias)
 
 ```bash
-git clone https://github.com/williamcaban/cultural-bias-red-team.git
-cd cultural-bias-red-team
+git clone https://github.com/interplay-adversarial/interplay.git
+cd interplay
 
 # Install uv if needed: curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync --extra red-teaming
@@ -59,24 +61,10 @@ export JUDGE_MODEL="openai/gpt-4o-mini"
 
 # Run integrated workflow (Garak + TAP + PAIR)
 uv run python examples/integrated_run.py --probe-file probes.jsonl --output-dir output/
-
-# Or run individual attacks
-uv run python -c "
-from red_teaming import tap_attack, crescendo_attack
-import asyncio
-
-async def main():
-    result = await tap_attack(
-        goal='Your attack goal here',
-        target_url='https://your-target/v1',
-        attacker_model='openai/gpt-4o-mini',
-        evaluator_model='openai/gpt-4o-mini',
-    )
-    print(f'ASR: {result.best_score}')
-
-asyncio.run(main())
-"
 ```
+
+Each attack can also be called directly from Python; see the page for the method in
+[docs/attacks](docs/attacks/README.md).
 
 ## Pipeline Modes (Probe Generation)
 
@@ -186,159 +174,17 @@ In comparison mode, also includes `group_1_name`, `group_2_name`, `group_1_ref`,
 
 ## Attack Methodologies (Detailed)
 
-### TAP (Tree of Attacks with Pruning)
+Each methodology has its own page with parameters and a runnable example.
 
-**Strategy**: Branch-and-prune search with evaluator pruning  
-**Query Budget**: ~15-30 queries  
-**Key Feature**: Evaluator LLM prunes weak branches before target query
-
-```python
-from red_teaming import tap_attack
-import asyncio
-
-
-async def main():
-    result = await tap_attack(
-        goal="Your attack goal",
-        target_url="https://your-target/v1",
-        attacker_model="openai/gpt-4o-mini",
-        evaluator_model="openai/gpt-4o-mini",
-        n_iterations=5,
-        beam_width=10,
-        branching_factor=3,
-    )
-    print(f"Best ASR: {result.best_score}")
-    print(f"Search trajectory: {len(result.search_trajectory)} iterations")
-
-
-asyncio.run(main())
-```
-
-### PAIR (Prompt Automatic Iterative Refinement)
-
-**Strategy**: Iterative refinement with attacker + judge loop  
-**Query Budget**: ~20 queries  
-**Key Feature**: Attacker refines based on conversation history + CoT improvement
-
-```python
-from red_teaming import pair_attack
-import asyncio
-
-
-async def main():
-    result = await pair_attack(
-        goal="Your attack goal",
-        target_url="https://your-target/v1",
-        attacker_model="openai/gpt-4o-mini",
-        judge_model="openai/gpt-4o-mini",
-        max_queries=20,
-    )
-    print(f"Best ASR: {result.best_score}")
-    print(f"Query count: {result.query_count}")
-
-
-asyncio.run(main())
-```
-
-### Crescendo
-
-**Strategy**: Multi-turn benign-to-harmful escalation  
-**Query Budget**: 5-10 turns  
-**Key Feature**: Uses model's own responses to guide escalation
-
-```python
-from red_teaming import crescendo_attack
-import asyncio
-
-
-async def main():
-    result = await crescendo_attack(
-        goal="Your attack goal",
-        target_url="https://your-target/v1",
-        attacker_model="openai/gpt-4o-mini",
-        max_turns=10,
-    )
-    print(f"Best ASR: {result.best_score}")
-    print(f"Turns: {result.turns}")
-
-
-asyncio.run(main())
-```
-
-### GOAT (Generative Offensive Agent Tester)
-
-**Strategy**: Dynamic strategy switching with reasoning  
-**Query Budget**: ≤5 turns  
-**Key Feature**: Attacker reasons about best strategy per turn
-
-```python
-from red_teaming import goat_attack
-import asyncio
-
-
-async def main():
-    result = await goat_attack(
-        goal="Your attack goal",
-        target_url="https://your-target/v1",
-        attacker_model="openai/gpt-4o-mini",
-        max_turns=5,
-    )
-    print(f"Best ASR: {result.best_score}")
-    print(f"Strategy trajectory: {result.strategy_trajectory}")
-
-
-asyncio.run(main())
-```
-
-### SLIP (Self-Jailbreaking via Lexical Insertion)
-
-**Strategy**: Target model guides its own compromise via BFS  
-**Query Budget**: ~8 iterations  
-**Key Feature**: Lexical insertion of goal words into benign prompts
-
-```python
-from red_teaming import slip_attack
-import asyncio
-
-
-async def main():
-    result = await slip_attack(
-        goal="Your attack goal",
-        target_url="https://your-target/v1",
-        target_model="your-model",
-        max_iterations=8,
-    )
-    print(f"Best ASR: {result.best_score}")
-    print(f"Iterations: {result.iterations}")
-
-
-asyncio.run(main())
-```
-
-### Multimodal (Image Payload)
-
-**Strategy**: Embed harmful instruction in image  
-**Query Budget**: 1-3 transforms  
-**Key Feature**: Bypass text-only guardrails
-
-```python
-from red_teaming import multimodal_attack
-import asyncio
-
-
-async def main():
-    result = await multimodal_attack(
-        goal="Your attack goal",
-        vision_target_url="https://vision-target/v1",
-        vision_model="openai/gpt-4o",
-        transforms=["plain", "base64", "leetspeak"],
-    )
-    print(f"Best ASR: {result.best_score}")
-    print(f"Image path: {result.image_path}")
-
-
-asyncio.run(main())
-```
+| Method | Strategy | Query budget | Details |
+|--------|----------|--------------|---------|
+| Garak | Broad library of built-in probes | Depends on probes | [docs/attacks/garak.md](docs/attacks/garak.md) |
+| TAP | Branch-and-prune search with evaluator pruning | ~15-30 queries | [docs/attacks/tap.md](docs/attacks/tap.md) |
+| PAIR | Iterative refinement with attacker + judge loop | ~20 queries | [docs/attacks/pair.md](docs/attacks/pair.md) |
+| Crescendo | Multi-turn benign-to-harmful escalation | 5-10 turns | [docs/attacks/crescendo.md](docs/attacks/crescendo.md) |
+| GOAT | Dynamic strategy switching with reasoning | ≤5 turns | [docs/attacks/goat.md](docs/attacks/goat.md) |
+| SLIP | Target guides its own compromise via BFS | ~8 iterations | [docs/attacks/slip.md](docs/attacks/slip.md) |
+| Multimodal | Harmful instruction embedded in an image | 1-3 transforms | [docs/attacks/multimodal.md](docs/attacks/multimodal.md) |
 
 ## Configuration
 
@@ -409,17 +255,7 @@ uv run python examples/integrated_run.py --probe-file probes.jsonl
 
 ## Methodology
 
-**Singapore AI Safety Red Teaming Challenge** — world's first multicultural, multilingual AI safety red teaming exercise. 9 countries, 54 in-person experts + 308 virtual participants, 1,335–1,887 successful exploits per round.
-
-**Source:** [IMDA Evaluation Report, February 2025](https://www.imda.gov.sg/-/media/imda/files/about/emerging-tech-research/artificial-intelligence/singapore-ai-safety-red-teaming-challenge-evaluation-report.pdf)
-
-## Attack Methodology References
-
-- **TAP**: Mehrotra et al., NeurIPS 2024 (arXiv:2312.02119)
-- **PAIR**: Chao et al., NeurIPS 2023 (arXiv:2310.08419)
-- **Crescendo**: Russinovich et al., USENIX Security 2025 (arXiv:2404.01833)
-- **GOAT**: Pavlova et al., 2024 (arXiv:2410.01606)
-- **SLIP**: arXiv:2601.02670
+Interplay combines culturally grounded probe generation (the **Singapore AI Safety Red Teaming Challenge** approach, IMDA and Humane Intelligence, February 2025) with seven attack methodologies that cover different search strategies, from static probe libraries to multi-turn and multimodal attacks. How they work, when to use each, how they combine, and the references are in [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
 
 ## Security and content policy
 

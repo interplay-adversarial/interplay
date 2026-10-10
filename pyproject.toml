@@ -34,8 +34,8 @@ red-teaming = [
 validate-pipeline-precommit = "scripts.validate-pipeline-precommit:main"
 
 [project.urls]
-Repository = "https://github.com/williamcaban/cultural-bias-red-team"
-Issues = "https://github.com/williamcaban/cultural-bias-red-team/issues"
+Repository = "https://github.com/interplay-adversarial/interplay"
+Issues = "https://github.com/interplay-adversarial/interplay/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["specs"]
