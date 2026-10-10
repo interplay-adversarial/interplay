@@ -43,7 +43,6 @@ from data_designer.types.providers import ModelConfig, ModelProvider
 from dotenv import load_dotenv
 
 from pipeline import (
-    build_combined_pipeline,
     build_comparison_pipeline,
     build_cultural_bias_pipeline,
     build_harm_pipeline,
@@ -74,39 +73,38 @@ def to_garak_rows(df: pd.DataFrame, mode: str) -> list[dict]:
     for _, row in df.iterrows():
         probe_mode = row.get("probe_mode", "unknown")
         probe_data = row.get(f"{probe_mode}_probe", {})
-        if isinstance(probe_data, dict):
-            prompt = probe_data.get("prompt", "")
-        else:
-            prompt = str(probe_data)
+        prompt = probe_data.get("prompt", "") if isinstance(probe_data, dict) else str(probe_data)
         if not prompt or len(prompt) < 10:
             continue
-        rows.append({
-            "prompt": prompt,
-            "dataset_mode": mode,
-            "policy_concept": row.get("policy_concept", ""),
-            "probe_mode": probe_mode,
-            "strategy": row.get("prompt_strategy", ""),
-            "region": row.get("region", ""),
-            "language": row.get("target_language", "English"),
-            "expertise_level": row.get("expertise_level", ""),
-            "quality_score": row.get("probe_quality_score", ""),
-            # Comparison mode extras (empty string for taxonomy modes)
-            "group_1": row.get("group_1_name", ""),
-            "group_2": row.get("group_2_name", ""),
-            "comparison_topic": row.get("comparison_topic", ""),
-            # Metadata from LLM output
-            "why_harmful_or_biased": (
-                probe_data.get("why_prompt_harmful", "")
-                if isinstance(probe_data, dict) else ""
-            ) or (
-                probe_data.get("why_culturally_biased", "")
-                if isinstance(probe_data, dict) else ""
-            ),
-            "bias_mechanism": (
-                probe_data.get("bias_mechanism", "")
-                if isinstance(probe_data, dict) else ""
-            ),
-        })
+        rows.append(
+            {
+                "prompt": prompt,
+                "dataset_mode": mode,
+                "policy_concept": row.get("policy_concept", ""),
+                "probe_mode": probe_mode,
+                "strategy": row.get("prompt_strategy", ""),
+                "region": row.get("region", ""),
+                "language": row.get("target_language", "English"),
+                "expertise_level": row.get("expertise_level", ""),
+                "quality_score": row.get("probe_quality_score", ""),
+                # Comparison mode extras (empty string for taxonomy modes)
+                "group_1": row.get("group_1_name", ""),
+                "group_2": row.get("group_2_name", ""),
+                "comparison_topic": row.get("comparison_topic", ""),
+                # Metadata from LLM output
+                "why_harmful_or_biased": (
+                    probe_data.get("why_prompt_harmful", "") if isinstance(probe_data, dict) else ""
+                )
+                or (
+                    probe_data.get("why_culturally_biased", "")
+                    if isinstance(probe_data, dict)
+                    else ""
+                ),
+                "bias_mechanism": (
+                    probe_data.get("bias_mechanism", "") if isinstance(probe_data, dict) else ""
+                ),
+            }
+        )
     return rows
 
 
@@ -119,9 +117,9 @@ def main(preview_only: bool = False) -> None:
     # Adjust num_records to fit your token budget.
     # ----------------------------------------------------------------
     runs = [
-        ("singapore",      build_cultural_bias_pipeline(),   200),
-        ("sdg-hub-harm",   build_harm_pipeline(),            320),
-        ("us-mexico",      build_comparison_pipeline(load_spec("us-mexico")),      100),
+        ("singapore", build_cultural_bias_pipeline(), 200),
+        ("sdg-hub-harm", build_harm_pipeline(), 320),
+        ("us-mexico", build_comparison_pipeline(load_spec("us-mexico")), 100),
         ("us-white-brown", build_comparison_pipeline(load_spec("us-white-brown")), 100),
     ]
 
@@ -163,20 +161,23 @@ def main(preview_only: bool = False) -> None:
     output = "diverse_red_team_dataset.jsonl"
     combined.to_json(output, orient="records", lines=True)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Total probes: {len(combined)}")
-    print(f"\nBy dataset mode:")
+    print("\nBy dataset mode:")
     print(combined.groupby("dataset_mode").size().to_string())
-    print(f"\nBy policy_concept:")
+    print("\nBy policy_concept:")
     print(combined.groupby("policy_concept").size().sort_values(ascending=False).to_string())
-    print(f"\nBy probe_mode:")
+    print("\nBy probe_mode:")
     print(combined.groupby("probe_mode").size().to_string())
     print(f"\nSaved → {output}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate diverse red-teaming dataset")
-    parser.add_argument("--preview-only", action="store_true",
-                        help="Run preview (3 records each) without full generation")
+    parser.add_argument(
+        "--preview-only",
+        action="store_true",
+        help="Run preview (3 records each) without full generation",
+    )
     args = parser.parse_args()
     main(preview_only=args.preview_only)

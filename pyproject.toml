@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Synthetic red-team probe generation for cultural bias evaluation"
 readme = "README.md"
 license = { text = "Apache-2.0" }
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "data-designer>=0.1.0",
     "pydantic>=2.0",
@@ -20,8 +20,18 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
     "ruff>=0.6",
 ]
+red-teaming = [
+    "any-llm-sdk[all]>=0.1.0",
+    "garak>=0.10.0",
+    "httpx>=0.27.0",
+    "judge-kappa>=0.1.0",
+]
+
+[project.scripts]
+validate-pipeline-precommit = "scripts.validate-pipeline-precommit:main"
 
 [project.urls]
 Repository = "https://github.com/williamcaban/cultural-bias-red-team"
@@ -43,6 +53,8 @@ known-first-party = ["specs"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v"
 
 [tool.uv]
 dev-dependencies = [

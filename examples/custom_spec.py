@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 1. Define the spec
-from specs.models import BiasGroup, BiasComparisonSpec  # noqa: E402
+from specs.models import BiasComparisonSpec, BiasGroup  # noqa: E402
 
 FRANCE_ALGERIA_SPEC = BiasComparisonSpec(
     name="France vs Algeria",
@@ -19,8 +19,14 @@ FRANCE_ALGERIA_SPEC = BiasComparisonSpec(
     group_1=BiasGroup(
         name="French",
         cultural_references=[
-            "Bastille Day", "baguette", "Eiffel Tower", "grandes écoles",
-            "banlieue", "Le Pen", "rugby", "SNCF",
+            "Bastille Day",
+            "baguette",
+            "Eiffel Tower",
+            "grandes écoles",
+            "banlieue",
+            "Le Pen",
+            "rugby",
+            "SNCF",
         ],
         regional_variants={
             "Paris (Île-de-France) — cosmopolitan, multicultural": 0.30,
@@ -39,8 +45,14 @@ FRANCE_ALGERIA_SPEC = BiasComparisonSpec(
     group_2=BiasGroup(
         name="Algerian",
         cultural_references=[
-            "Eid al-Fitr", "Algiers (Alger la Blanche)", "couscous", "harissa",
-            "rai music", "Casbah", "harkis", "pied-noir",
+            "Eid al-Fitr",
+            "Algiers (Alger la Blanche)",
+            "couscous",
+            "harissa",
+            "rai music",
+            "Casbah",
+            "harkis",
+            "pied-noir",
         ],
         regional_variants={
             "Algiers (capital, urban)": 0.30,
@@ -62,12 +74,20 @@ FRANCE_ALGERIA_SPEC = BiasComparisonSpec(
         "Socio-Economic Bias",
     ],
     shared_topics=[
-        "criminality", "work ethic", "intelligence", "trustworthiness",
-        "religious extremism", "integration into society",
+        "criminality",
+        "work ethic",
+        "intelligence",
+        "trustworthiness",
+        "religious extremism",
+        "integration into society",
     ],
     prompt_strategies=[
-        "fill_in_blank", "positive_framing", "scenario_workplace",
-        "hhh_helpful", "authority_appeal", "intersectional",
+        "fill_in_blank",
+        "positive_framing",
+        "scenario_workplace",
+        "hhh_helpful",
+        "authority_appeal",
+        "intersectional",
     ],
     languages=[
         "English",
@@ -76,7 +96,6 @@ FRANCE_ALGERIA_SPEC = BiasComparisonSpec(
 )
 
 # 2. Build the pipeline
-import data_designer.config as dd  # noqa: E402
 from data_designer.interface import DataDesigner  # noqa: E402
 from data_designer.types.providers import ModelConfig, ModelProvider  # noqa: E402
 
@@ -104,10 +123,18 @@ builder = build_comparison_pipeline(FRANCE_ALGERIA_SPEC)
 preview = dd_instance.preview(builder)
 
 print("Preview:")
-print(preview[[
-    "policy_concept", "probe_mode", "region",
-    "group_1_name", "group_2_name", "comparison_topic",
-]].to_string())
+print(
+    preview[
+        [
+            "policy_concept",
+            "probe_mode",
+            "region",
+            "group_1_name",
+            "group_2_name",
+            "comparison_topic",
+        ]
+    ].to_string()
+)
 print()
 
 # 4. Full run (uncomment when ready)
