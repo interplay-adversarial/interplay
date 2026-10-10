@@ -421,6 +421,12 @@ uv run python examples/integrated_run.py --probe-file probes.jsonl
 - **GOAT**: Pavlova et al., 2024 (arXiv:2410.01606)
 - **SLIP**: arXiv:2601.02670
 
+## Security and content policy
+
+This project contains adversarial material. Read the [content policy](docs/CONTENT_POLICY.md) before
+contributing, and report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+Use it only against systems you own or are authorized to test.
+
 ## License
 
 Apache 2.0
