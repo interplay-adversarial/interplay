@@ -22,7 +22,7 @@ builds a Garak config for your endpoint and `parse_garak_results` summarizes a f
 
 ## Notes
 
-- Requires the `red-teaming` extra (`uv sync --extra red-teaming`), which installs Garak.
+- Requires the `garak` extra (`pip install 'interplay-adversarial[garak]'`, or `uv sync --extra garak` in a clone), which installs Garak. Without it, `run_garak` raises a clear error.
 - Garak runs as an external process, so its own configuration and output format apply.
 - Run only against targets you own or are authorized to test; see [SECURITY.md](../../SECURITY.md).
 

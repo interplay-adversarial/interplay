@@ -2,7 +2,21 @@
 
 Adversarial and red-teaming library: culturally grounded probe generation plus seven attack methodologies for testing model robustness. Formerly `cultural-bias-red-team`.
 
-Implements the **Singapore AI Safety Red Teaming Challenge methodology** (IMDA + Humane Intelligence, Feb 2025) using [NeMo Data Designer](https://github.com/NVIDIA-NeMo/DataDesigner), plus 7 attack methodologies for comprehensive adversarial testing (see [docs/METHODOLOGY.md](docs/METHODOLOGY.md)).
+Implements the **Singapore AI Safety Red Teaming Challenge methodology** (IMDA + Humane Intelligence, Feb 2025) using [NeMo Data Designer](https://github.com/NVIDIA-NeMo/DataDesigner), plus 7 attack methodologies for comprehensive adversarial testing (see [docs/METHODOLOGY.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/METHODOLOGY.md)).
+
+## Install
+
+Requires Python 3.12 or newer.
+
+```bash
+pip install interplay-adversarial                    # core: specs and the probe pipeline library
+pip install "interplay-adversarial[red-teaming]"     # attack runners: TAP, PAIR, Crescendo, GOAT, SLIP, Multimodal
+pip install "interplay-adversarial[garak]"           # + the Garak scanner (large install)
+pip install "interplay-adversarial[providers]"       # + 20+ LLM provider SDKs for any-llm-sdk
+```
+
+The package installs `interplay` (`interplay.specs`, `interplay.red_teaming`). The probe-generation command
+line (`data-designer ... pipeline.py`) and the examples run from a clone of the repository; see Quick Start.
 
 ## Why
 
@@ -19,15 +33,15 @@ This tool generates both probe types, grounded in specific cultural contexts rat
 
 | Method | Description | Use Case |
 |--------|-------------|----------|
-| [**Garak**](docs/attacks/garak.md) | 100+ built-in probes | Comprehensive vulnerability scanning |
-| [**TAP**](docs/attacks/tap.md) | Tree of Attacks with Pruning | Search-based jailbreak with evaluator pruning |
-| [**PAIR**](docs/attacks/pair.md) | Prompt Automatic Iterative Refinement | Iterative refinement with attacker + judge loop |
-| [**Crescendo**](docs/attacks/crescendo.md) | Multi-turn benign-to-harmful escalation | Gradual escalation using model's own responses |
-| [**GOAT**](docs/attacks/goat.md) | Generative Offensive Agent Tester | Agentic strategy switching with reasoning |
-| [**SLIP**](docs/attacks/slip.md) | Self-Jailbreaking via Lexical Insertion | Target model guides its own compromise |
-| [**Multimodal**](docs/attacks/multimodal.md) | Image payload attacks | Bypass text-only guardrails with image payloads |
+| [**Garak**](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/garak.md) | 100+ built-in probes | Comprehensive vulnerability scanning |
+| [**TAP**](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/tap.md) | Tree of Attacks with Pruning | Search-based jailbreak with evaluator pruning |
+| [**PAIR**](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/pair.md) | Prompt Automatic Iterative Refinement | Iterative refinement with attacker + judge loop |
+| [**Crescendo**](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/crescendo.md) | Multi-turn benign-to-harmful escalation | Gradual escalation using model's own responses |
+| [**GOAT**](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/goat.md) | Generative Offensive Agent Tester | Agentic strategy switching with reasoning |
+| [**SLIP**](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/slip.md) | Self-Jailbreaking via Lexical Insertion | Target model guides its own compromise |
+| [**Multimodal**](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/multimodal.md) | Image payload attacks | Bypass text-only guardrails with image payloads |
 
-Details, parameters and examples for each: [docs/attacks](docs/attacks/README.md).
+Details, parameters and examples for each: [docs/attacks](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/README.md).
 
 ## Quick Start
 
@@ -38,7 +52,7 @@ git clone https://github.com/interplay-adversarial/interplay.git
 cd interplay
 
 # Install uv if needed: curl -LsSf https://astral.sh/uv/install.sh | sh
-uv sync --extra red-teaming
+uv sync --extra red-teaming   # add --extra garak for the Garak scanner
 
 cp .env.example .env        # Add API keys and endpoint configuration
 
@@ -64,7 +78,7 @@ uv run python examples/integrated_run.py --probe-file probes.jsonl --output-dir 
 ```
 
 Each attack can also be called directly from Python; see the page for the method in
-[docs/attacks](docs/attacks/README.md).
+[docs/attacks](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/README.md).
 
 ## Pipeline Modes (Probe Generation)
 
@@ -153,7 +167,7 @@ uv run pytest                # validates the spec format
 # Open a PR — CI runs automatically
 ```
 
-Full instructions: [`interplay/specs/CONTRIBUTING.md`](interplay/specs/CONTRIBUTING.md)
+Full instructions: [`interplay/specs/CONTRIBUTING.md`](https://github.com/interplay-adversarial/interplay/blob/main/interplay/specs/CONTRIBUTING.md)
 
 ## Output (Probe Generation)
 
@@ -178,13 +192,13 @@ Each methodology has its own page with parameters and a runnable example.
 
 | Method | Strategy | Query budget | Details |
 |--------|----------|--------------|---------|
-| Garak | Broad library of built-in probes | Depends on probes | [docs/attacks/garak.md](docs/attacks/garak.md) |
-| TAP | Branch-and-prune search with evaluator pruning | ~15-30 queries | [docs/attacks/tap.md](docs/attacks/tap.md) |
-| PAIR | Iterative refinement with attacker + judge loop | ~20 queries | [docs/attacks/pair.md](docs/attacks/pair.md) |
-| Crescendo | Multi-turn benign-to-harmful escalation | 5-10 turns | [docs/attacks/crescendo.md](docs/attacks/crescendo.md) |
-| GOAT | Dynamic strategy switching with reasoning | ≤5 turns | [docs/attacks/goat.md](docs/attacks/goat.md) |
-| SLIP | Target guides its own compromise via BFS | ~8 iterations | [docs/attacks/slip.md](docs/attacks/slip.md) |
-| Multimodal | Harmful instruction embedded in an image | 1-3 transforms | [docs/attacks/multimodal.md](docs/attacks/multimodal.md) |
+| Garak | Broad library of built-in probes | Depends on probes | [docs/attacks/garak.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/garak.md) |
+| TAP | Branch-and-prune search with evaluator pruning | ~15-30 queries | [docs/attacks/tap.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/tap.md) |
+| PAIR | Iterative refinement with attacker + judge loop | ~20 queries | [docs/attacks/pair.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/pair.md) |
+| Crescendo | Multi-turn benign-to-harmful escalation | 5-10 turns | [docs/attacks/crescendo.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/crescendo.md) |
+| GOAT | Dynamic strategy switching with reasoning | ≤5 turns | [docs/attacks/goat.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/goat.md) |
+| SLIP | Target guides its own compromise via BFS | ~8 iterations | [docs/attacks/slip.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/slip.md) |
+| Multimodal | Harmful instruction embedded in an image | 1-3 transforms | [docs/attacks/multimodal.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/multimodal.md) |
 
 ## Configuration
 
@@ -230,7 +244,7 @@ All providers supported by `any-llm-sdk`:
 
 ```bash
 uv sync                     # install all deps
-uv sync --extra red-teaming  # + attack methodology deps
+uv sync --extra red-teaming  # + attack methodology deps (--extra garak for the Garak scanner)
 uv run ruff check .         # lint
 uv run ruff format .        # format
 uv run pytest               # unit tests (no LLM required)
@@ -255,12 +269,12 @@ uv run python examples/integrated_run.py --probe-file probes.jsonl
 
 ## Methodology
 
-Interplay combines culturally grounded probe generation (the **Singapore AI Safety Red Teaming Challenge** approach, IMDA and Humane Intelligence, February 2025) with seven attack methodologies that cover different search strategies, from static probe libraries to multi-turn and multimodal attacks. How they work, when to use each, how they combine, and the references are in [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
+Interplay combines culturally grounded probe generation (the **Singapore AI Safety Red Teaming Challenge** approach, IMDA and Humane Intelligence, February 2025) with seven attack methodologies that cover different search strategies, from static probe libraries to multi-turn and multimodal attacks. How they work, when to use each, how they combine, and the references are in [docs/METHODOLOGY.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/METHODOLOGY.md).
 
 ## Security and content policy
 
-This project contains adversarial material. Read the [content policy](docs/CONTENT_POLICY.md) before
-contributing, and report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+This project contains adversarial material. Read the [content policy](https://github.com/interplay-adversarial/interplay/blob/main/docs/CONTENT_POLICY.md) before
+contributing, and report vulnerabilities privately as described in [SECURITY.md](https://github.com/interplay-adversarial/interplay/blob/main/SECURITY.md).
 Use it only against systems you own or are authorized to test.
 
 ## License

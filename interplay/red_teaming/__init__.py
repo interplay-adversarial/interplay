@@ -1,5 +1,15 @@
 """Red teaming attack runners for Interplay."""
 
+try:
+    import any_llm  # noqa: F401
+    import httpx  # noqa: F401
+    import judge_kappa  # noqa: F401
+except ModuleNotFoundError as exc:  # pragma: no cover - exercised through a subprocess test
+    raise ImportError(
+        f"interplay.red_teaming needs the 'red-teaming' extra (missing module: {exc.name}). "
+        "Install it with: pip install 'interplay-adversarial[red-teaming]'"
+    ) from exc
+
 from .base import (
     create_completion_kwargs,
     get_attacker_config,

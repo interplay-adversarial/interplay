@@ -47,7 +47,13 @@ def run_garak(
 
     # Run Garak
     print(f"Running Garak: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError as exc:
+        raise RuntimeError(
+            "The 'garak' command was not found. Install the scanner with: "
+            "pip install 'interplay-adversarial[garak]'"
+        ) from exc
 
     # Parse results
     return {
