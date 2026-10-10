@@ -141,11 +141,11 @@ runs = [
 | `us-mexico` | comparison | 4 | US Americans vs Mexicans |
 | `us-puerto-rico` | comparison | 3 | Mainland US vs Puerto Ricans |
 | `us-white-brown` | comparison | 4 | US White (non-Hispanic) vs US Brown/Latino |
-| _(your spec)_ | comparison | varies | Any file in `specs/` |
+| _(your spec)_ | comparison | varies | Any file in `interplay/specs/` |
 
 ## Adding a New Comparison
 
-Create `specs/<name>.py` that exports `SPEC = BiasComparisonSpec(...)`. No other files need to change.
+Create `interplay/specs/<name>.py` that exports `SPEC = BiasComparisonSpec(...)`. No other files need to change.
 
 ```bash
 # After creating the file:
@@ -153,7 +153,7 @@ uv run pytest                # validates the spec format
 # Open a PR — CI runs automatically
 ```
 
-Full instructions: [`specs/CONTRIBUTING.md`](specs/CONTRIBUTING.md)
+Full instructions: [`interplay/specs/CONTRIBUTING.md`](interplay/specs/CONTRIBUTING.md)
 
 ## Output (Probe Generation)
 

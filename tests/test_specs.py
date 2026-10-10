@@ -1,5 +1,5 @@
 """
-Spec validation tests — run on every PR that touches specs/.
+Spec validation tests — run on every PR that touches interplay/specs/.
 
 Tests run without data-designer installed — only pydantic + numpy + pandas required.
 """
@@ -10,10 +10,10 @@ from pathlib import Path
 # Allow running as a script (python tests/test_specs.py) without installing the package
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from specs import list_specs, load_spec
-from specs.models import BiasComparisonSpec, BiasGroup
-from specs.sdg_hub_harm import SDG_HUB_HARM_DATASET
-from specs.singapore import CATEGORY_DEFINITIONS, CULTURAL_BIAS_DATASET
+from interplay.specs import list_specs, load_spec
+from interplay.specs.models import BiasComparisonSpec, BiasGroup
+from interplay.specs.sdg_hub_harm import SDG_HUB_HARM_DATASET
+from interplay.specs.singapore import CATEGORY_DEFINITIONS, CULTURAL_BIAS_DATASET
 
 
 def test_models_importable() -> None:

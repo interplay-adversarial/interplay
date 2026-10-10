@@ -6,7 +6,7 @@ mainland Americans treating PR as foreign, Nuyorican identity tensions,
 Afro-Puerto Rican double discrimination, and intra-island regional bias.
 """
 
-from specs.models import BiasComparisonSpec, BiasGroup
+from interplay.specs.models import BiasComparisonSpec, BiasGroup
 
 SPEC = BiasComparisonSpec(
     name="US vs Puerto Rico",

@@ -6,7 +6,7 @@ Latino/Brown Americans, including occupational stereotyping, criminalization
 of appearance, and Afro-Latino compound discrimination.
 """
 
-from specs.models import BiasComparisonSpec, BiasGroup
+from interplay.specs.models import BiasComparisonSpec, BiasGroup
 
 SPEC = BiasComparisonSpec(
     name="US White vs US Brown/Latino",

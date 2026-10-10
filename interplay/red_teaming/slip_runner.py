@@ -1,4 +1,4 @@
-"""SLIP (Self-Jailbreaking via Lexical Insertion) implementation for cultural-bias-red-team."""
+"""SLIP (Self-Jailbreaking via Lexical Insertion) implementation for Interplay."""
 
 from dataclasses import dataclass
 from typing import Any

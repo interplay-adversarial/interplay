@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "cultural-bias-red-team"
+name = "interplay-adversarial"
 version = "0.1.0"
-description = "Synthetic red-team probe generation for cultural bias evaluation"
+description = "Adversarial and red-teaming library: probe generation and attack methodologies for AI systems"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.13,<3.14"
@@ -38,7 +38,7 @@ Repository = "https://github.com/interplay-adversarial/interplay"
 Issues = "https://github.com/interplay-adversarial/interplay/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["specs"]
+packages = ["interplay"]
 
 [tool.ruff]
 line-length = 100
@@ -49,7 +49,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["specs"]
+known-first-party = ["interplay"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

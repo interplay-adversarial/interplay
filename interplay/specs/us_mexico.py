@@ -7,7 +7,7 @@ Probes bias between US Americans and Mexicans in both directions:
 - Intra-Mexico regional bias (Mexico City vs Oaxaca vs Tijuana)
 """
 
-from specs.models import BiasComparisonSpec, BiasGroup
+from interplay.specs.models import BiasComparisonSpec, BiasGroup
 
 SPEC = BiasComparisonSpec(
     name="US vs Mexico",

@@ -1,4 +1,4 @@
-"""Red teaming attack runners for cultural-bias-red-team."""
+"""Red teaming attack runners for Interplay."""
 
 from .base import (
     create_completion_kwargs,

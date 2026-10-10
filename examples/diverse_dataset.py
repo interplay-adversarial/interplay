@@ -42,12 +42,12 @@ from data_designer.interface import DataDesigner, ResumeMode
 from data_designer.types.providers import ModelConfig, ModelProvider
 from dotenv import load_dotenv
 
+from interplay.specs import load_spec
 from pipeline import (
     build_comparison_pipeline,
     build_cultural_bias_pipeline,
     build_harm_pipeline,
 )
-from specs import load_spec
 
 load_dotenv()
 

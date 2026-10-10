@@ -7,7 +7,7 @@
 **Key Feature**: Attacker refines based on conversation history + CoT improvement
 
 ```python
-from red_teaming import pair_attack
+from interplay.red_teaming import pair_attack
 import asyncio
 
 

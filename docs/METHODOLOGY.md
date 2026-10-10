@@ -5,7 +5,7 @@ target with search-based, multi-turn and multimodal techniques. They can be used
 
 ## 1. Probe generation: the Singapore challenge methodology
 
-The probe pipeline (`pipeline.py`, `specs/`) implements the approach of the **Singapore AI Safety Red
+The probe pipeline (`pipeline.py`, `interplay/specs/`) implements the approach of the **Singapore AI Safety Red
 Teaming Challenge** (IMDA and Humane Intelligence, February 2025), the first multicultural,
 multilingual AI safety red teaming exercise: 9 countries, 54 in-person experts and 308 virtual
 participants, with 1,335-1,887 successful exploits per round.

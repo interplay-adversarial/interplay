@@ -1,7 +1,7 @@
 """Integrated red teaming run: cultural bias + attack methodologies.
 
 Example workflow:
-    1. Generate probes with cultural-bias-red-team pipeline
+    1. Generate probes with Interplay pipeline
     2. Run Garak against target
     3. Run TAP/PAIR attacks
     4. Merge results with statistical validation
@@ -22,7 +22,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from red_teaming import (
+from interplay.red_teaming import (
     get_judge_config,
     get_target_config,
     load_env_file,

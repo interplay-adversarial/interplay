@@ -1,4 +1,4 @@
-"""Garak runner for cultural-bias-red-team integration."""
+"""Garak runner for Interplay integration."""
 
 import json
 import subprocess

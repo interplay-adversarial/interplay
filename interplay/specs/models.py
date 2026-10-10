@@ -44,7 +44,7 @@ class BiasComparisonSpec(BaseModel):
     group_1 against group_2 across the specified bias categories.
 
     Usage:
-        from specs.models import BiasGroup, BiasComparisonSpec
+        from interplay.specs.models import BiasGroup, BiasComparisonSpec
 
         MY_SPEC = BiasComparisonSpec(
             name="France vs Algeria",

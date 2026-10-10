@@ -5,12 +5,12 @@ Adding one requires creating a single file — no other code changes needed.
 
 ## Steps
 
-1. **Create `specs/<your_spec>.py`** — use snake_case for the filename.
+1. **Create `interplay/specs/<your_spec>.py`** — use snake_case for the filename.
 
 2. **Define `SPEC`** — the file must export a module-level `SPEC` variable:
 
 ```python
-from specs.models import BiasGroup, BiasComparisonSpec
+from interplay.specs.models import BiasGroup, BiasComparisonSpec
 
 SPEC = BiasComparisonSpec(
     name="France vs Algeria",
@@ -112,8 +112,8 @@ The filename stem becomes the CLI slug with underscores replaced by hyphens:
 
 | File | CLI slug |
 |---|---|
-| `specs/france_algeria.py` | `france-algeria` |
-| `specs/uk_india.py` | `uk-india` |
+| `interplay/specs/france_algeria.py` | `france-algeria` |
+| `interplay/specs/uk_india.py` | `uk-india` |
 
 Usage after merging:
 ```bash

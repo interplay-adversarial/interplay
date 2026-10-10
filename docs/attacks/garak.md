@@ -7,7 +7,7 @@
 **Key Feature**: Comprehensive coverage; runs [Garak](https://github.com/NVIDIA/garak) as a subprocess against an OpenAI-compatible HTTP endpoint
 
 ```python
-from red_teaming import run_garak
+from interplay.red_teaming import run_garak
 
 result = run_garak(
     target_url="https://your-target/v1",

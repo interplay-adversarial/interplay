@@ -1,4 +1,4 @@
-# AGENTS.md — Cultural Bias Red Team
+# AGENTS.md — Interplay
 
 Guidance for AI agents working on this repository.
 
@@ -9,7 +9,7 @@ Singapore AI Safety Red Teaming Challenge methodology (IMDA + Humane Intelligenc
 
 Two modes:
 - **Singapore mode** (default): 9-country APAC taxonomy, 5 bias categories
-- **Comparison mode**: any two-group comparison defined in `specs/`
+- **Comparison mode**: any two-group comparison defined in `interplay/specs/`
 
 Both modes produce adversarial + benign probes in a single DataDesigner run via `SkipConfig`.
 
@@ -17,14 +17,16 @@ Both modes produce adversarial + benign probes in a single DataDesigner run via 
 
 ```
 pipeline.py          # DataDesigner pipeline — load_config_builder() is the CLI entry point
-specs/
-  __init__.py        # load_spec(slug) + list_specs()
-  models.py          # BiasGroup + BiasComparisonSpec Pydantic models
-  singapore.py       # Singapore 9-country taxonomy (DataFrame + CATEGORY_DEFINITIONS)
-  us_mexico.py       # SPEC = BiasComparisonSpec(...)
-  us_puerto_rico.py  # SPEC = ...
-  us_white_brown.py  # SPEC = ...
-  CONTRIBUTING.md    # how to add a new spec
+interplay/           # the installable package (distribution name: interplay-adversarial)
+  specs/
+    __init__.py      # load_spec(slug) + list_specs()
+    models.py        # BiasGroup + BiasComparisonSpec Pydantic models
+    singapore.py     # Singapore 9-country taxonomy (DataFrame + CATEGORY_DEFINITIONS)
+    us_mexico.py     # SPEC = BiasComparisonSpec(...)
+    us_puerto_rico.py  # SPEC = ...
+    us_white_brown.py  # SPEC = ...
+    CONTRIBUTING.md  # how to add a new spec
+  red_teaming/       # attack runners (TAP, PAIR, Crescendo, GOAT, SLIP, Multimodal, Garak)
 tests/
   test_specs.py      # runs without data-designer; validates spec format
 examples/
@@ -67,11 +69,11 @@ uv run python examples/diverse_dataset.py                  # generates ~720 prob
 
 ## Adding a new spec
 
-1. Create `specs/<name>.py` — must export `SPEC: BiasComparisonSpec`
+1. Create `interplay/specs/<name>.py` — must export `SPEC: BiasComparisonSpec`
 2. Run `uv run pytest` — tests validate the spec automatically
 3. Open a PR — CI runs `data-designer validate` and `pytest`
 
-See `specs/CONTRIBUTING.md` for the full spec template and requirements.
+See `interplay/specs/CONTRIBUTING.md` for the full spec template and requirements.
 
 ## Code conventions
 
@@ -88,7 +90,7 @@ See `specs/CONTRIBUTING.md` for the full spec template and requirements.
 
 - Do not add `generator_params` closures — always pass data via `generator_params=` in `CustomColumnConfig`
 - Do not define `@dd.custom_column_generator` functions inside `build_*` functions
-- Do not modify `pipeline.py` to add new spec data — all spec data belongs in `specs/`
+- Do not modify `pipeline.py` to add new spec data — all spec data belongs in `interplay/specs/`
 - Do not use nested Pydantic models in `AdversarialProbe` or `BenignProbe`
 - Do not store actual slurs in `stereotypes_to_probe` — describe the bias pattern, not the slur itself
 

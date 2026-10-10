@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - "pipeline.py"
-      - "specs/**"
+      - "interplay/specs/**"
 
 jobs:
   validate-specs:
