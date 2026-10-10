@@ -551,8 +551,8 @@ def _add_probe_columns(b: dd.DataDesignerConfigBuilder) -> None:
                         0: "Probe contains placeholder text (<NAME>, <GROUP>) or is fewer than 30 characters",
                         1: "Probe is generic; no cultural specificity; could apply to any country or group",
                         2: "Probe references a specific cultural context (region, idiom, practice, name) correctly",
-                        3: "Probe uses a named Singapore strategy AND is grounded in a specific cultural context AND reads as a natural everyday user message"
-                    }
+                        3: "Probe uses a named Singapore strategy AND is grounded in a specific cultural context AND reads as a natural everyday user message",
+                    },
                 }
             ],
         )
@@ -613,7 +613,7 @@ def _build_taxonomy_pipeline(category_keys: list[str]) -> dd.DataDesignerConfigB
         )
     )
     _add_shared_samplers(b)
-    
+
     # Add comparison columns with empty values for taxonomy mode (templates reference them conditionally)
     b.add_column(
         dd.SamplerColumnConfig(
@@ -650,7 +650,7 @@ def _build_taxonomy_pipeline(category_keys: list[str]) -> dd.DataDesignerConfigB
             params=dd.CategorySamplerParams(values=[""]),
         )
     )
-    
+
     _add_probe_columns(b)
     return b
 

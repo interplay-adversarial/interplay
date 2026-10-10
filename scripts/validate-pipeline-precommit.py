@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Pre-commit hook: validate pipeline.py schema changes."""
+
 import subprocess
 import sys
 from pathlib import Path
@@ -34,7 +35,9 @@ def main():
     if "INVALID_REFERENCE" in output:
         print("\n❌ Pipeline has invalid template references:")
         print(output)
-        print("\nCheck that all template variables ({{ variable_name }}) reference existing columns.")
+        print(
+            "\nCheck that all template variables ({{ variable_name }}) reference existing columns."
+        )
         return 1
 
     if "Field required" in output:

@@ -31,23 +31,25 @@ def test_pipeline_validate():
 
     # Check for validation errors (not API key warnings)
     output = result.stdout + result.stderr
-    
+
     # Should not contain configuration errors
     assert "Configuration is invalid" not in output, f"Pipeline validation failed:\n{output}"
     assert "INVALID_REFERENCE" not in output, f"Pipeline has invalid template references:\n{output}"
     assert "Field required" not in output, f"Pipeline has missing required fields:\n{output}"
-    
+
     # Should contain success indicator or at least not fail
-    assert result.returncode == 0, f"Pipeline validation failed with code {result.returncode}:\n{output}"
+    assert result.returncode == 0, (
+        f"Pipeline validation failed with code {result.returncode}:\n{output}"
+    )
 
 
 def test_pipeline_imports():
     """Verify pipeline.py can be imported without errors."""
     repo_root = Path(__file__).parent.parent
-    
+
     # Add repo to path
     sys.path.insert(0, str(repo_root))
-    
+
     try:
         import pipeline  # noqa: F401
     except ImportError as e:
