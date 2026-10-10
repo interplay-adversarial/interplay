@@ -31,8 +31,7 @@ export JUDGE_MODEL="openai/gpt-4o-mini"
 uv run python examples/integrated_run.py --probe-file probes.jsonl --output-dir output/
 ```
 
-Each page above shows the Python call for that runner. All of them need the `red-teaming` extra:
-`uv sync --extra red-teaming`.
+Each page above shows the Python call for that runner. All of them need the `red-teaming` extra (`pip install 'interplay-adversarial[red-teaming]'`); Garak also needs the `garak` extra.
 
 ## Safety
 

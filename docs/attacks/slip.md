@@ -27,7 +27,7 @@ asyncio.run(main())
 
 ## Notes
 
-- Requires the `red-teaming` extra (`uv sync --extra red-teaming`) and the environment variables in the [README configuration section](../../README.md#configuration).
+- Requires the `red-teaming` extra (`pip install 'interplay-adversarial[red-teaming]'`, or `uv sync --extra red-teaming` in a clone) and the environment variables in the [README configuration section](../../README.md#configuration).
 - Run only against targets you own or are authorized to test; see [SECURITY.md](../../SECURITY.md).
 
 ## Reference
