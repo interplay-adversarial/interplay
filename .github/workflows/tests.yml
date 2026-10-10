@@ -1,0 +1,57 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"        # weekly: new CVEs are published without any commit
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - name: Ruff lint
+        run: ruff check .
+      - name: Ruff format
+        run: ruff format --check .
+
+  tests:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install (garak is not needed for the mocked unit tests)
+        run: pip install -e ".[dev]" any-llm-sdk judge-kappa httpx
+      - name: Unit tests
+        run: pytest tests -q
+
+  audit:
+    # pip-audit (PyPA, open source) checks the installed dependency set against the
+    # PyPI/OSV advisory database. Runs on PRs, pushes and weekly.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the project and the test dependencies
+        run: pip install -e ".[dev]" any-llm-sdk judge-kappa httpx pip-audit
+      - name: Audit dependencies for known vulnerabilities
+        run: pip-audit --skip-editable --progress-spinner off
