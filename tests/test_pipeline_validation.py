@@ -1,8 +1,11 @@
 """Pipeline validation tests."""
 
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 
 def test_pipeline_validate():
@@ -12,8 +15,15 @@ def test_pipeline_validate():
 
     assert pipeline_path.exists(), f"pipeline.py not found at {pipeline_path}"
 
+    # data-designer is a console script (the package has no __main__); look next to this
+    # interpreter first so a virtualenv that is not activated still works.
+    cli = Path(sys.executable).parent / "data-designer"
+    cli = str(cli) if cli.exists() else shutil.which("data-designer")
+    if cli is None:
+        pytest.skip("data-designer CLI not installed")
+
     result = subprocess.run(
-        [sys.executable, "-m", "data_designer", "validate", str(pipeline_path)],
+        [cli, "validate", str(pipeline_path)],
         capture_output=True,
         text=True,
         cwd=repo_root,
@@ -36,7 +46,6 @@ def test_pipeline_imports():
     repo_root = Path(__file__).parent.parent
     
     # Add repo to path
-    import sys
     sys.path.insert(0, str(repo_root))
     
     try:
