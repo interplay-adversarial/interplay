@@ -1,11 +1,11 @@
 """
-Spec loader for cultural-bias-red-team.
+Spec loader for Interplay.
 
 Convention: every .py file in this directory (except __init__.py, models.py,
 singapore.py) exports a module-level `SPEC: BiasComparisonSpec` variable.
 
 Adding a new spec:
-    1. Create specs/my_spec.py with SPEC = BiasComparisonSpec(...)
+    1. Create interplay/specs/my_spec.py with SPEC = BiasComparisonSpec(...)
     2. Use it: BIAS_SPEC=my-spec data-designer create pipeline.py --num-records 200
     No other files need to change.
 """
@@ -16,7 +16,7 @@ import importlib
 import importlib.util
 from pathlib import Path
 
-from specs.models import BiasComparisonSpec  # noqa: F401 — re-export
+from interplay.specs.models import BiasComparisonSpec  # noqa: F401 — re-export
 
 _SPECS_DIR = Path(__file__).parent
 _EXCLUDED = {"__init__", "models", "singapore", "sdg_hub_harm"}
@@ -46,7 +46,7 @@ def load_spec(slug: str) -> BiasComparisonSpec:
         spec = load_spec("us_mexico")   # same result
     """
     filename = _slug_to_filename(slug)
-    module_name = f"specs.{filename}"
+    module_name = f"interplay.specs.{filename}"
 
     # Try as installed module first, then as file path
     try:
@@ -65,7 +65,7 @@ def load_spec(slug: str) -> BiasComparisonSpec:
 
     if not hasattr(module, "SPEC"):
         raise AttributeError(
-            f"specs/{filename}.py must define a module-level 'SPEC' variable "
+            f"interplay/specs/{filename}.py must define a module-level 'SPEC' variable "
             f"of type BiasComparisonSpec."
         )
     return module.SPEC

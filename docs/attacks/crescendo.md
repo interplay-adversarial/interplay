@@ -7,7 +7,7 @@
 **Key Feature**: Uses model's own responses to guide escalation
 
 ```python
-from red_teaming import crescendo_attack
+from interplay.red_teaming import crescendo_attack
 import asyncio
 
 

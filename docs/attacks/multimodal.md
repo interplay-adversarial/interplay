@@ -7,7 +7,7 @@
 **Key Feature**: Bypass text-only guardrails
 
 ```python
-from red_teaming import multimodal_attack
+from interplay.red_teaming import multimodal_attack
 import asyncio
 
 

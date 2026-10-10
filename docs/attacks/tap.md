@@ -7,7 +7,7 @@
 **Key Feature**: Evaluator LLM prunes weak branches before target query
 
 ```python
-from red_teaming import tap_attack
+from interplay.red_teaming import tap_attack
 import asyncio
 
 

@@ -1,4 +1,4 @@
-"""TAP (Tree of Attacks with Pruning) implementation for cultural-bias-red-team."""
+"""TAP (Tree of Attacks with Pruning) implementation for Interplay."""
 
 from dataclasses import dataclass
 from typing import Any

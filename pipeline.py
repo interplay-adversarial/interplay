@@ -6,7 +6,7 @@ the Singapore AI Safety Red Teaming Challenge methodology (IMDA, Feb 2025).
 
 Two pipeline modes:
   singapore (default) — 9-country APAC taxonomy, 5 bias categories
-  <spec-name>         — any two-group comparison from specs/
+  <spec-name>         — any two-group comparison from interplay/specs/
 
 CLI usage:
   data-designer validate pipeline.py
@@ -30,15 +30,15 @@ import os
 import data_designer.config as dd
 import numpy as np
 import pandas as pd
-from data_designer.interface import DataDesigner
 from data_designer.config import ModelConfig, ModelProvider
+from data_designer.interface import DataDesigner
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-from specs import list_specs, load_spec
-from specs.models import BiasComparisonSpec
-from specs.sdg_hub_harm import SDG_HUB_HARM_DATASET, SDG_HUB_HARM_DEFINITIONS
-from specs.singapore import CATEGORY_DEFINITIONS, CULTURAL_BIAS_DATASET
+from interplay.specs import list_specs, load_spec
+from interplay.specs.models import BiasComparisonSpec
+from interplay.specs.sdg_hub_harm import SDG_HUB_HARM_DATASET, SDG_HUB_HARM_DEFINITIONS
+from interplay.specs.singapore import CATEGORY_DEFINITIONS, CULTURAL_BIAS_DATASET
 
 load_dotenv()
 
@@ -806,7 +806,7 @@ def load_config_builder() -> dd.DataDesignerConfigBuilder:
         us-mexico                US Americans vs Mexicans
         us-puerto-rico           Mainland US vs Puerto Ricans
         us-white-brown           US White (non-Hispanic) vs US Brown/Latino
-        <slug>                   Any file you add to specs/
+        <slug>                   Any file you add to interplay/specs/
 
     Examples:
         data-designer create pipeline.py --num-records 500
@@ -824,7 +824,7 @@ def load_config_builder() -> dd.DataDesignerConfigBuilder:
     if spec_name == "combined":
         return build_combined_pipeline()
 
-    # Comparison spec mode — load from specs/<slug>.py
+    # Comparison spec mode — load from interplay/specs/<slug>.py
     spec = load_spec(spec_name)
     return build_comparison_pipeline(spec)
 

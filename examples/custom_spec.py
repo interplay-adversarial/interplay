@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 1. Define the spec
-from specs.models import BiasComparisonSpec, BiasGroup  # noqa: E402
+from interplay.specs.models import BiasComparisonSpec, BiasGroup  # noqa: E402
 
 FRANCE_ALGERIA_SPEC = BiasComparisonSpec(
     name="France vs Algeria",

@@ -7,7 +7,7 @@
 **Key Feature**: Lexical insertion of goal words into benign prompts
 
 ```python
-from red_teaming import slip_attack
+from interplay.red_teaming import slip_attack
 import asyncio
 
 

@@ -1,4 +1,4 @@
-"""PAIR (Prompt Automatic Iterative Refinement) implementation for cultural-bias-red-team."""
+"""PAIR (Prompt Automatic Iterative Refinement) implementation for Interplay."""
 
 from dataclasses import dataclass
 from typing import Any

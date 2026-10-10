@@ -4,14 +4,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from red_teaming.base import create_completion_kwargs, get_env_var
-from red_teaming.crescendo_runner import CrescendoResult, crescendo_attack
-from red_teaming.garak_runner import create_custom_config, run_garak
-from red_teaming.goat_runner import GOATResult, goat_attack
-from red_teaming.multimodal_runner import MultimodalResult, multimodal_attack
-from red_teaming.pair_runner import PairResult, pair_attack
-from red_teaming.slip_runner import SLIPResult, slip_attack
-from red_teaming.tap_runner import TapResult, tap_attack
+from interplay.red_teaming.base import create_completion_kwargs, get_env_var
+from interplay.red_teaming.crescendo_runner import CrescendoResult, crescendo_attack
+from interplay.red_teaming.garak_runner import create_custom_config, run_garak
+from interplay.red_teaming.goat_runner import GOATResult, goat_attack
+from interplay.red_teaming.multimodal_runner import MultimodalResult, multimodal_attack
+from interplay.red_teaming.pair_runner import PairResult, pair_attack
+from interplay.red_teaming.slip_runner import SLIPResult, slip_attack
+from interplay.red_teaming.tap_runner import TapResult, tap_attack
 
 
 class TestBaseUtilities:
@@ -62,8 +62,8 @@ class TestTapRunner:
         """Test basic TAP attack structure."""
         # Mock the acompletion and _evaluate_prompt functions
         with (
-            patch("red_teaming.tap_runner.acompletion") as mock_acompletion,
-            patch("red_teaming.tap_runner._evaluate_prompt") as mock_eval,
+            patch("interplay.red_teaming.tap_runner.acompletion") as mock_acompletion,
+            patch("interplay.red_teaming.tap_runner._evaluate_prompt") as mock_eval,
         ):
             # Mock responses
             mock_acompletion.return_value = MagicMock(
@@ -108,9 +108,9 @@ class TestPairRunner:
     async def test_pair_attack_basic(self):
         """Test basic PAIR attack structure."""
         with (
-            patch("red_teaming.pair_runner.acompletion") as mock_acompletion,
-            patch("red_teaming.pair_runner._call_target") as mock_target,
-            patch("red_teaming.pair_runner._judge_score") as mock_score,
+            patch("interplay.red_teaming.pair_runner.acompletion") as mock_acompletion,
+            patch("interplay.red_teaming.pair_runner._call_target") as mock_target,
+            patch("interplay.red_teaming.pair_runner._judge_score") as mock_score,
         ):
             # Mock responses
             mock_acompletion.return_value = MagicMock(
@@ -153,9 +153,9 @@ class TestCrescendoRunner:
     async def test_crescendo_attack_basic(self):
         """Test basic Crescendo attack structure."""
         with (
-            patch("red_teaming.crescendo_runner.acompletion") as mock_acompletion,
-            patch("red_teaming.crescendo_runner._call_target") as mock_target,
-            patch("red_teaming.crescendo_runner._score_response") as mock_score,
+            patch("interplay.red_teaming.crescendo_runner.acompletion") as mock_acompletion,
+            patch("interplay.red_teaming.crescendo_runner._call_target") as mock_target,
+            patch("interplay.red_teaming.crescendo_runner._score_response") as mock_score,
         ):
             # Mock responses
             mock_acompletion.return_value = MagicMock(
@@ -198,9 +198,9 @@ class TestGOATRunner:
     async def test_goat_attack_basic(self):
         """Test basic GOAT attack structure."""
         with (
-            patch("red_teaming.goat_runner.acompletion") as mock_acompletion,
-            patch("red_teaming.goat_runner._call_target") as mock_target,
-            patch("red_teaming.goat_runner._score_response") as mock_score,
+            patch("interplay.red_teaming.goat_runner.acompletion") as mock_acompletion,
+            patch("interplay.red_teaming.goat_runner._call_target") as mock_target,
+            patch("interplay.red_teaming.goat_runner._score_response") as mock_score,
         ):
             # Mock responses
             mock_acompletion.return_value = MagicMock(
@@ -243,9 +243,9 @@ class TestSLIPRunner:
     async def test_slip_attack_basic(self):
         """Test basic SLIP attack structure."""
         with (
-            patch("red_teaming.slip_runner.acompletion") as mock_acompletion,
-            patch("red_teaming.slip_runner._call_target") as mock_target,
-            patch("red_teaming.slip_runner._score_response") as mock_score,
+            patch("interplay.red_teaming.slip_runner.acompletion") as mock_acompletion,
+            patch("interplay.red_teaming.slip_runner._call_target") as mock_target,
+            patch("interplay.red_teaming.slip_runner._score_response") as mock_score,
         ):
             # Mock responses
             mock_acompletion.return_value = MagicMock(
@@ -287,9 +287,9 @@ class TestMultimodalRunner:
     async def test_multimodal_attack_basic(self):
         """Test basic Multimodal attack structure."""
         with (
-            patch("red_teaming.multimodal_runner._generate_payload_image") as mock_gen,
-            patch("red_teaming.multimodal_runner._call_vision_target") as mock_target,
-            patch("red_teaming.multimodal_runner._score_response") as mock_score,
+            patch("interplay.red_teaming.multimodal_runner._generate_payload_image") as mock_gen,
+            patch("interplay.red_teaming.multimodal_runner._call_vision_target") as mock_target,
+            patch("interplay.red_teaming.multimodal_runner._score_response") as mock_score,
         ):
             # Mock responses
             mock_gen.return_value = "/tmp/test.png"

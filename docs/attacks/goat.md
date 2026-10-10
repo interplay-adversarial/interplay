@@ -7,7 +7,7 @@
 **Key Feature**: Attacker reasons about best strategy per turn
 
 ```python
-from red_teaming import goat_attack
+from interplay.red_teaming import goat_attack
 import asyncio
 
 

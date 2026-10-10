@@ -1,4 +1,4 @@
-"""Multimodal (image payload) attack implementation for cultural-bias-red-team."""
+"""Multimodal (image payload) attack implementation for Interplay."""
 
 from dataclasses import dataclass
 from typing import Any
