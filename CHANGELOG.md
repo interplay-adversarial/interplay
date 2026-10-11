@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `hygiene` CI check: every commit in a pull request carries the maintainer's `Signed-off-by`, and no Claude or Hermes session link or id appears in commits, diffs or PR text (bot-authored commits skip the sign-off)
+
 ## [0.2.1] - 2026-10-11
 
 ### Added

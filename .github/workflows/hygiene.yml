@@ -1,0 +1,38 @@
+name: Hygiene
+
+# Server-side twin of the local git hooks: every commit of a pull request is signed off by the
+# human, and no Claude or Hermes session link/id appears in a commit, the diff, or the PR text.
+# Bot-authored commits and PRs (Dependabot, CodeRabbit) skip the human sign-off but keep the
+# session checks. The engine is a copy of scripts/git-hygiene/git-hygiene.py in the maintainer's
+# workspace. Why: a session link in a public commit ties the repo to a private conversation.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Commits and diff
+        run: python3 .github/scripts/git-hygiene.py range "$BASE_SHA" "$HEAD_SHA"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      - name: Pull request title and body
+        run: |
+          printf '%s\n\n%s\n' "$PR_TITLE" "$PR_BODY" > "$RUNNER_TEMP/pr.txt"
+          flag=--require-signoff
+          case "$PR_AUTHOR" in *"[bot]") flag="" ;; esac
+          python3 .github/scripts/git-hygiene.py text $flag "$RUNNER_TEMP/pr.txt"
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
