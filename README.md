@@ -1,6 +1,6 @@
 # Interplay Adversarial
 
-Adversarial and red-teaming library: culturally grounded probe generation plus seven attack methodologies for testing model robustness. Formerly `cultural-bias-red-team`.
+Adversarial and red-teaming library for AI systems: culturally grounded probe generation plus seven attack methodologies. Attacks run against any target that exposes an endpoint compatible with the providers supported by [`any-llm-sdk`](https://github.com/mozilla-ai/any-llm): hosted or self-hosted models, and the agents, tool-using applications and harnesses served behind such an endpoint. Formerly `cultural-bias-red-team`.
 
 Implements the **Singapore AI Safety Red Teaming Challenge methodology** (IMDA + Humane Intelligence, Feb 2025) using [NeMo Data Designer](https://github.com/NVIDIA-NeMo/DataDesigner), plus 7 attack methodologies for comprehensive adversarial testing (see [docs/METHODOLOGY.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/METHODOLOGY.md)).
 
@@ -36,7 +36,7 @@ Standard red-teaming focuses on adversarial prompts from an attacker perspective
 - **Positive framing** ("which city is *richest*?") bypasses more guardrails than negative framing
 - Cultural bias appears in daily use, not only adversarial scenarios
 
-This tool generates both probe types, grounded in specific cultural contexts rather than generic demographics, and provides 7 attack methodologies to test model robustness.
+This tool generates both probe types, grounded in specific cultural contexts rather than generic demographics, and provides 7 attack methodologies to test how AI systems behave under adversarial pressure.
 
 ## Attack Methodologies
 
@@ -240,6 +240,11 @@ BASE_URL=https://your-provider/v1
 ```
 
 ### Supported Providers
+
+A target is anything that exposes an endpoint compatible with one of the providers supported by `any-llm-sdk`
+(a model, or an agent, tool-using application or harness served behind such an endpoint). The attacks interact
+with it through that endpoint, using chat messages and, for the Multimodal runner, images; they do not instrument
+tools, harness internals or skills directly.
 
 All providers supported by `any-llm-sdk`:
 - OpenAI (default)
