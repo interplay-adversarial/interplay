@@ -16,8 +16,10 @@ Both modes produce adversarial + benign probes in a single DataDesigner run via 
 ## Repository structure
 
 ```
-pipeline.py          # DataDesigner pipeline — load_config_builder() is the CLI entry point
+pipeline.py          # thin shim for `data-designer ... pipeline.py` from a clone (imports interplay/pipeline.py)
 interplay/           # the installable package (distribution name: interplay-adversarial)
+  pipeline.py        # DataDesigner pipeline — load_config_builder() is the data-designer entry point
+  cli.py             # `interplay` command: modes, pipeline-path, probes validate|preview|create
   specs/
     __init__.py      # load_spec(slug) + list_specs()
     models.py        # BiasGroup + BiasComparisonSpec Pydantic models
@@ -90,7 +92,7 @@ See `interplay/specs/CONTRIBUTING.md` for the full spec template and requirement
 
 - Do not add `generator_params` closures — always pass data via `generator_params=` in `CustomColumnConfig`
 - Do not define `@dd.custom_column_generator` functions inside `build_*` functions
-- Do not modify `pipeline.py` to add new spec data — all spec data belongs in `interplay/specs/`
+- Do not modify `interplay/pipeline.py` to add new spec data — all spec data belongs in `interplay/specs/`
 - Do not use nested Pydantic models in `AdversarialProbe` or `BenignProbe`
 - Do not store actual slurs in `stereotypes_to_probe` — describe the bias pattern, not the slur itself
 
