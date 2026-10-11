@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-11
+
 ### Added
 - `interplay probes setup --base-url URL --model NAME [--api-key-env VAR]` defines the model the pipeline uses (data-designer alias `cultural-bias-model`) without storing the key
 - `scripts/smoke_install.py` (installs a published or built package in a throwaway directory and exercises it like a new user), `scripts/mock_openai.py` (fake OpenAI-compatible endpoint), an end-to-end test, and `docs/RELEASING.md`
