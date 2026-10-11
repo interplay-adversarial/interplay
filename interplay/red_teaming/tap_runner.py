@@ -1,4 +1,4 @@
-"""TAP (Tree of Attacks with Pruning) implementation for Interplay."""
+"""TAP (Tree of Attacks with Pruning) implementation for Interplay Adversarial."""
 
 from dataclasses import dataclass
 from typing import Any

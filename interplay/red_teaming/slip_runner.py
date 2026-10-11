@@ -1,4 +1,4 @@
-"""SLIP (Self-Jailbreaking via Lexical Insertion) implementation for Interplay."""
+"""SLIP (Self-Jailbreaking via Lexical Insertion) implementation for Interplay Adversarial."""
 
 from dataclasses import dataclass
 from typing import Any

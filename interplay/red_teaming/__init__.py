@@ -1,4 +1,4 @@
-"""Red teaming attack runners for Interplay."""
+"""Red teaming attack runners for Interplay Adversarial."""
 
 try:
     import any_llm  # noqa: F401

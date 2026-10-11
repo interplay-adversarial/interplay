@@ -1,4 +1,4 @@
-"""Crescendo multi-turn attack implementation for Interplay."""
+"""Crescendo multi-turn attack implementation for Interplay Adversarial."""
 
 from dataclasses import dataclass
 from typing import Any

@@ -1,6 +1,6 @@
 # Methodology
 
-Interplay combines two kinds of work: **generating** culturally grounded probes, and **attacking** a
+Interplay Adversarial combines two kinds of work: **generating** culturally grounded probes, and **attacking** a
 target with search-based, multi-turn and multimodal techniques. They can be used separately or together.
 
 ## 1. Probe generation: the Singapore challenge methodology

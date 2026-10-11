@@ -1,5 +1,5 @@
 """
-Spec loader for Interplay.
+Spec loader for Interplay Adversarial.
 
 Convention: every .py file in this directory (except __init__.py, models.py,
 singapore.py) exports a module-level `SPEC: BiasComparisonSpec` variable.

@@ -1,6 +1,6 @@
 # Security Policy
 
-Interplay is an adversarial and red-teaming library. Its techniques target **models, agents, tools,
+Interplay Adversarial is an adversarial and red-teaming library. Its techniques target **models, agents, tools,
 harnesses and agent skills**, and some of them run code, call tools or send network traffic as part of a
 test. Two kinds of problems are in scope here, and they are reported differently.
 
@@ -53,7 +53,7 @@ How to disclose:
 
 ## Testing safely
 
-Techniques against agents and tools can have real effects. When you use or contribute to Interplay:
+Techniques against agents and tools can have real effects. When you use or contribute to Interplay Adversarial:
 
 - Run agent, tool and harness tests in an isolated sandbox with throwaway credentials, synthetic
   data and no access to production systems, real mailboxes, payment or deployment tools.

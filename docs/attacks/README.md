@@ -1,6 +1,6 @@
 # Attack Methodologies
 
-Interplay ships seven attack runners in the `red_teaming` package. Each is an async (or subprocess)
+Interplay Adversarial ships seven attack runners in the `red_teaming` package. Each is an async (or subprocess)
 function that takes a goal and a target endpoint and returns a result with a best score.
 How they relate to each other, and to probe generation, is described in
 [METHODOLOGY.md](../METHODOLOGY.md).
