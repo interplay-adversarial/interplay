@@ -1,6 +1,6 @@
 # Content Policy
 
-Interplay contains material that is meant to make **models, agents, tools, harnesses and agent skills**
+Interplay Adversarial contains material that is meant to make **models, agents, tools, harnesses and agent skills**
 misbehave. This policy says what may be committed, how it is labeled, and who reviews it. It applies to
 code, techniques, specs, example data and collections, adversarial skills and tool definitions, and to
 pull requests written with AI assistance.
@@ -76,7 +76,7 @@ When in doubt, label higher and ask in the PR.
 
 ## Use
 
-Use Interplay only against models, agents, tools and systems you own or are authorized to test, in an
+Use Interplay Adversarial only against models, agents, tools and systems you own or are authorized to test, in an
 isolated environment, and follow the terms of the services you test. Report weaknesses found in
 third-party systems as described in [SECURITY.md](../SECURITY.md).
 

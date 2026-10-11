@@ -1,4 +1,4 @@
-"""GOAT (Generative Offensive Agent Tester) implementation for Interplay."""
+"""GOAT (Generative Offensive Agent Tester) implementation for Interplay Adversarial."""
 
 from dataclasses import dataclass
 from typing import Any

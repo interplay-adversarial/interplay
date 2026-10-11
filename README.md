@@ -1,4 +1,4 @@
-# Interplay
+# Interplay Adversarial
 
 Adversarial and red-teaming library: culturally grounded probe generation plus seven attack methodologies for testing model robustness. Formerly `cultural-bias-red-team`.
 
@@ -269,13 +269,17 @@ uv run python examples/integrated_run.py --probe-file probes.jsonl
 
 ## Methodology
 
-Interplay combines culturally grounded probe generation (the **Singapore AI Safety Red Teaming Challenge** approach, IMDA and Humane Intelligence, February 2025) with seven attack methodologies that cover different search strategies, from static probe libraries to multi-turn and multimodal attacks. How they work, when to use each, how they combine, and the references are in [docs/METHODOLOGY.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/METHODOLOGY.md).
+Interplay Adversarial combines culturally grounded probe generation (the **Singapore AI Safety Red Teaming Challenge** approach, IMDA and Humane Intelligence, February 2025) with seven attack methodologies that cover different search strategies, from static probe libraries to multi-turn and multimodal attacks. How they work, when to use each, how they combine, and the references are in [docs/METHODOLOGY.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/METHODOLOGY.md).
 
 ## Security and content policy
 
 This project contains adversarial material. Read the [content policy](https://github.com/interplay-adversarial/interplay/blob/main/docs/CONTENT_POLICY.md) before
 contributing, and report vulnerabilities privately as described in [SECURITY.md](https://github.com/interplay-adversarial/interplay/blob/main/SECURITY.md).
 Use it only against systems you own or are authorized to test.
+
+## Name and affiliation
+
+Interplay Adversarial is an independent open-source project. It is not affiliated with, sponsored by or endorsed by Interplay Entertainment Corp. "Interplay" is a trademark of its respective owner.
 
 ## License
 

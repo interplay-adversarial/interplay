@@ -1,4 +1,4 @@
-# AGENTS.md — Interplay
+# AGENTS.md — Interplay Adversarial
 
 Guidance for AI agents working on this repository.
 

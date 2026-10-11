@@ -1,4 +1,4 @@
-"""PAIR (Prompt Automatic Iterative Refinement) implementation for Interplay."""
+"""PAIR (Prompt Automatic Iterative Refinement) implementation for Interplay Adversarial."""
 
 from dataclasses import dataclass
 from typing import Any

@@ -1,7 +1,7 @@
 """Integrated red teaming run: cultural bias + attack methodologies.
 
 Example workflow:
-    1. Generate probes with Interplay pipeline
+    1. Generate probes with Interplay Adversarial pipeline
     2. Run Garak against target
     3. Run TAP/PAIR attacks
     4. Merge results with statistical validation

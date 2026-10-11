@@ -1,4 +1,4 @@
-"""Multimodal (image payload) attack implementation for Interplay."""
+"""Multimodal (image payload) attack implementation for Interplay Adversarial."""
 
 from dataclasses import dataclass
 from typing import Any
