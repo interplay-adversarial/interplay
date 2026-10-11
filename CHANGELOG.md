@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Dependabot keeps the GitHub Actions in the workflows up to date (weekly PRs)
+- `hygiene` CI check: every commit in a pull request carries the maintainer's `Signed-off-by`, the PR body ends with it, and no Claude or Hermes session link or id appears in commits, diffs or PR text (bot-authored PRs skip the sign-off)
 
 ## [0.2.1] - 2026-10-11
 

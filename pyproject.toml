@@ -78,6 +78,8 @@ packages = ["interplay"]
 
 [tool.ruff]
 line-length = 100
+# .github/scripts/git-hygiene.py is a verbatim copy of an external tool; keep it identical to its source.
+extend-exclude = [".github/scripts"]
 target-version = "py312"
 
 [tool.ruff.lint]
