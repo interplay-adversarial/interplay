@@ -34,9 +34,26 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
 
+  testpypi-gate:
+    # A release may only reach PyPI if this exact version was already published to TestPyPI and verified
+    # (see docs/RELEASING.md). Runs before the approval prompt of the pypi environment.
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the same version on TestPyPI
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version="${TAG#v}"
+          code=$(curl -s -o /dev/null -w '%{http_code}' "https://test.pypi.org/pypi/interplay-adversarial/${version}/json")
+          if [ "$code" != 200 ]; then
+            echo "::error::interplay-adversarial ${version} is not on TestPyPI. Run the Publish workflow manually first, verify it with scripts/smoke_install.py --index testpypi --version ${version}, then release (docs/RELEASING.md)."
+            exit 1
+          fi
+
   pypi:
     if: github.event_name == 'release'
-    needs: build
+    needs: [build, testpypi-gate]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
