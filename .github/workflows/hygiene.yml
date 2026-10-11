@@ -5,6 +5,10 @@ name: Hygiene
 # Bot-authored commits skip the human sign-off only when GitHub says the PR author is a bot
 # (Dependabot, CodeRabbit); the session checks always apply. The engine is a copy of
 # scripts/git-hygiene/git-hygiene.py in the maintainer's workspace.
+# This is a hygiene net for honest mistakes, not a security boundary: it runs on `pull_request`, so a PR
+# that edits this workflow is judged by its own edit. Review of changes under .github/ and the required
+# status check on main are the boundary. (`pull_request_target` would close that gap but runs in the
+# base repo's privileged context, which is not worth it here.)
 # Why: a session link in a public commit ties the repo to a private conversation.
 
 on:
@@ -37,11 +41,14 @@ jobs:
         env:
           GIT_HYGIENE_ALLOW_BOT_COMMITS: ${{ github.event.pull_request.user.type == 'Bot' && '1' || '0' }}
       - name: Pull request title and body
+        # The body must end with the sign-off by itself; a title that happens to end with it does not count.
         run: |
-          printf '%s\n\n%s\n' "$PR_TITLE" "$PR_BODY" > "$RUNNER_TEMP/pr.txt"
+          printf '%s\n' "$PR_TITLE" > "$RUNNER_TEMP/pr-title.txt"
+          printf '%s\n' "$PR_BODY" > "$RUNNER_TEMP/pr-body.txt"
           flag=--require-signoff
           [ "$PR_AUTHOR_TYPE" = Bot ] && flag=""
-          python3 "$RUNNER_TEMP/git-hygiene.py" text $flag "$RUNNER_TEMP/pr.txt"
+          python3 "$RUNNER_TEMP/git-hygiene.py" text "$RUNNER_TEMP/pr-title.txt"
+          python3 "$RUNNER_TEMP/git-hygiene.py" text $flag "$RUNNER_TEMP/pr-body.txt"
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
