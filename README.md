@@ -24,8 +24,15 @@ interplay probes validate                                  # check the pipeline 
 interplay probes create --mode us-mexico --num-records 200   # extra arguments go to data-designer
 ```
 
-Set the model endpoint with environment variables (see Configuration). The examples run from a clone of the
-repository; see Quick Start.
+`preview` and `create` call a model. Define it once (it writes data-designer's config, never the key itself), then
+export the key:
+
+```bash
+interplay probes setup --base-url https://your-endpoint/v1 --model your-model --api-key-env OPENAI_API_KEY
+export OPENAI_API_KEY=...
+```
+
+The examples run from a clone of the repository; see Quick Start.
 
 ## Why
 
