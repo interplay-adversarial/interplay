@@ -13,6 +13,7 @@ pip install interplay-adversarial                    # core: specs and the probe
 pip install "interplay-adversarial[red-teaming]"     # attack runners: TAP, PAIR, Crescendo, GOAT, SLIP, Multimodal
 pip install "interplay-adversarial[garak]"           # + the Garak scanner (large install)
 pip install "interplay-adversarial[providers]"       # + 20+ LLM provider SDKs for any-llm-sdk
+pip install "interplay-adversarial[all]"             # red-teaming + providers (Garak conflicts with the provider SDKs; install it in its own environment)
 ```
 
 The package installs the `interplay` Python package (`interplay.specs`, `interplay.red_teaming`) and an `interplay`
@@ -266,7 +267,7 @@ All providers supported by `any-llm-sdk`:
 ## Development
 
 ```bash
-uv sync                     # install all deps
+uv sync                     # install the project and the dev tools (pytest, ruff, pip-audit)
 uv sync --extra red-teaming  # + attack methodology deps (--extra garak for the Garak scanner)
 uv run ruff check .         # lint
 uv run ruff format .        # format
