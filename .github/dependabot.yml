@@ -1,0 +1,10 @@
+version: 2
+updates:
+  # Keep the GitHub Actions in .github/workflows/ on their latest major versions.
+  # Each bump arrives as a PR that CI tests before it is merged.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
