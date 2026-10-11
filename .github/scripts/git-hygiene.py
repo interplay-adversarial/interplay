@@ -18,6 +18,9 @@ Modes:
   claude-hook                Claude Code PreToolUse hook: stdin = tool JSON; exit 2 blocks the call
 
 Settings: GIT_HYGIENE_SIGNOFF overrides the required sign-off line.
+CI only: GIT_HYGIENE_STRICT=1 makes git failures and internal errors fail the check (local hooks stay
+fail-open); GIT_HYGIENE_ALLOW_BOT_COMMITS=1 lets `range` skip the human sign-off for bot-authored
+commits, and the workflow sets it only when GitHub itself says the PR author is a bot.
 Install on a machine: scripts/git-hygiene/install.sh. Hermes runs the same rules through
 contrib-guard.py (config/git-hygiene.py is a copy of this file; `make sync-docs` refreshes it).
 A hook can be skipped with --no-verify; do not.
@@ -30,6 +33,8 @@ import sys
 
 SIGNOFF = os.environ.get("GIT_HYGIENE_SIGNOFF", "Signed-off-by: William Caban <william.caban@gmail.com>")
 ZERO = "0" * 40
+STRICT = os.environ.get("GIT_HYGIENE_STRICT") == "1"
+ALLOW_BOT_COMMITS = os.environ.get("GIT_HYGIENE_ALLOW_BOT_COMMITS") == "1"
 
 # Strong patterns: also checked in files and in anything a tool is about to run.
 STRONG = [
@@ -47,7 +52,11 @@ AI_SIGNOFF = re.compile(r"(?im)^\s*signed-off-by:.*(claude|hermes|anthropic|\bbo
 
 def git(*args, stdin=None):
     r = subprocess.run(["git", *args], input=stdin, capture_output=True, text=True, errors="replace")
-    return r.stdout if r.returncode == 0 else ""
+    if r.returncode != 0:
+        if STRICT:
+            raise RuntimeError(f"git {args[0]} failed with status {r.returncode}")
+        return ""
+    return r.stdout
 
 
 class Report:
@@ -95,7 +104,7 @@ def check_text(rep, text, where, require_signoff=False):
         rep.block(name, where, f"line {ln}: remove the session information (value not shown)")
     if AI_SIGNOFF.search(text):
         rep.block("signoff", where, "Signed-off-by must name the human, not an AI or a bot")
-    if require_signoff and SIGNOFF not in text:
+    if require_signoff and not text.rstrip().endswith(SIGNOFF):
         rep.block("signoff", where, f"end the text with: {SIGNOFF}")
 
 
@@ -108,7 +117,7 @@ def check_diff(rep, diff, where):
             m = re.search(r"\+(\d+)", raw)
             ln = int(m.group(1)) if m else 0
         elif raw.startswith("+") and not raw.startswith("+++"):
-            if path and "git-hygiene" not in path:  # this tool and its tests mention the patterns
+            if path:
                 for name, _ in session_hits(raw[1:], strong_only=True):
                     rep.block(name, f"{path}:{ln}", "remove the session link or id (value not shown)")
             ln += 1
@@ -157,8 +166,9 @@ def mode_range(args):
     base, head = args[0], args[1]
     rep = Report()
     for sha in git("rev-list", "--no-merges", f"{base}..{head}").split():
-        who = git("log", "-1", "--format=%an <%ae>", sha)
-        bot = "[bot]" in who
+        # Commit metadata is spoofable; the exemption applies only when CI established that the PR
+        # author is a bot (GIT_HYGIENE_ALLOW_BOT_COMMITS) and the commit also looks bot-authored.
+        bot = ALLOW_BOT_COMMITS and "[bot]" in git("log", "-1", "--format=%an <%ae>", sha)
         check_message(rep, git("log", "-1", "--format=%B", sha), f"commit {sha[:8]}", signoff=not bot, bot=bot)
     check_diff(rep, git("diff", "-U0", "--no-color", "--no-ext-diff", f"{base}...{head}"), "diff")
     return rep.finish("pull request commits")
@@ -208,6 +218,9 @@ def main(argv):
     try:
         return MODES[argv[1]](argv[2:])
     except Exception as e:  # a bug here must be loud but must not freeze all work
+        if STRICT:
+            print(f"git-hygiene: INTERNAL ERROR, failing the check ({type(e).__name__}: {e})", file=sys.stderr)
+            return 1
         print(f"git-hygiene: INTERNAL ERROR, check skipped ({type(e).__name__}: {e})", file=sys.stderr)
         return 0
 
