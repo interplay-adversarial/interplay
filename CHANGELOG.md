@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- GitHub Actions in all workflows are pinned to full commit SHAs with a version comment (Dependabot keeps them current)
+
+### Fixed
+- The publish workflow referenced `astral-sh/setup-uv@v10`, a tag that does not exist (that action publishes exact versions only); it is now pinned to v10.3.0
+
 ### Added
 - Dependabot keeps the GitHub Actions in the workflows up to date (weekly PRs)
 - `hygiene` CI check: every commit in a pull request carries the maintainer's `Signed-off-by`, the PR body ends with it, and no Claude or Hermes session link or id appears in commits, diffs or PR text (bot-authored PRs skip the sign-off)
