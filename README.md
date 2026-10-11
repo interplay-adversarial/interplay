@@ -15,8 +15,17 @@ pip install "interplay-adversarial[garak]"           # + the Garak scanner (larg
 pip install "interplay-adversarial[providers]"       # + 20+ LLM provider SDKs for any-llm-sdk
 ```
 
-The package installs `interplay` (`interplay.specs`, `interplay.red_teaming`). The probe-generation command
-line (`data-designer ... pipeline.py`) and the examples run from a clone of the repository; see Quick Start.
+The package installs the `interplay` Python package (`interplay.specs`, `interplay.red_teaming`) and an `interplay`
+command. Probe generation works straight from a pip install:
+
+```bash
+interplay modes                                            # singapore, sdg-hub-harm, combined, and comparison specs
+interplay probes validate                                  # check the pipeline config (no API key needed)
+interplay probes create --mode us-mexico --num-records 200   # extra arguments go to data-designer
+```
+
+Set the model endpoint with environment variables (see Configuration). The examples run from a clone of the
+repository; see Quick Start.
 
 ## Why
 
@@ -46,6 +55,8 @@ Details, parameters and examples for each: [docs/attacks](https://github.com/int
 ## Quick Start
 
 ### Probe Generation (Cultural Bias)
+
+With a pip install, use `interplay probes ...` (see Install). From a clone, the same pipeline is available as `pipeline.py`:
 
 ```bash
 git clone https://github.com/interplay-adversarial/interplay.git
