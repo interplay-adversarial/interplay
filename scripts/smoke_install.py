@@ -193,29 +193,34 @@ def main() -> int:
             "setup stores the key NAME, never the key",
             "SMOKE_KEY" in stored and "not-a-real-key" not in stored,
         )
-        r = s.run([s.bin("interplay"), "probes", "preview", "--num-records", "2"], timeout=300)
+        r = s.run([s.bin("interplay"), "probes", "preview", "--num-records", "4"], timeout=300)
         out = r.stdout + r.stderr
-        # data-designer's preview renderer crashes ("NoneType has no attribute items") when a record's quality
-        # judge was skipped (benign probes). Generation has finished by then, so count it as reaching generation.
-        known_display_bug = "'NoneType' object has no attribute 'items'" in out
         s.check(
-            "preview reaches generation (may hit the known data-designer display bug)",
-            (r.returncode == 0 and "Preview complete" in out) or known_display_bug,
+            "preview renders 4 generated records",
+            r.returncode == 0 and "Preview complete" in out,
             out[-300:],
         )
-        if known_display_bug:
-            print(
-                "        note: preview crashed in data-designer's display of a skipped judge column (known, flaky)"
+
+        # The generation check inspects the real dataset written by `create` (this does not depend on
+        # data-designer's preview display). Every mode must keep all rows, and every row needs a quality score.
+        inspect_code = (
+            "import glob,sys,pandas as pd;"
+            "f=sorted(glob.glob('artifacts/*/parquet-files/*.parquet'));"
+            "d=pd.concat(pd.read_parquet(p) for p in f) if f else None;"
+            "print('ROWS', 0 if d is None else len(d), 'SCORED', 0 if d is None else int(d['probe_quality_score'].notna().sum()))"
+        )
+        for mode in ("singapore", "sdg-hub-harm", "combined"):
+            shutil.rmtree(s.work / "artifacts", ignore_errors=True)
+            r = s.run(
+                [s.bin("interplay"), "probes", "create", "--mode", mode, "--num-records", "4"],
+                timeout=300,
             )
-        r = s.run([s.bin("interplay"), "probes", "create", "--num-records", "2"], timeout=300)
-        made = (
-            any((s.work / "artifacts").rglob("*.parquet"))
-            if (s.work / "artifacts").exists()
-            else False
-        )
-        s.check(
-            "create writes a dataset", r.returncode == 0 and made, r.stdout[-300:] + r.stderr[-300:]
-        )
+            counts = s.run([s.bin("python"), "-c", inspect_code]).stdout.strip()
+            s.check(
+                f"create --mode {mode} keeps all 4 rows, each with a quality score",
+                r.returncode == 0 and counts == "ROWS 4 SCORED 4",
+                counts + " " + r.stdout[-200:] + r.stderr[-200:],
+            )
 
         print("== optional dependencies")
         r = s.run([s.bin("python"), "-c", "import interplay.red_teaming"])

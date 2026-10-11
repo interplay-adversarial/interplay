@@ -29,7 +29,7 @@ problems on TestPyPI.
 
 ## What the smoke test does not cover
 
-It uses a fake endpoint, so it proves the plumbing, not output quality. It does not install the heavy `garak`
-extra. `probes preview` is only checked up to generation because data-designer's preview display can crash on
-records whose judge was skipped (see the issue tracker). The unit tests and end-to-end test in `tests/` run in CI on
-every pull request.
+It uses a fake endpoint, so it proves the plumbing and the shape of the output, not the quality of generated
+text. It does not install the heavy `garak` extra. Generation is checked through the real dataset that `create`
+writes (all rows kept, every row scored) for the `singapore`, `sdg-hub-harm` and `combined` modes, plus one
+`preview`. The unit tests and end-to-end tests in `tests/` run in CI on every pull request.

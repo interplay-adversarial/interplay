@@ -22,7 +22,8 @@ def endpoint():
 
 
 @pytest.mark.skipif(cli._data_designer() is None, reason="data-designer CLI not installed")
-def test_first_run_setup_then_create_writes_a_dataset(endpoint, tmp_path):
+@pytest.mark.parametrize("mode", ["singapore", "sdg-hub-harm", "combined"])
+def test_first_run_setup_then_create_writes_a_dataset(endpoint, tmp_path, mode):
     env = {
         "PATH": str(Path(sys.executable).parent) + ":/usr/bin:/bin",
         "HOME": str(tmp_path / "home"),
@@ -40,7 +41,7 @@ def test_first_run_setup_then_create_writes_a_dataset(endpoint, tmp_path):
             timeout=timeout,
         )
 
-    before = run("probes", "create", "--num-records", "1")
+    before = run("probes", "create", "--mode", mode, "--num-records", "1")
     assert before.returncode == 2 and "interplay probes setup" in before.stderr
 
     assert (
@@ -56,6 +57,18 @@ def test_first_run_setup_then_create_writes_a_dataset(endpoint, tmp_path):
         ).returncode
         == 0
     )
-    result = run("probes", "create", "--num-records", "2")
+    result = run("probes", "create", "--mode", mode, "--num-records", "4")
     assert result.returncode == 0, result.stdout[-800:] + result.stderr[-800:]
-    assert list((tmp_path / "artifacts").rglob("*.parquet")), "create produced no dataset"
+    parquet = sorted(
+        (tmp_path / "artifacts").glob("*/parquet-files/*.parquet")
+    )  # final set, not the dropped-columns copy
+    assert parquet, "create produced no dataset"
+    import pandas as pd
+
+    frame = pd.concat(pd.read_parquet(p) for p in parquet)
+    assert len(frame) == 4, (
+        f"expected 4 records, got {len(frame)} (rows are dropped when a column generator fails)"
+    )
+    assert frame["probe_quality_score"].notna().all(), (
+        "every record, adversarial or benign, must carry a quality score"
+    )
