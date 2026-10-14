@@ -36,6 +36,9 @@ dependencies = [
 interplay = "interplay.cli:main"
 
 [project.optional-dependencies]
+assessment = [
+    "data-designer>=0.9.5",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24.0",
@@ -100,6 +103,7 @@ addopts = "-v"
 conflicts = [
     [{ extra = "garak" }, { extra = "providers" }],
     [{ extra = "garak" }, { extra = "all" }],
+    [{ extra = "garak" }, { extra = "assessment" }],
 ]
 
 [dependency-groups]

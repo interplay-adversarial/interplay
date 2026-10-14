@@ -116,6 +116,12 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("modes", help="list the available pipeline modes")
     sub.add_parser("pipeline-path", help="print the path of the packaged pipeline file")
+    sub.add_parser(
+        "assess", help="description-driven probe/target/judge campaign; private datasets"
+    )
+    sub.add_parser(
+        "assessment-recover", help="export interrupted campaign stages without model calls"
+    )
     probes = sub.add_parser(
         "probes",
         help="run the probe pipeline through data-designer",
@@ -139,6 +145,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    values = sys.argv[1:] if argv is None else argv
+    if values and values[0] in ("assess", "assessment-recover"):
+        from interplay.assessment.cli import main as assessment_main
+
+        return assessment_main(values)
     args, extra = build_parser().parse_known_args(argv)
     if args.command == "modes":
         print("\n".join(available_modes()))

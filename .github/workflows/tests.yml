@@ -54,8 +54,5 @@ jobs:
       - name: Install the project and the test dependencies
         run: pip install -e ".[dev]"
       - name: Audit dependencies for known vulnerabilities
-        # Ignored: CVE-2026-104851 (fsspec ReferenceFileSystem template injection, fixed in
-        # fsspec 2026.6.0). data-designer-engine pins fsspec<2026, so the fix cannot be installed
-        # yet. Interplay does not use ReferenceFileSystem. Remove the ignore once data-designer
-        # lifts the pin.
-        run: pip-audit --skip-editable --progress-spinner off --ignore-vuln CVE-2026-104851
+        # DataDesigner 0.9.5 requires patched fsspec>=2026.6.0; no advisory suppression.
+        run: pip-audit --skip-editable --progress-spinner off
