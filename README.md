@@ -37,6 +37,12 @@ The examples run from a clone of the repository; see Quick Start.
 
 ## Why
 
+For arbitrary assessment descriptions, see the new
+[description-driven campaign API](docs/assessment.md): separate adversarial,
+target and judge models, response/log/trace observations, evidence-cited verdicts,
+and matching JSONL/Parquet/Arrow datasets. It is reusable independently of any
+boundary gate; existing cultural probe modes and seven attack runners remain separate.
+
 Standard red-teaming focuses on adversarial prompts from an attacker perspective. Singapore's challenge found:
 
 - **86.1%** of successful exploits came from **single-turn benign prompts** — normal everyday user interactions
