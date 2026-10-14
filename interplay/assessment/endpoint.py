@@ -44,6 +44,14 @@ class OpenAIEndpointTarget:
                     raise ValueError("target-response-limit")
                 body.extend(chunk)
         data = json.loads(body)
+        if (
+            not isinstance(data, dict)
+            or not isinstance(data.get("choices"), list)
+            or not data["choices"]
+            or not isinstance(data["choices"][0], dict)
+            or not isinstance(data["choices"][0].get("message"), dict)
+        ):
+            raise ValueError("target-response-invalid")
         choice = data["choices"][0]
         complete = choice.get("finish_reason") in ("stop", "tool_calls")
         message = choice["message"]

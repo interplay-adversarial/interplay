@@ -268,6 +268,8 @@ def endpoint():
                 payload.update(
                     logs=[{"event": "synthetic-output"}], traces=[{"response": "SYNTHETIC-CANARY"}]
                 )
+            if model == "malformed-target-model":
+                payload = {"choices": []}
             raw = json.dumps(payload).encode()
             self.send_response(200)
             self.send_header("Content-Length", str(len(raw)))
@@ -335,3 +337,17 @@ def test_native_designer_adversarial_target_judge_and_exports(endpoint, tmp_path
     assert {call["model"] for call in calls} == {"adversarial-model", "target-model", "judge-model"}
     assert "SYNTHETIC-CANARY" not in result.stdout.decode()
     assert len(calls) == 6
+
+
+def test_malformed_http_success_is_a_structured_incomplete_record(spec, endpoint, tmp_path):
+    from interplay.assessment.endpoint import OpenAIEndpointTarget
+    from interplay.assessment.models import ModelEndpoint
+
+    base_url, _ = endpoint
+    target = OpenAIEndpointTarget(
+        ModelEndpoint(base_url=base_url, model="malformed-target-model"), api_key="not-required"
+    )
+    out = tmp_path / "campaign"
+    result = run_assessment(spec, Generator(), target, Judge(), out)
+    assert not result["assessment_complete"] and result["inconclusive"] == 2
+    assert records(out)[0]["error_code"] == "target-observation-failed"
