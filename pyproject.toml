@@ -38,6 +38,7 @@ interplay = "interplay.cli:main"
 [project.optional-dependencies]
 assessment = [
     "data-designer>=0.9.5",
+    "any-llm-sdk>=1.33",
 ]
 dev = [
     "pytest>=8.0",
