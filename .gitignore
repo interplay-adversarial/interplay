@@ -13,6 +13,8 @@ venv/
 
 # DataDesigner outputs
 *.parquet
+*.arrow
+*.feather
 *.jsonl
 !examples/*.jsonl
 
