@@ -31,9 +31,19 @@ export JUDGE_MODEL="openai/gpt-4o-mini"
 
 # Integrated workflow (Garak + TAP + PAIR) over a probe file
 uv run python examples/integrated_run.py --probe-file probes.jsonl --output-dir output/
+
+# Or run one runner directly from the command line, optionally with a panel of judges:
+uv run python examples/single_attack_runner.py --method crescendo --goal "Your goal" \
+    --judge-models openai/gpt-4o-mini anthropic/claude-3-haiku --judge-aggregation unanimous
 ```
 
 Each page above shows the Python call for that runner. All of them need the `red-teaming` extra (`pip install 'interplay-adversarial[red-teaming]'`); Garak also needs the `garak` extra.
+
+All five runners except PAIR accept more than one judge model
+(`secondary_judge_models`) to form a panel instead of a single judge, with a
+configurable `judge_aggregation` (`"majority"`/`"unanimous"`) and a real
+inter-rater-reliability report (`result.irr_report`). See
+[tap.md § Current behavior](tap.md#current-behavior) for the full semantics.
 
 ## Safety
 
