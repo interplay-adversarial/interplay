@@ -214,12 +214,14 @@ async def tap_attack(
                 )
 
             frontier = []
+            admitted_processed = 0
             for c in admitted:
                 budget.check_deadline()
                 trial, response_text = await _query_and_judge(
                     target, judge_scorer, goal, c, budget=budget
                 )
                 trials.append(trial)
+                admitted_processed += 1
                 if trial.status == "complete":
                     frontier.append((trial.attempt_id, response_text))
                 if trial.judge_verdict == "success" and trial.status == "complete":
@@ -230,6 +232,7 @@ async def tap_attack(
                 {
                     "iteration": iteration,
                     "admitted": len(admitted),
+                    "admitted_queried": admitted_processed,
                     "pruned": len(pruned),
                     "best_evaluator_score": max(
                         (c["evaluator_score"] for c in candidates), default=0.0

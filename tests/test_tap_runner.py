@@ -137,6 +137,45 @@ def test_high_evaluator_score_judge_failure_is_not_reported_successful(endpoint)
     assert result.best_score == 0.1
 
 
+def test_early_success_stop_reports_how_many_admitted_were_actually_queried(endpoint):
+    """PR Agent finding: search_trajectory must not claim the full admitted
+    beam ran when an early success stopped it partway through."""
+    base_url, calls = endpoint
+
+    def fake_call(goal, probe, observation, *, budget):
+        # The first-processed admitted candidate (logical-appeal, sorted first
+        # by its evaluator score) succeeds immediately, before the other two
+        # admitted candidates are ever queried.
+        verdict = "success" if "logical-appeal" in probe else "failure"
+        return JudgeOutput(verdict=verdict, reasoning="r", evidence_refs_json='["/response"]'), "{}"
+
+    with (
+        patch(
+            "interplay.red_teaming.tap_runner.acompletion",
+            new=_attacker_evaluator_mock(
+                {"logical-appeal": "0.9", "role-play": "0.5", "authority-endorsement": "0.1"}
+            ),
+        ),
+        patch("interplay.red_teaming.transport.JudgeScorer._call", side_effect=fake_call),
+    ):
+        result = _run(
+            tap_attack,
+            goal="test",
+            target_url=base_url,
+            attacker_model="openai/attacker",
+            evaluator_model="openai/evaluator",
+            judge_model="openai/judge",
+            beam_width=3,
+            branching_factor=3,
+            n_iterations=1,
+        )
+    assert result.stop_reason == "success"
+    assert len(calls) == 1  # only the one successful candidate ever queried the target
+    trajectory = result.search_trajectory[0]
+    assert trajectory["admitted"] == 3
+    assert trajectory["admitted_queried"] == 1
+
+
 def test_missing_evidence_stays_inconclusive_not_fabricated_success(endpoint):
     base_url, _ = endpoint
 
