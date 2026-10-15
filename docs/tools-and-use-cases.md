@@ -164,17 +164,18 @@ Read the current implementation as well as the [method pages](attacks/README.md)
 | `tap_attack` | Branches, prunes by evaluator likelihood, queries the target for admitted branches only, and judges each response with an evidence-cited judge | `best_score` is the judged-best candidate's evaluator (pre-query) likelihood, not an attack success rate; see [tap.md](attacks/tap.md) for `confirmed_success`/`kappa_score` semantics |
 | `crescendo_attack` | Refines escalating prompts from attacker-side history | Target requests contain only the current user prompt; response scoring is a placeholder heuristic |
 | `goat_attack` | Selects/refines strategies across target queries | Placeholder response scoring; no automatically persistent target conversation |
-| `slip_attack` | Explores lexical insertions and target-assisted refinement | Placeholder response scoring; method-specific search output |
+| `slip_attack` | Bounded lexical insertion then target-assisted refinement, queries the target for non-truncated candidates only, and judges each response with an evidence-cited judge | `confirmed_success` is the only field asserting a judge-confirmed success; see [slip.md](attacks/slip.md) for truncation/frontier semantics |
 | `multimodal_attack` | Renders transformed text into images and queries a vision target | Needs Pillow and a vision endpoint; placeholder response scoring |
 | `run_garak` | Invokes external Garak tooling | Scanner-specific configuration, detectors and report semantics |
 
 PAIR's target call now goes through `interplay.red_teaming.transport.AuthenticatedTarget`
 and attaches `Authorization: Bearer <api_key>` when `pair_attack(..., api_key=...)` is
-set. Crescendo/GOAT/SLIP's direct target HTTP helpers still do not attach an
-Authorization header; merely exporting `TARGET_API_KEY` does not make those
-helpers authenticated yet (tracked in #40/#41/#42 below, which also cover their
-placeholder response scoring). Their target authentication and model routing
-differ from the explicitly configured assessment adapter. Check the selected
+set; SLIP and GOAT's target calls go through the same `AuthenticatedTarget`.
+Crescendo's direct target HTTP helper still does not attach an Authorization header;
+merely exporting `TARGET_API_KEY` does not make it authenticated yet (tracked in #40
+below, which also covers its placeholder response scoring). Its target
+authentication and model routing differ from the explicitly configured assessment
+adapter. Check the selected
 runner before using an authenticated service; use the assessment API for its
 implemented credential handling. Provider support in `any-llm-sdk` does not
 make every direct target helper support every provider protocol. Multi-turn
@@ -214,7 +215,6 @@ shipped capabilities above:
 | --- | --- |
 | [#40](https://github.com/interplay-adversarial/interplay/issues/40) | Crescendo persistent target conversation and real judging |
 | [#41](https://github.com/interplay-adversarial/interplay/issues/41) | GOAT validated strategy selection and executed-strategy evidence |
-| [#42](https://github.com/interplay-adversarial/interplay/issues/42) | SLIP reproducible lexical search and evidence-based scoring |
 | [#43](https://github.com/interplay-adversarial/interplay/issues/43) | Multimodal judging, private payloads and controlled evidence collection |
 
 The [integrated example](../examples/integrated_run.py) combines method-specific
