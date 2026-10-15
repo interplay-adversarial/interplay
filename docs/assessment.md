@@ -83,7 +83,7 @@ Each campaign produces private files:
 - `events.jsonl`: append-only, fsynced generated/observed/final stages. The target
   observation commits before judgment, preserving responses when the judge fails.
 - `records.jsonl`, `records.parquet`, `records.arrow`: matching latest-stage
-  analysis records with schema `interplay-assessment/1`.
+  analysis records with schema `interplay-assessment/2`.
 - `manifest.json`: requested/actual counts, success/failure/inconclusive counts
   and processing completeness. `release_eligible` is always false.
 
@@ -116,3 +116,44 @@ This is an endpoint/adapter research assessment. It does not instrument arbitrar
 tools automatically, qualify agent containment, establish statistical resistance,
 freeze a regression baseline or grant release authority. No hosted-model campaign
 is implied by the synthetic local conformance tests.
+
+## Adaptive feedback search
+
+Batch generation remains the default. Enable bounded sequential refinement in
+`assessment` configuration:
+
+```json
+{
+  "search_mode": "adaptive",
+  "probe_count": 10,
+  "stop_on_success": true
+}
+```
+
+In adaptive mode, `probe_count` is the total attempt budget, including the initial
+seed. DataDesigner generates one seed, the target executes it, and the judge
+validates its captured evidence. After a supported failure, DataDesigner receives
+a bounded projection of the committed response, logs/traces, verdict, explanation
+and citations to generate the next candidate. Set `stop_on_success: false` to
+continue refining after supported success until the budget is spent. There is one
+chain, no beam ranking or parallel branches; each target call uses a fresh probe,
+not an automatically accumulated target conversation.
+
+The manifest reports `search_mode` and `stop_reason`. A supported success can stop
+early with `assessment_complete: true`; `requested_probes` remains the maximum
+budget while `records` reports actual attempts. Budget exhaustion means processing
+completed, not that an attack succeeded. Inconclusive judgment, missing required
+evidence, incomplete capture, generation failure or deadline exhaustion withholds
+completion and stops adaptive refinement. A failed target action is never retried.
+
+Schema `interplay-assessment/2` adds `round_index`, `parent_attempt_id`,
+`selection_reason` and `feedback_json` to each row. The feedback column records
+exactly the projection supplied to refinement, with `truncated_fields` identifying
+excerpts. Embedded feedback is untrusted model input; it provides no independent
+execution or containment attestation. Each final parent stage commits before its
+child is generated. Recovery exports committed lineage without resuming search or
+making model calls, and still reads legacy version-1 journals without changing them.
+
+The reusable target interface can support a future NeMo Gym adapter for stateful
+agent rollouts and verifier observations. Gym is not a dependency of this search
+loop, and that assessment target adapter remains unimplemented.

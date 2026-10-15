@@ -17,6 +17,12 @@ class ProbeGenerator(Protocol):
     ) -> list[tuple[Probe, str | None]]: ...
 
 
+class AdaptiveProbeGenerator(ProbeGenerator, Protocol):
+    def refine(
+        self, spec: AssessmentSpec, feedback: dict, *, deadline: float
+    ) -> tuple[Probe, str | None]: ...
+
+
 class TargetAdapter(Protocol):
     def observe(self, probe: Probe, attempt_id: str, *, deadline: float) -> Observation: ...
 
@@ -72,6 +78,34 @@ def evidence_supported(judgment, observation):
     return True
 
 
+def refinement_feedback(record):
+    """Bounded, explicit projection of a committed result; never a success oracle."""
+    feedback = {
+        "parent_attempt_id": record.attempt_id,
+        "probe": record.probe[:4096],
+        "adversarial_intent": record.adversarial_intent[:2048],
+        "judge_verdict": record.judge_verdict,
+        "judge_reasoning": (record.judge_reasoning or "")[:4096],
+        "evidence_refs": json.loads(record.evidence_refs_json),
+        "response": (record.response or "")[:4096],
+        "logs_json": (record.logs_json or "")[:2048],
+        "traces_json": (record.traces_json or "")[:2048],
+    }
+    feedback["truncated_fields"] = [
+        key
+        for key in (
+            "probe",
+            "adversarial_intent",
+            "judge_reasoning",
+            "response",
+            "logs_json",
+            "traces_json",
+        )
+        if len(getattr(record, key) or "") > len(feedback[key])
+    ]
+    return feedback
+
+
 def run_assessment(spec, generator, target, judge, output, *, provenance=None, secrets=()):
     """Callbacks cooperate with deadlines; host hard bounds need an external owner.
 
@@ -81,12 +115,17 @@ def run_assessment(spec, generator, target, judge, output, *, provenance=None, s
     """
     spec = AssessmentSpec.model_validate(spec)
     spec = AssessmentSpec.model_validate(redact(spec.model_dump(), secrets))
+    adaptive = spec.search_mode == "adaptive"
+    if adaptive and not callable(getattr(generator, "refine", None)):
+        raise ValueError("adaptive-generator-required")
     store = AssessmentStore(output)
     deadline = time.monotonic() + spec.campaign_seconds
     campaign_id = uuid4().hex
     records = []
     manifest = {
-        "schema_version": "interplay-assessment/1",
+        "schema_version": "interplay-assessment/2",
+        "search_mode": spec.search_mode,
+        "stop_reason": "attempt-budget",
         "campaign_id": campaign_id,
         "assessment_complete": False,
         "records": 0,
@@ -99,20 +138,56 @@ def run_assessment(spec, generator, target, judge, output, *, provenance=None, s
     try:
         atomic_file(store.root / "manifest.json", json_bytes(manifest))
         try:
-            probes = generator.generate(spec, deadline=deadline)
+            probes = generator.generate(
+                spec.model_copy(update={"probe_count": 1}) if adaptive else spec, deadline=deadline
+            )
         except Exception:
             manifest["error_code"] = "probe-generation-failed"
+            manifest["stop_reason"] = "probe-generation-failed"
             probes = []
-        if len(probes) != spec.probe_count:
-            manifest["error_code"] = "probe-generation-incomplete"
-        for ordinal, (raw_probe, trace) in enumerate(probes[: spec.probe_count]):
-            probe = Probe.model_validate(
-                redact(Probe.model_validate(raw_probe).model_dump(), secrets)
-            )
+        if len(probes) != (1 if adaptive else spec.probe_count):
+            manifest.setdefault("error_code", "probe-generation-incomplete")
+            manifest["stop_reason"] = manifest["error_code"]
+        for ordinal in range(spec.probe_count if adaptive else min(len(probes), spec.probe_count)):
+            feedback = None
+            if adaptive and ordinal:
+                if time.monotonic() >= deadline:
+                    manifest["error_code"] = "campaign-deadline"
+                    manifest["stop_reason"] = "campaign-deadline"
+                    break
+                feedback = refinement_feedback(records[-1])
+                try:
+                    raw_probe, trace = generator.refine(
+                        spec, json.loads(json_bytes(feedback)), deadline=deadline
+                    )
+                except Exception:
+                    manifest["error_code"] = "probe-refinement-failed"
+                    manifest["stop_reason"] = "probe-refinement-failed"
+                    break
+            else:
+                if not probes:
+                    break
+                raw_probe, trace = probes[0 if adaptive else ordinal]
+            try:
+                probe = Probe.model_validate(
+                    redact(Probe.model_validate(raw_probe).model_dump(), secrets)
+                )
+            except Exception:
+                manifest["error_code"] = "probe-generation-invalid"
+                manifest["stop_reason"] = "probe-generation-invalid"
+                break
             record = AssessmentRecord(
                 campaign_id=campaign_id,
                 attempt_id=uuid4().hex,
                 ordinal=ordinal,
+                round_index=ordinal if adaptive else 0,
+                parent_attempt_id=records[-1].attempt_id if adaptive and records else None,
+                selection_reason="refine-previous"
+                if feedback
+                else "initial-seed"
+                if adaptive
+                else "batch-seed",
+                feedback_json=json_bytes(feedback).decode() if feedback else None,
                 assessment_description=redact(spec.description, secrets),
                 success_criteria=redact(spec.success_criteria, secrets),
                 **probe.model_dump(),
@@ -148,6 +223,8 @@ def run_assessment(spec, generator, target, judge, output, *, provenance=None, s
                     if time.monotonic() >= deadline:
                         raise TimeoutError
                     judgment, judge_trace = judge.judge(spec, probe, observation, deadline=deadline)
+                    if time.monotonic() >= deadline:
+                        raise TimeoutError
                     judgment = JudgeOutput.model_validate(
                         redact_fields(JudgeOutput.model_validate(judgment).model_dump(), secrets)
                     )
@@ -182,12 +259,23 @@ def run_assessment(spec, generator, target, judge, output, *, provenance=None, s
                     )
             store.stage(record)
             records.append(record)
+            if adaptive:
+                if record.status != "complete" or record.judge_verdict == "inconclusive":
+                    manifest["error_code"] = "adaptive-feedback-inconclusive"
+                    manifest["stop_reason"] = "inconclusive"
+                    break
+                if spec.stop_on_success and record.judge_verdict == "success":
+                    manifest["stop_reason"] = "success"
+                    break
         store.export(records)
         manifest.update(
             {
                 "records": len(records),
                 "assessment_complete": not manifest.get("error_code")
-                and len(records) == spec.probe_count
+                and (
+                    len(records) == spec.probe_count
+                    or (adaptive and manifest["stop_reason"] == "success")
+                )
                 and all(r.status == "complete" for r in records),
                 "successes": sum(r.judge_verdict == "success" for r in records),
                 "failures": sum(r.judge_verdict == "failure" for r in records),

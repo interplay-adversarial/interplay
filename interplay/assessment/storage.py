@@ -59,13 +59,13 @@ def to_arrow(records):
     for name in AssessmentRecord.model_fields:
         kind = (
             pa.int32()
-            if name == "ordinal"
+            if name in ("ordinal", "round_index")
             else pa.bool_()
             if name in ("release_eligible", "capture_complete")
             else pa.string()
         )
         fields.append(pa.field(name, kind))
-    schema = pa.schema(fields, metadata={b"schema_version": b"interplay-assessment/1"})
+    schema = pa.schema(fields, metadata={b"schema_version": b"interplay-assessment/2"})
     return pa.Table.from_pylist([r.model_dump(mode="json") for r in records], schema=schema)
 
 
@@ -158,6 +158,11 @@ def recover_assessment(output: Path):
                     getattr(previous, key) != getattr(record, key)
                     for key in (
                         "ordinal",
+                        "schema_version",
+                        "round_index",
+                        "parent_attempt_id",
+                        "selection_reason",
+                        "feedback_json",
                         "assessment_description",
                         "success_criteria",
                         "probe",
@@ -175,6 +180,23 @@ def recover_assessment(output: Path):
                 or (previous.status in ("complete", "incomplete") and previous != record)
             ):
                 raise ValueError("assessment-journal-binding-changed")
+            if not previous:
+                if any(r.ordinal == record.ordinal for r in latest.values()):
+                    raise ValueError("assessment-journal-binding-changed")
+                if record.parent_attempt_id is not None:
+                    parent = latest.get(record.parent_attempt_id)
+                    if (
+                        parent is None
+                        or parent.status != "complete"
+                        or parent.judge_verdict == "inconclusive"
+                        or json.loads(record.feedback_json)["judge_verdict"] != parent.judge_verdict
+                        or record.round_index != parent.round_index + 1
+                        or record.ordinal != parent.ordinal + 1
+                        or record.selection_reason != "refine-previous"
+                    ):
+                        raise ValueError("assessment-journal-lineage-invalid")
+                elif record.round_index != 0 or record.selection_reason == "refine-previous":
+                    raise ValueError("assessment-journal-lineage-invalid")
             latest[record.attempt_id] = record
             if len(latest) > 50:
                 raise ValueError("assessment-journal-limit")
