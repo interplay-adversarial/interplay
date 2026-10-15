@@ -38,33 +38,47 @@ import argparse
 import os
 
 import pandas as pd
+from data_designer.config import ModelConfig, ModelProvider
 from data_designer.interface import DataDesigner, ResumeMode
-from data_designer.types.providers import ModelConfig, ModelProvider
 from dotenv import load_dotenv
 
-from interplay.specs import load_spec
-from pipeline import (
+from interplay.pipeline import (
     build_comparison_pipeline,
     build_cultural_bias_pipeline,
     build_harm_pipeline,
 )
+from interplay.specs import load_spec
 
 load_dotenv()
 
 
+def make_model_config() -> ModelConfig:
+    return ModelConfig(
+        alias="cultural-bias-model",
+        model=os.getenv("MODEL_NAME", "gpt-4o-mini"),
+        provider="default",
+    )
+
+
 def make_dd() -> DataDesigner:
+    # ModelProvider.api_key names an environment variable (resolved by
+    # DataDesigner's default secret resolver), never the key value itself.
     provider = ModelProvider(
         name="default",
         endpoint=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
         api_key="OPENAI_API_KEY",
         provider_type="openai",
     )
-    model_config = ModelConfig(
-        alias="cultural-bias-model",
-        model=os.getenv("MODEL_NAME", "gpt-4o-mini"),
-        provider="default",
-    )
-    return DataDesigner(providers=[provider], model_configs=[model_config])
+    # Providers go on the DataDesigner instance; each config builder gets its
+    # own model config attached in main() via builder.add_model_config(...).
+    return DataDesigner(model_providers=[provider])
+
+
+def quality_score(cell) -> int | str:
+    """`probe_quality_score` is `{"quality": {"reasoning": ..., "score": 0-3}}`, not a flat number."""
+    if isinstance(cell, dict):
+        return cell.get("quality", {}).get("score", "")
+    return ""
 
 
 def to_garak_rows(df: pd.DataFrame, mode: str) -> list[dict]:
@@ -86,7 +100,7 @@ def to_garak_rows(df: pd.DataFrame, mode: str) -> list[dict]:
                 "region": row.get("region", ""),
                 "language": row.get("target_language", "English"),
                 "expertise_level": row.get("expertise_level", ""),
-                "quality_score": row.get("probe_quality_score", ""),
+                "quality_score": quality_score(row.get("probe_quality_score")),
                 # Comparison mode extras (empty string for taxonomy modes)
                 "group_1": row.get("group_1_name", ""),
                 "group_2": row.get("group_2_name", ""),
@@ -110,6 +124,7 @@ def to_garak_rows(df: pd.DataFrame, mode: str) -> list[dict]:
 
 def main(preview_only: bool = False) -> None:
     dd = make_dd()
+    model_config = make_model_config()
     all_rows: list[dict] = []
 
     # ----------------------------------------------------------------
@@ -122,12 +137,14 @@ def main(preview_only: bool = False) -> None:
         ("us-mexico", build_comparison_pipeline(load_spec("us-mexico")), 100),
         ("us-white-brown", build_comparison_pipeline(load_spec("us-white-brown")), 100),
     ]
+    for _, builder, _ in runs:
+        builder.add_model_config(model_config)
 
     if preview_only:
         print("=== PREVIEW MODE — 3 records per pipeline ===\n")
         for mode, builder, _ in runs:
             print(f"── {mode} ──")
-            preview = dd.preview(builder)
+            preview = dd.preview(builder).dataset
             cols = ["policy_concept", "probe_mode", "region", "expertise_level"]
             if "group_1_name" in preview.columns:
                 cols += ["group_1_name", "group_2_name", "comparison_topic"]
@@ -144,13 +161,13 @@ def main(preview_only: bool = False) -> None:
             builder,
             num_records=num_records,
             resume=ResumeMode.IF_POSSIBLE,
-        )
+        ).load_dataset()
         print(f"   Generated: {len(result)}")
         if "probe_mode" in result.columns:
             print(f"   Adversarial: {(result['probe_mode'] == 'adversarial').sum()}")
             print(f"   Benign:      {(result['probe_mode'] == 'benign').sum()}")
         if "probe_quality_score" in result.columns:
-            scores = result["probe_quality_score"].value_counts().sort_index()
+            scores = result["probe_quality_score"].apply(quality_score).value_counts().sort_index()
             print(f"   Quality: {scores.to_dict()}")
         all_rows.extend(to_garak_rows(result, mode))
 

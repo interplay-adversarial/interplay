@@ -1,5 +1,7 @@
 # Tools, library APIs and use cases
 
+[← Documentation map](README.md) · [Methodology](METHODOLOGY.md)
+
 Use Interplay to generate probes, explore attack strategies, or evaluate a declared
 adversarial objective against captured target evidence. Start with the workflow
 that produces the evidence you need; the three interfaces below are separate.
@@ -24,7 +26,7 @@ that produces the evidence you need; the three interfaces below are separate.
 | Pydantic | Configuration, observation, probe, judgment and record validation | Reject malformed inputs and unsupported evidence citations |
 | PyArrow | Explicit-schema Parquet and Arrow snapshots | Offline dataset analysis alongside matching JSONL |
 | Garak | External scanner invoked by its runner | Scanner-specific probe libraries and reports, in a separate environment |
-| `judge-kappa` | Imported by TAP's optional agreement path | Agreement computation still needs implementation; current return is a placeholder |
+| `judge-kappa` | Computes TAP's optional two-judge agreement | Real Cohen's kappa when `secondary_judge_model` is set and scores overlap with the primary judge; otherwise `None` with a reason — see [tap.md](attacks/tap.md) |
 | NeMo Gym | Possible future instrumented assessment target | Stateful agent/tool rollouts; no shipped assessment `TargetAdapter` for Gym |
 | Agent Boundary Gate | Optional external owner of the same assessment library | Immutable source admission, restricted credentials and process deadlines |
 
@@ -190,6 +192,18 @@ and without requiring Agent Boundary Gate or DataDesigner:
 | `JudgeScorer.score(goal, probe, observation, budget=...)` | Evidence-cited judge call reusing `interplay.assessment`'s `JudgeOutput`/`evidence_supported`; missing/invalid evidence or a provider failure returns `inconclusive`, never a fabricated zero |
 | `RunnerRecord` / `RunnerResultSink` | One retained row per attempted trial (prompt, response, strategy, verdict, status, error, role provenance), using the same private-journal/atomic-export discipline as `AssessmentStore` |
 | `recover_runner_records(output)` | Exports the latest committed stage per attempt without re-running a target or judge |
+
+**Not yet wired into any runner.** `RunnerRecord`, `RunnerResultSink`, `new_record`
+and `recover_runner_records` are exported, independently unit-tested (see
+`tests/test_red_teaming_transport.py`) and exercised directly in
+`tests/test_crescendo_runner.py`, but no runner function
+(`tap_attack`/`pair_attack`/`crescendo_attack`/`goat_attack`/`slip_attack`/
+`multimodal_attack`) calls them: each still returns only its in-memory
+dataclass result (`result.trials` as plain dicts), with no on-disk journal and
+no `interplay` CLI command to run a method and later recover it -- unlike
+`interplay assess`/`assessment-recover`. Treat result retention and recovery
+for the legacy runners as planned, not shipped, until a runner actually calls
+`RunnerResultSink.stage()`/`.export()`.
 
 Migrate off `get_judge_config()`/`get_attacker_config()` in
 [`interplay/red_teaming/base.py`](../interplay/red_teaming/base.py): both emit a

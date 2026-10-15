@@ -4,7 +4,8 @@ Adversarial and red-teaming library for AI systems: culturally grounded probe ge
 
 Implements the **Singapore AI Safety Red Teaming Challenge methodology** (IMDA + Humane Intelligence, Feb 2025) using [NeMo Data Designer](https://github.com/NVIDIA-NeMo/DataDesigner), plus 7 attack methodologies for comprehensive adversarial testing (see [docs/METHODOLOGY.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/METHODOLOGY.md)).
 
-Start with the [tools, library APIs and use-case guide](docs/tools-and-use-cases.md)
+Start with the [documentation map](docs/README.md) to find the right page, or go
+straight to the [tools, library APIs and use-case guide](docs/tools-and-use-cases.md)
 to choose between probe generation, batch/adaptive assessment, legacy attack
 runners and Agent Boundary Gate integration. It documents current scoring and
 instrumentation limits.

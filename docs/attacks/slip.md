@@ -1,6 +1,6 @@
 # SLIP (Self-Jailbreaking via Lexical Insertion)
 
-[← Attack methodologies](README.md) · [Methodology](../METHODOLOGY.md)
+[← Attack methodologies](README.md) · [Documentation map](../README.md) · [Methodology](../METHODOLOGY.md)
 
 **Strategy**: Bounded lexical word insertion, then target-assisted refinement, both
 with real target execution and evidence-cited judging

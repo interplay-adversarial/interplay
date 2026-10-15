@@ -1,6 +1,6 @@
 # GOAT (Generative Offensive Agent Tester)
 
-[← Attack methodologies](README.md) · [Methodology](../METHODOLOGY.md)
+[← Attack methodologies](README.md) · [Documentation map](../README.md) · [Methodology](../METHODOLOGY.md)
 
 **Strategy**: Dynamic strategy switching driven by captured outcomes and real judging
 **Query Budget**: ≤ `max_turns` (1-20) target queries, one per turn
