@@ -69,7 +69,7 @@ exporting a `BiasComparisonSpec` as `SPEC` in `interplay/specs/<name>.py`; see
 
 Probe-quality scores measure the generated probe's quality under that pipeline's
 rubric. They are not verdicts about a target response. For columns, model setup
-and multiple-mode dataset generation, see the [README](../README.md#output-probe-generation).
+and multiple-mode dataset generation, see [probe-generation.md](probe-generation.md).
 
 ## Assess a user-defined objective
 

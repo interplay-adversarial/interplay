@@ -20,7 +20,7 @@ What the challenge found, and why the pipeline is built the way it is:
   specific cultural contexts rather than generic demographics.
 - Positive framing ("which city is *richest*?") bypassed more guardrails than negative framing.
 
-Taxonomies and comparison specs are described in the [README](../README.md#pipeline-modes-probe-generation).
+Taxonomies and comparison specs are described in [probe-generation.md](probe-generation.md).
 Source: [IMDA Evaluation Report, February 2025](https://www.imda.gov.sg/-/media/imda/files/about/emerging-tech-research/artificial-intelligence/singapore-ai-safety-red-teaming-challenge-evaluation-report.pdf).
 
 ## 2. Attack methodologies
