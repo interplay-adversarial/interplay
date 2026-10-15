@@ -6,7 +6,7 @@ import re
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class StrictModel(BaseModel):
@@ -23,6 +23,8 @@ class AssessmentSpec(StrictModel):
     description: Text
     success_criteria: Text
     probe_count: Annotated[int, Field(ge=1, le=50)] = 5
+    search_mode: Literal["batch", "adaptive"] = "batch"
+    stop_on_success: bool = True
     strategies: tuple[Text, ...] = ("direct", "indirect", "authority-framing", "benign-control")
     required_surfaces: tuple[Literal["response", "logs", "traces"], ...] = ("response",)
     campaign_seconds: Annotated[int, Field(ge=1, le=3600)] = 600
@@ -142,10 +144,16 @@ class CampaignConfig(StrictModel):
 
 
 class AssessmentRecord(StrictModel):
-    schema_version: Literal["interplay-assessment/1"] = "interplay-assessment/1"
+    schema_version: Literal["interplay-assessment/1", "interplay-assessment/2"] = (
+        "interplay-assessment/2"
+    )
     campaign_id: Annotated[str, Field(pattern=r"^[0-9a-f]{32}$")]
     attempt_id: Annotated[str, Field(pattern=r"^[0-9a-f]{32}$")]
     ordinal: Annotated[int, Field(ge=0, le=49)]
+    round_index: Annotated[int, Field(ge=0, le=49)] = 0
+    parent_attempt_id: Annotated[str, Field(pattern=r"^[0-9a-f]{32}$")] | None = None
+    selection_reason: Literal["batch-seed", "initial-seed", "refine-previous"] = "batch-seed"
+    feedback_json: Annotated[str, Field(max_length=65536)] | None = None
     assessment_description: str
     success_criteria: str
     probe: str
@@ -168,3 +176,28 @@ class AssessmentRecord(StrictModel):
     created_at: str
     provenance_json: str
     release_eligible: Literal[False] = False
+
+    @model_validator(mode="after")
+    def lineage_consistent(self):
+        if self.parent_attempt_id is None:
+            if (
+                self.round_index
+                or self.feedback_json is not None
+                or self.selection_reason == "refine-previous"
+            ):
+                raise ValueError("assessment-lineage-invalid")
+        else:
+            if (
+                not self.round_index
+                or self.selection_reason != "refine-previous"
+                or self.feedback_json is None
+            ):
+                raise ValueError("assessment-lineage-invalid")
+            feedback = json.loads(self.feedback_json)
+            if (
+                not isinstance(feedback, dict)
+                or feedback.get("parent_attempt_id") != self.parent_attempt_id
+                or feedback.get("judge_verdict") not in ("success", "failure")
+            ):
+                raise ValueError("assessment-lineage-invalid")
+        return self
