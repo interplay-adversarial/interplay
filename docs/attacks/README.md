@@ -13,7 +13,7 @@ How they relate to each other, and to probe generation, is described in
 | **Crescendo** | Multi-turn benign-to-harmful escalation | 5-10 turns | [crescendo.md](crescendo.md) |
 | **GOAT** | Dynamic strategy switching with reasoning | ≤5 turns | [goat.md](goat.md) |
 | **SLIP** | Bounded lexical insertion then target-assisted refinement, judged target execution | up to (max_words + refine_rounds) x max_candidates_per_round admitted-candidate queries | [slip.md](slip.md) |
-| **Multimodal** | Harmful instruction embedded in an image | 1-3 transforms | [multimodal.md](multimodal.md) |
+| **Multimodal** | Transformed instruction embedded in an image, with explicit text/image controls, judged target execution | transforms (≤8) x controls (≤8) queries | [multimodal.md](multimodal.md) |
 
 ## Running them
 

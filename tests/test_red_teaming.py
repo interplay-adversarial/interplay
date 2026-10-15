@@ -8,7 +8,6 @@ from interplay.red_teaming.base import create_completion_kwargs, get_env_var
 from interplay.red_teaming.crescendo_runner import CrescendoResult
 from interplay.red_teaming.garak_runner import create_custom_config, run_garak
 from interplay.red_teaming.goat_runner import GOATResult
-from interplay.red_teaming.multimodal_runner import MultimodalResult, multimodal_attack
 from interplay.red_teaming.pair_runner import PairResult, pair_attack
 from interplay.red_teaming.slip_runner import SLIPResult
 from interplay.red_teaming.tap_runner import TapResult
@@ -176,47 +175,6 @@ class TestSLIPRunner:
         )
         assert result.goal == "test"
         assert result.rounds_completed == 1
-
-
-class TestMultimodalRunner:
-    """Tests for Multimodal attack runner."""
-
-    @pytest.mark.asyncio
-    async def test_multimodal_attack_basic(self):
-        """Test basic Multimodal attack structure."""
-        with (
-            patch("interplay.red_teaming.multimodal_runner._generate_payload_image") as mock_gen,
-            patch("interplay.red_teaming.multimodal_runner._call_vision_target") as mock_target,
-            patch("interplay.red_teaming.multimodal_runner._score_response") as mock_score,
-        ):
-            # Mock responses
-            mock_gen.return_value = "/tmp/test.png"
-            mock_target.return_value = "response"
-            mock_score.return_value = 0.6
-
-            result = await multimodal_attack(
-                goal="test goal",
-                vision_target_url="http://test.com/v1",
-                vision_model="vision-model",
-                transforms=["plain"],
-            )
-
-            assert isinstance(result, MultimodalResult)
-            assert result.goal == "test goal"
-            assert result.query_count == 1
-
-    def test_multimodal_result_dataclass(self):
-        """Test MultimodalResult dataclass structure."""
-        result = MultimodalResult(
-            goal="test",
-            best_score=0.8,
-            best_prompt="prompt",
-            image_path="/tmp/test.png",
-            transform_used="plain",
-            query_count=1,
-        )
-        assert result.goal == "test"
-        assert result.image_path == "/tmp/test.png"
 
 
 class TestGarakRunner:

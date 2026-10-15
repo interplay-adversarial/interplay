@@ -163,14 +163,14 @@ Read the current implementation as well as the [method pages](attacks/README.md)
 | `pair_attack` | Queries target, uses LLM response scoring and refines from recent history | Numeric score is not an evidence-cited assessment verdict or empirical attack success rate |
 | `tap_attack` | Branches, prunes by evaluator likelihood, queries the target for admitted branches only, and judges each response with an evidence-cited judge | `best_score` is the judged-best candidate's evaluator (pre-query) likelihood, not an attack success rate; see [tap.md](attacks/tap.md) for `confirmed_success`/`kappa_score` semantics |
 | `crescendo_attack` | Escalates prompts from captured per-turn outcomes, queries the target every turn, and judges each response with an evidence-cited judge | `confirmed_success` is the only field asserting a judge-confirmed success; see [crescendo.md](attacks/crescendo.md) for `target_mode`/context-window semantics and its no-backtracking deviation |
-| `goat_attack` | Selects/refines strategies across target queries | Placeholder response scoring; no automatically persistent target conversation |
+| `goat_attack` | Selects a structured, pool-bounded strategy and prompt each turn, queries the target, and judges each response with an evidence-cited judge | No automatically persistent target conversation; see [goat.md](attacks/goat.md) for `target_mode` semantics |
 | `slip_attack` | Bounded lexical insertion then target-assisted refinement, queries the target for non-truncated candidates only, and judges each response with an evidence-cited judge | `confirmed_success` is the only field asserting a judge-confirmed success; see [slip.md](attacks/slip.md) for truncation/frontier semantics |
-| `multimodal_attack` | Renders transformed text into images and queries a vision target | Needs Pillow and a vision endpoint; placeholder response scoring |
+| `multimodal_attack` | Renders every `(transform, control)` pair into a private per-attempt payload, queries the target for each, and judges each response with an evidence-cited judge | `confirmed_success` is always paired with the exact `best_control`/`best_transform`; needs the `multimodal` extra (Pillow) only when an image control is actually used; see [multimodal.md](attacks/multimodal.md) |
 | `run_garak` | Invokes external Garak tooling | Scanner-specific configuration, detectors and report semantics |
 
 PAIR's target call now goes through `interplay.red_teaming.transport.AuthenticatedTarget`
 and attaches `Authorization: Bearer <api_key>` when `pair_attack(..., api_key=...)` is
-set; SLIP, GOAT and Crescendo's target calls go through the same `AuthenticatedTarget`.
+set; SLIP, GOAT, Crescendo and Multimodal's target calls go through the same `AuthenticatedTarget`.
 Check the selected runner before using an authenticated service; use the assessment
 API for its implemented credential handling. Provider support in `any-llm-sdk` does
 not make every direct target helper support every provider protocol.
@@ -201,13 +201,6 @@ per role instead (its own `api_key_env`, optionally its own `model`) and call
 diagnostic, never written to `RunnerResultSink` as an empirical attack success
 rate; it is also distinct from Agent Boundary Gate's boundary/containment
 effect evidence.
-
-Implementation work for these partial runners is tracked separately from the
-shipped capabilities above:
-
-| Issue | Work |
-| --- | --- |
-| [#43](https://github.com/interplay-adversarial/interplay/issues/43) | Multimodal judging, private payloads and controlled evidence collection |
 
 The [integrated example](../examples/integrated_run.py) combines method-specific
 outputs; it is not the assessment journal or a boundary evidence bridge.

@@ -53,8 +53,12 @@ kappa value is a real two-judge Cohen's kappa when a second judge is
 configured, or explicitly unavailable rather than a fixed placeholder. SLIP
 queries the target only for candidates its deterministic, bounded insertion
 and refinement rounds admit, and judges each response with a separate
-evidence-cited judge instead of a keyword/refusal heuristic.
-Crescendo, GOAT and Multimodal currently use placeholder response-scoring heuristics.
+evidence-cited judge instead of a keyword/refusal heuristic. Crescendo and
+GOAT query the target every turn and judge each response the same way.
+Multimodal queries the target for every `(transform, control)` pair and
+judges each response the same way; its explicit `"image-only"`/`"text-only"`/
+`"combined"` controls mean a success is never attributed to the image alone
+when the text (or the transform) could equally explain it.
 These interfaces also differ in target authentication and conversation handling.
 See the [current implementation limits](tools-and-use-cases.md#explore-the-legacy-attack-runners).
 
