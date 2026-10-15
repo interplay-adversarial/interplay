@@ -44,13 +44,16 @@ class TestBaseUtilities:
         assert kwargs["api_key"] == "test-key"
 
     def test_create_completion_kwargs_with_base_url(self):
-        """Test creating completion kwargs with base URL."""
+        """A caller-supplied base_url becomes api_base (what any_llm.completion() accepts),
+        never the unrecognized base_url kwarg that any_llm forwards straight to the
+        provider SDK and that SDK then rejects with TypeError."""
         kwargs = create_completion_kwargs(
             provider="openai",
             model="test-model",
             base_url="https://custom-url/v1",
         )
-        assert kwargs["base_url"] == "https://custom-url/v1"
+        assert kwargs["api_base"] == "https://custom-url/v1"
+        assert "base_url" not in kwargs
 
 
 class TestTapRunner:

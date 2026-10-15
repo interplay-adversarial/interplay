@@ -335,7 +335,9 @@ async def _query_and_judge(
             response.content,
         )
     try:
-        judgment, _trace = judge_scorer.score(goal, candidate["prompt"], observation, budget=budget)
+        judgment, _trace = await judge_scorer.score(
+            goal, candidate["prompt"], observation, budget=budget
+        )
     except BudgetExceeded:
         raise
     # JudgeScorer.score() already downgrades an unsupported verdict to
@@ -378,7 +380,7 @@ async def _measured_agreement(
             observation = Observation(
                 response=trial.response, capture_complete=trial.capture_complete
             )
-            judgment, _trace = secondary.score(goal, trial.prompt, observation, budget=budget)
+            judgment, _trace = await secondary.score(goal, trial.prompt, observation, budget=budget)
         except BudgetExceeded as exc:
             return None, str(exc)
         verdicts.append(

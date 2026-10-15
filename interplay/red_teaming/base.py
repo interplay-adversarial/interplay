@@ -103,6 +103,12 @@ def create_completion_kwargs(provider: str | None = None, **kwargs) -> dict[str,
     if provider is None:
         provider = os.getenv("LLM_PROVIDER", "openai")
 
+    # any_llm.completion()/acompletion() accept `api_base`, not `base_url`; a caller-supplied
+    # `base_url` (every runner's attacker/judge setup passes one) must be translated, or any_llm
+    # forwards the unrecognized `base_url` kwarg straight to the provider SDK call, which raises
+    # TypeError. Pop it before the dict is built so it never leaks through under its wrong name.
+    explicit_base_url = kwargs.pop("base_url", None)
+
     # Build kwargs
     config = {
         "provider": provider,
@@ -115,13 +121,9 @@ def create_completion_kwargs(provider: str | None = None, **kwargs) -> dict[str,
         config["api_key"] = api_key
 
     # Add api_base (not base_url) for any_llm - check for OPENAI_API_BASE specifically for OpenAI provider
-    if provider == "openai":
-        api_base = os.getenv("OPENAI_API_BASE", os.getenv("API_BASE"))
-        if api_base:
-            config["api_base"] = api_base
-    else:
-        api_base = os.getenv(f"{provider.upper()}_API_BASE", os.getenv("API_BASE"))
-        if api_base:
-            config["api_base"] = api_base
+    env_var = "OPENAI_API_BASE" if provider == "openai" else f"{provider.upper()}_API_BASE"
+    api_base = explicit_base_url or os.getenv(env_var, os.getenv("API_BASE"))
+    if api_base:
+        config["api_base"] = api_base
 
     return config

@@ -239,20 +239,20 @@ class StubScorer(JudgeScorer):
     def __init__(self, raw):
         self.raw = raw
 
-    def _call(self, goal, probe, observation, *, budget):
+    async def _call(self, goal, probe, observation, *, budget):
         return JudgeOutput.model_validate(self.raw), json.dumps(self.raw)
 
 
-def test_missing_evidence_is_inconclusive_not_fabricated_success():
+async def test_missing_evidence_is_inconclusive_not_fabricated_success():
     scorer = StubScorer(
         {"verdict": "success", "reasoning": "claims success", "evidence_refs_json": "[]"}
     )
     observation = Observation(response="hello")
-    judgment, _ = scorer.score("goal", "probe", observation, budget=CallBudget(RunBudget()))
+    judgment, _ = await scorer.score("goal", "probe", observation, budget=CallBudget(RunBudget()))
     assert judgment.verdict == "inconclusive"
 
 
-def test_invalid_evidence_reference_is_inconclusive():
+async def test_invalid_evidence_reference_is_inconclusive():
     scorer = StubScorer(
         {
             "verdict": "success",
@@ -261,25 +261,25 @@ def test_invalid_evidence_reference_is_inconclusive():
         }
     )
     observation = Observation(response="hello")
-    judgment, _ = scorer.score("goal", "probe", observation, budget=CallBudget(RunBudget()))
+    judgment, _ = await scorer.score("goal", "probe", observation, budget=CallBudget(RunBudget()))
     assert judgment.verdict == "inconclusive"
 
 
-def test_provider_failure_is_inconclusive_not_a_fabricated_zero():
+async def test_provider_failure_is_inconclusive_not_a_fabricated_zero():
     class FailingScorer(JudgeScorer):
         def __init__(self):
             pass
 
-        def _call(self, *args, **kwargs):
+        async def _call(self, *args, **kwargs):
             raise ConnectionError("private-provider-detail")
 
-    judgment, trace = FailingScorer().score(
+    judgment, trace = await FailingScorer().score(
         "goal", "probe", Observation(response="hello"), budget=CallBudget(RunBudget())
     )
     assert judgment.verdict == "inconclusive" and trace is None
 
 
-def test_supported_success_is_preserved():
+async def test_supported_success_is_preserved():
     scorer = StubScorer(
         {
             "verdict": "success",
@@ -288,7 +288,7 @@ def test_supported_success_is_preserved():
         }
     )
     observation = Observation(response="SYNTHETIC-CANARY")
-    judgment, _ = scorer.score("goal", "probe", observation, budget=CallBudget(RunBudget()))
+    judgment, _ = await scorer.score("goal", "probe", observation, budget=CallBudget(RunBudget()))
     assert judgment.verdict == "success"
 
 

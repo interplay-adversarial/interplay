@@ -245,7 +245,7 @@ async def multimodal_attack(
                 except BudgetExceeded as exc:
                     stop_reason = str(exc)
                     raise
-                trial, queried = _run_attempt(
+                trial, queried = await _run_attempt(
                     goal=goal,
                     transform=transform,
                     control=control,
@@ -281,7 +281,7 @@ async def multimodal_attack(
     )
 
 
-def _run_attempt(
+async def _run_attempt(
     *,
     goal: str,
     transform: str,
@@ -378,7 +378,7 @@ def _run_attempt(
         )
         return trial, 1
 
-    judgment, _trace = judge_scorer.score(goal, prompt, observation, budget=budget)
+    judgment, _trace = await judge_scorer.score(goal, prompt, observation, budget=budget)
     missing_capture = not response.capture_complete
     trial = MultimodalTrial(
         **base_fields,

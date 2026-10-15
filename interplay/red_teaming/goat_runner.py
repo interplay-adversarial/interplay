@@ -234,7 +234,7 @@ async def goat_attack(
                     error_code="no-judge-configured",
                 )
             else:
-                judgment, _trace = judge_scorer.score(
+                judgment, _trace = await judge_scorer.score(
                     goal, current_prompt, observation, budget=budget
                 )
                 missing_capture = not response.capture_complete
