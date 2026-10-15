@@ -119,6 +119,35 @@ async def test_pair_attack_attaches_authorization_to_the_target_only(endpoint):
     assert calls[0]["body"]["model"] == "target-model"
 
 
+@pytest.mark.asyncio
+async def test_pair_attack_retains_prior_trials_on_target_failure_instead_of_raising(endpoint):
+    """A malformed/failed target reply on a later iteration must not discard the
+    trials already gathered, and must stop the campaign rather than retry."""
+    from interplay.red_teaming.pair_runner import pair_attack
+
+    base_url, calls = endpoint
+    with patch(
+        "interplay.red_teaming.pair_runner.acompletion",
+        new=AsyncMock(
+            return_value=MagicMock(choices=[MagicMock(message=MagicMock(content="0.0"))])
+        ),
+    ):
+        result = await pair_attack(
+            goal="test goal",
+            target_url=base_url,
+            attacker_model="openai/test",
+            judge_model="openai/test",
+            target_model="malformed-target",
+            max_queries=3,
+            api_key=None,
+        )
+    assert len(calls) == 1
+    assert result.query_count == 0
+    assert len(result.conversation_history) == 1
+    assert result.conversation_history[0]["response"] is None
+    assert "error" in result.conversation_history[0]
+
+
 def test_unauthenticated_request_sends_no_authorization_header(endpoint):
     base_url, calls = endpoint
     target = AuthenticatedTarget(

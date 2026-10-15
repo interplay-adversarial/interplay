@@ -4,11 +4,16 @@ import asyncio
 from dataclasses import dataclass
 from typing import Any
 
+import httpx
 from any_llm import acompletion
 
 from ..assessment.models import ModelEndpoint
 from .base import create_completion_kwargs
-from .transport import AuthenticatedTarget, CallBudget, RunBudget
+from .transport import AuthenticatedTarget, BudgetExceeded, CallBudget, RunBudget
+
+# A single failed/budget-exhausted target call ends the campaign with the trials
+# already gathered, instead of raising out of pair_attack and losing them.
+_TARGET_FAILURE_EXCEPTIONS = (BudgetExceeded, ValueError, httpx.HTTPError)
 
 
 @dataclass
@@ -72,10 +77,23 @@ async def pair_attack(
     query_count = 0
 
     for iteration in range(max_queries):
-        # Get target response
-        target_response = await _call_target(
-            target_url, current_prompt, target_model, api_key=api_key, budget=budget
-        )
+        # Get target response; a failed or budget-exhausted call is retained as
+        # an incomplete trial and stops the campaign, not retried or raised.
+        try:
+            target_response = await _call_target(
+                target_url, current_prompt, target_model, api_key=api_key, budget=budget
+            )
+        except _TARGET_FAILURE_EXCEPTIONS as exc:
+            conversation_history.append(
+                {
+                    "iteration": iteration,
+                    "prompt": current_prompt,
+                    "response": None,
+                    "score": 0.0,
+                    "error": str(exc),
+                }
+            )
+            break
         query_count += 1
 
         # Judge scores the response
