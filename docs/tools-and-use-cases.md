@@ -161,7 +161,7 @@ Read the current implementation as well as the [method pages](attacks/README.md)
 | Runner | Current behavior | Interpretation limit |
 | --- | --- | --- |
 | `pair_attack` | Queries target, uses LLM response scoring and refines from recent history | Numeric score is not an evidence-cited assessment verdict or empirical attack success rate |
-| `tap_attack` | Branches and ranks prompt variants with an evaluator | Current implementation does not query `target_url`; optional kappa is a fixed placeholder, not measured agreement |
+| `tap_attack` | Branches, prunes by evaluator likelihood, queries the target for admitted branches only, and judges each response with an evidence-cited judge | `best_score` is the judged-best candidate's evaluator (pre-query) likelihood, not an attack success rate; see [tap.md](attacks/tap.md) for `confirmed_success`/`kappa_score` semantics |
 | `crescendo_attack` | Refines escalating prompts from attacker-side history | Target requests contain only the current user prompt; response scoring is a placeholder heuristic |
 | `goat_attack` | Selects/refines strategies across target queries | Placeholder response scoring; no automatically persistent target conversation |
 | `slip_attack` | Explores lexical insertions and target-assisted refinement | Placeholder response scoring; method-specific search output |
@@ -212,7 +212,6 @@ shipped capabilities above:
 
 | Issue | Work |
 | --- | --- |
-| [#39](https://github.com/interplay-adversarial/interplay/issues/39) | TAP target execution, response evaluation and complete branch lineage |
 | [#40](https://github.com/interplay-adversarial/interplay/issues/40) | Crescendo persistent target conversation and real judging |
 | [#41](https://github.com/interplay-adversarial/interplay/issues/41) | GOAT validated strategy selection and executed-strategy evidence |
 | [#42](https://github.com/interplay-adversarial/interplay/issues/42) | SLIP reproducible lexical search and evidence-based scoring |

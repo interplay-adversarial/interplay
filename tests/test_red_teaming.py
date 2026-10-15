@@ -11,7 +11,7 @@ from interplay.red_teaming.goat_runner import GOATResult, goat_attack
 from interplay.red_teaming.multimodal_runner import MultimodalResult, multimodal_attack
 from interplay.red_teaming.pair_runner import PairResult, pair_attack
 from interplay.red_teaming.slip_runner import SLIPResult, slip_attack
-from interplay.red_teaming.tap_runner import TapResult, tap_attack
+from interplay.red_teaming.tap_runner import TapResult
 
 
 class TestBaseUtilities:
@@ -55,37 +55,9 @@ class TestBaseUtilities:
 
 
 class TestTapRunner:
-    """Tests for TAP attack runner."""
-
-    @pytest.mark.asyncio
-    async def test_tap_attack_basic(self):
-        """Test basic TAP attack structure."""
-        # Mock the acompletion and _evaluate_prompt functions
-        with (
-            patch("interplay.red_teaming.tap_runner.acompletion") as mock_acompletion,
-            patch("interplay.red_teaming.tap_runner._evaluate_prompt") as mock_eval,
-        ):
-            # Mock responses
-            mock_acompletion.return_value = MagicMock(
-                choices=[MagicMock(message=MagicMock(content="refined prompt"))]
-            )
-            mock_eval.return_value = 0.8
-
-            result = await tap_attack(
-                goal="test goal",
-                target_url="http://test.com/v1",
-                attacker_model="openai/test",
-                evaluator_model="openai/test",
-                n_iterations=1,
-                beam_width=2,
-                branching_factor=2,
-            )
-
-            assert isinstance(result, TapResult)
-            assert result.goal == "test goal"
-            assert result.best_score >= 0.0
-            assert result.best_score <= 1.0
-            assert len(result.search_trajectory) >= 1
+    """Tests for TAP attack runner's result dataclass; the search itself (real
+    target queries, pruning, judging, budgets, kappa) is covered in
+    tests/test_tap_runner.py since it needs a target fixture."""
 
     def test_tap_result_dataclass(self):
         """Test TapResult dataclass structure."""
