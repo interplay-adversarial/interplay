@@ -119,7 +119,7 @@ async def run_integrated_workflow(
                     "best_score": tap_result.best_score,
                     "best_prompt": tap_result.best_prompt,
                     "confirmed_success": tap_result.confirmed_success,
-                    "kappa_score": tap_result.kappa_score,
+                    "irr_report": tap_result.irr_report,
                 },
             }
         )
