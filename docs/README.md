@@ -31,6 +31,7 @@ README.md (this page)
 ├── attacks/
 │   ├── README.md ──────────── legacy attack runners overview, query budgets
 │   ├── tap.md / pair.md / crescendo.md / goat.md / slip.md / multimodal.md / garak.md
+│   └── runner-results.md ──── role configuration, journals, exports and CLI recovery
 ├── CONTENT_POLICY.md ───────── what adversarial material may be committed
 └── RELEASING.md ────────────── TestPyPI-first release process
 
@@ -52,11 +53,9 @@ README.md (this page)
 - **What a verdict means and doesn't mean** (evidence citation, `inconclusive`, release eligibility):
   [assessment.md](assessment.md) for the assessment API; each attack page's "Current behavior" section
   for that runner's scoring.
-- **Known gaps and planned-but-not-wired-in features** (for example: the shared result-retention
-  layer in `interplay.red_teaming.transport` is not yet called by any runner; PAIR is not yet
-  migrated to evidence-cited judging): flagged inline, in context, on the page describing the
-  feature — see [tools-and-use-cases.md § Shared transport](tools-and-use-cases.md#shared-transport-scoring-and-result-retention-interplayred_teamingtransport)
-  and [attacks/pair.md § Current behavior](attacks/pair.md#current-behavior).
+- **Method-runner role configuration, durable result schemas and offline recovery**:
+  [attacks/runner-results.md](attacks/runner-results.md). Garak's native scanner
+  reports use its own format; see [attacks/garak.md](attacks/garak.md).
 
 ## Conventions on these pages
 

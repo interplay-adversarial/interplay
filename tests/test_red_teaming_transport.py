@@ -99,7 +99,7 @@ async def test_pair_attack_attaches_authorization_to_the_target_only(endpoint):
 
     base_url, calls = endpoint
     with patch(
-        "interplay.red_teaming.pair_runner.acompletion",
+        "any_llm.acompletion",
         new=AsyncMock(
             return_value=MagicMock(choices=[MagicMock(message=MagicMock(content="0.0"))])
         ),
@@ -127,7 +127,7 @@ async def test_pair_attack_retains_prior_trials_on_target_failure_instead_of_rai
 
     base_url, calls = endpoint
     with patch(
-        "interplay.red_teaming.pair_runner.acompletion",
+        "any_llm.acompletion",
         new=AsyncMock(
             return_value=MagicMock(choices=[MagicMock(message=MagicMock(content="0.0"))])
         ),

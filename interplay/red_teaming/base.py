@@ -117,7 +117,7 @@ def create_completion_kwargs(provider: str | None = None, **kwargs) -> dict[str,
 
     # Add API key if available
     api_key = os.getenv(f"{provider.upper()}_API_KEY", os.getenv("API_KEY"))
-    if api_key:
+    if api_key and "api_key" not in config:
         config["api_key"] = api_key
 
     # Add api_base (not base_url) for any_llm - check for OPENAI_API_BASE specifically for OpenAI provider

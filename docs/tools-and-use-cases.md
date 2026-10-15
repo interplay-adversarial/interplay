@@ -162,7 +162,7 @@ Read the current implementation as well as the [method pages](attacks/README.md)
 
 | Runner | Current behavior | Interpretation limit |
 | --- | --- | --- |
-| `pair_attack` | Queries target, uses LLM response scoring and refines from recent history | Numeric score is not an evidence-cited assessment verdict or empirical attack success rate |
+| `pair_attack` | Queries target, uses evidence-cited single/panel judging and refines from recent history | `confirmed_success` requires a complete supported judgment; numeric scores are search diagnostics |
 | `tap_attack` | Branches, prunes by evaluator likelihood, queries the target for admitted branches only, and judges each response with an evidence-cited judge (optionally a panel) | `best_score` is the judged-best candidate's evaluator (pre-query) likelihood, not an attack success rate; see [tap.md](attacks/tap.md) for `confirmed_success`/`irr_report` semantics |
 | `crescendo_attack` | Escalates prompts from captured per-turn outcomes, queries the target every turn, and judges each response with an evidence-cited judge (optionally a panel) | `confirmed_success` is the only field asserting a judge-confirmed success; see [crescendo.md](attacks/crescendo.md) for `target_mode`/context-window semantics, `irr_report`, and its no-backtracking deviation |
 | `goat_attack` | Selects a structured, pool-bounded strategy and prompt each turn, queries the target, and judges each response with an evidence-cited judge (optionally a panel) | No automatically persistent target conversation; see [goat.md](attacks/goat.md) for `target_mode` semantics and `irr_report` |
@@ -191,21 +191,16 @@ and without requiring Agent Boundary Gate or DataDesigner:
 | `AuthenticatedTarget.request(kind, messages, budget=...)` | One authenticated, bounded-response target request (`stateless`, `conversation` or `image`); `UnsupportedCapabilityError` if `kind` was not declared at construction, with no request sent |
 | `JudgeScorer.score(goal, probe, observation, budget=...)` | Evidence-cited judge call reusing `interplay.assessment`'s `JudgeOutput`/`evidence_supported`; missing/invalid evidence or a provider failure returns `inconclusive`, never a fabricated zero |
 | `JudgePanel(endpoints, api_key=..., aggregation=...)` | Two or more independently configured judges behind the exact same `.score()` contract as `JudgeScorer`; the aggregated verdict follows `JudgeAggregation` (`"majority"`/`"unanimous"`), and `agreement_report()` gives a real, N-capable Krippendorff's alpha (via `judge_kappa`) over every case scored so far, with a bootstrapped confidence interval -- never a fixed placeholder |
-| `build_judge(judge_model, secondary_judge_models, base_url=..., api_key=..., aggregation=...)` | One `JudgeScorer`, or a `JudgePanel` when `secondary_judge_models` is non-empty, or `None`; every migrated runner (TAP, Crescendo, GOAT, SLIP, Multimodal) constructs its judge this one way |
+| `build_judge(judge_model, secondary_judge_models, base_url=..., api_key=..., aggregation=...)` | One `JudgeScorer`, or a `JudgePanel` when `secondary_judge_models` is non-empty, or `None`; every migrated runner (PAIR, TAP, Crescendo, GOAT, SLIP, Multimodal) constructs its judge this one way |
 | `RunnerRecord` / `RunnerResultSink` | One retained row per attempted trial (prompt, response, strategy, verdict, status, error, role provenance), using the same private-journal/atomic-export discipline as `AssessmentStore` |
 | `recover_runner_records(output)` | Exports the latest committed stage per attempt without re-running a target or judge |
 
-**Not yet wired into any runner.** `RunnerRecord`, `RunnerResultSink`, `new_record`
-and `recover_runner_records` are exported, independently unit-tested (see
-`tests/test_red_teaming_transport.py`) and exercised directly in
-`tests/test_crescendo_runner.py`, but no runner function
-(`tap_attack`/`pair_attack`/`crescendo_attack`/`goat_attack`/`slip_attack`/
-`multimodal_attack`) calls them: each still returns only its in-memory
-dataclass result (`result.trials` as plain dicts), with no on-disk journal and
-no `interplay` CLI command to run a method and later recover it -- unlike
-`interplay assess`/`assessment-recover`. Treat result retention and recovery
-for the legacy runners as planned, not shipped, until a runner actually calls
-`RunnerResultSink.stage()`/`.export()`.
+All six method runners now use the stage journal and matching JSONL/Parquet/Arrow
+exports when `output_dir` is set. Each also returns `result.records` in memory.
+`interplay runner-run` accepts method arguments and explicit role/panel configuration;
+`interplay runner-recover` exports committed stages without model calls. See
+[runner results](attacks/runner-results.md) for the configuration format,
+`interplay-runner/2` schema, deadline enforcement and recovery invariants.
 
 Migrate off `get_judge_config()`/`get_attacker_config()` in
 [`interplay/red_teaming/base.py`](../interplay/red_teaming/base.py): both emit a

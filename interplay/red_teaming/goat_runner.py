@@ -11,9 +11,8 @@ the same trial as the turn it produced, so a trial's ``strategy`` always
 describes the prompt actually sent for it (see docs/attacks/goat.md).
 """
 
-import asyncio
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Annotated, Any, Literal
 from uuid import uuid4
 
@@ -21,7 +20,13 @@ from any_llm import acompletion
 from pydantic import Field, ValidationError, field_validator
 
 from ..assessment.models import ModelEndpoint, Observation, StrictModel, Text, Verdict
-from .base import create_completion_kwargs
+from .session import (
+    bounded_completion,
+    request_target,
+    retained_runner,
+    role_completion_kwargs,
+    score_observation,
+)
 from .transport import (
     AuthenticatedTarget,
     BudgetExceeded,
@@ -29,6 +34,8 @@ from .transport import (
     JudgeAggregation,
     JudgePanel,
     RunBudget,
+    RunnerRecord,
+    RunnerStorageError,
     build_judge,
     panel_agreement_report,
 )
@@ -122,7 +129,10 @@ class GOATResult:
     query_count: int = 0
     turns: int = 0
 
+    records: list[RunnerRecord] = field(default_factory=list)
 
+
+@retained_runner("goat")
 async def goat_attack(
     goal: str,
     target_url: str,
@@ -173,7 +183,7 @@ async def goat_attack(
         api_key: API key for providers
         base_url: Base URL for custom (attacker/judge) providers
         campaign_seconds: Campaign deadline; the run stops (without starting
-            another turn) once reached, not mid-call
+            another turn) once reached; in-flight inference awaits are bounded
 
     Returns:
         GOATResult with the judged best turn and every executed trial
@@ -181,7 +191,8 @@ async def goat_attack(
     config = GoatConfig(
         max_turns=max_turns, strategy_pool=tuple(strategy_pool or DEFAULT_STRATEGY_POOL)
     )
-    attacker_kwargs = create_completion_kwargs(
+    attacker_kwargs = role_completion_kwargs(
+        "attacker",
         provider=attacker_model.split("/")[0] if "/" in attacker_model else "openai",
         model=attacker_model,
         api_key=api_key,
@@ -236,10 +247,12 @@ async def goat_attack(
                 "selection_explanation": current_explanation,
             }
             try:
-                response = await asyncio.to_thread(
-                    target.request, target_mode, messages, budget=budget, turn_index=turn
+                response = await request_target(
+                    target, target_mode, messages, budget=budget, turn_index=turn, metadata=base
                 )
             except BudgetExceeded:
+                raise
+            except RunnerStorageError:
                 raise
             except Exception as exc:
                 trials.append(
@@ -265,10 +278,15 @@ async def goat_attack(
                     error_code="no-judge-configured",
                 )
             else:
-                judgment, trace = await judge_scorer.score(
-                    goal, current_prompt, observation, budget=budget
+                judgment, trace = await score_observation(
+                    judge_scorer, goal, current_prompt, observation, budget=budget
                 )
-                missing_capture = not response.capture_complete
+                missing_capture = not response.capture_complete or judgment.reasoning in (
+                    "judge-call-budget",
+                    "campaign-deadline",
+                    "model-request-deadline",
+                    "judge-call-failed",
+                )
                 trial = GoatTrial(
                     **base,
                     response=response.content,
@@ -364,7 +382,8 @@ Captured outcomes so far:
 Respond with ONLY a single JSON object, no other text:
 {{"strategy": "<one strategy name from the list above, verbatim>", "prompt": "<next prompt to send>", "explanation": "<concise reason for this choice, one or two sentences>"}}"""
 
-    response = await acompletion(
+    response = await bounded_completion(
+        acompletion,
         **attacker_kwargs,
         messages=[
             {"role": "system", "content": system_prompt},

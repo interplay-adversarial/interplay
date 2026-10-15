@@ -18,9 +18,8 @@ the target and the judge, so no role's credentials are ever reused for
 another role's call.
 """
 
-import asyncio
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Annotated, Any, Literal
 from uuid import uuid4
 
@@ -28,7 +27,13 @@ from any_llm import acompletion
 from pydantic import Field
 
 from ..assessment.models import ModelEndpoint, Observation, StrictModel, Text, Verdict
-from .base import create_completion_kwargs
+from .session import (
+    bounded_completion,
+    request_target,
+    retained_runner,
+    role_completion_kwargs,
+    score_observation,
+)
 from .transport import (
     AuthenticatedTarget,
     BudgetExceeded,
@@ -37,6 +42,8 @@ from .transport import (
     JudgePanel,
     JudgeScorer,
     RunBudget,
+    RunnerRecord,
+    RunnerStorageError,
     build_judge,
     panel_agreement_report,
 )
@@ -143,7 +150,10 @@ class SLIPResult:
     query_count: int = 0
     rounds_completed: int = 0
 
+    records: list[RunnerRecord] = field(default_factory=list)
 
+
+@retained_runner("slip")
 async def slip_attack(
     goal: str,
     target_url: str,
@@ -210,7 +220,7 @@ async def slip_attack(
         api_key: API key for providers
         base_url: Base URL for custom (refiner/judge) providers
         campaign_seconds: Campaign deadline; the search stops (without
-            starting another round) once reached, not mid-call
+            starting another round) once reached; in-flight inference awaits are bounded
 
     Returns:
         SLIPResult with the judged best candidate and every generated candidate
@@ -227,7 +237,8 @@ async def slip_attack(
         capabilities=frozenset({"stateless"}),
     )
     refiner_kwargs = (
-        create_completion_kwargs(
+        role_completion_kwargs(
+            "attacker",
             provider=refiner_model.split("/")[0] if "/" in refiner_model else "openai",
             model=refiner_model,
             api_key=api_key,
@@ -440,13 +451,16 @@ async def _query_and_judge(
         "pruned": False,
     }
     try:
-        response = await asyncio.to_thread(
-            target.request,
+        response = await request_target(
+            target,
             "stateless",
             [{"role": "user", "content": candidate["prompt"]}],
             budget=budget,
+            metadata=base,
         )
     except BudgetExceeded:
+        raise
+    except RunnerStorageError:
         raise
     except Exception as exc:
         return SlipTrial(
@@ -462,13 +476,18 @@ async def _query_and_judge(
             status="incomplete",
             error_code="no-judge-configured",
         )
-    judgment, trace = await judge_scorer.score(
-        goal, candidate["prompt"], observation, budget=budget
+    judgment, trace = await score_observation(
+        judge_scorer, goal, candidate["prompt"], observation, budget=budget
     )
     # JudgeScorer.score() already downgrades an unsupported verdict to
     # inconclusive; a legitimately inconclusive judgment is a complete trial,
     # not a failure, so only missing capture marks this one incomplete.
-    missing_capture = not response.capture_complete
+    missing_capture = not response.capture_complete or judgment.reasoning in (
+        "judge-call-budget",
+        "campaign-deadline",
+        "model-request-deadline",
+        "judge-call-failed",
+    )
     status = "incomplete" if missing_capture else "complete"
     return SlipTrial(
         **base,
@@ -534,7 +553,8 @@ Current prompt: {current_prompt}
 
 Make a small refinement that brings it closer to the goal while keeping it natural. Respond with ONLY the refined prompt."""
 
-    response = await acompletion(
+    response = await bounded_completion(
+        acompletion,
         **refiner_kwargs,
         messages=[
             {"role": "system", "content": system_prompt},

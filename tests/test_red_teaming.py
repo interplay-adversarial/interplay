@@ -4,13 +4,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from interplay.assessment.models import JudgeOutput
 from interplay.red_teaming.base import create_completion_kwargs, get_env_var
 from interplay.red_teaming.crescendo_runner import CrescendoResult
-from interplay.red_teaming.garak_runner import create_custom_config, run_garak
+from interplay.red_teaming.garak_runner import create_custom_config
 from interplay.red_teaming.goat_runner import GOATResult
 from interplay.red_teaming.pair_runner import PairResult, pair_attack
 from interplay.red_teaming.slip_runner import SLIPResult
 from interplay.red_teaming.tap_runner import TapResult
+from interplay.red_teaming.transport import TargetResponse
 
 
 class TestBaseUtilities:
@@ -83,19 +85,24 @@ class TestPairRunner:
         """Test basic PAIR attack structure."""
         with (
             patch("interplay.red_teaming.pair_runner.acompletion") as mock_acompletion,
-            patch("interplay.red_teaming.pair_runner._call_target") as mock_target,
-            patch("interplay.red_teaming.pair_runner._judge_score") as mock_score,
+            patch("interplay.red_teaming.pair_runner.request_target") as mock_target,
+            patch("interplay.red_teaming.pair_runner.score_observation") as mock_score,
         ):
             # Mock responses
             mock_acompletion.return_value = MagicMock(
                 choices=[MagicMock(message=MagicMock(content="refined prompt"))]
             )
-            mock_target.return_value = "target response"
-            mock_score.return_value = 0.5
+            mock_target.return_value = TargetResponse(content="target response")
+            mock_score.return_value = (
+                JudgeOutput(
+                    verdict="failure", reasoning="fixture", evidence_refs_json='["/response"]'
+                ),
+                None,
+            )
 
             result = await pair_attack(
                 goal="test goal",
-                target_url="http://test.com/v1",
+                target_url="https://target.example/v1",
                 attacker_model="openai/test",
                 judge_model="openai/test",
                 max_queries=2,
@@ -183,22 +190,10 @@ class TestSLIPRunner:
 class TestGarakRunner:
     """Tests for Garak runner."""
 
-    def test_run_garak_command_building(self):
-        """Test that run_garak builds correct command."""
-        # Just test that the function exists and accepts arguments
-        # Actual execution requires Garak to be installed and target available
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0, stdout="test", stderr="")
-            run_garak(
-                target_url="http://test.com/v1",
-                probe_file="test.jsonl",
-            )
-            assert "garak" in str(mock_run.call_args)
-
     def test_create_custom_config(self, tmp_path):
         """Test creating custom Garak config."""
         config_path = create_custom_config(
-            target_url="http://test.com/v1",
+            target_url="https://target.example/v1",
             output_path=str(tmp_path / "config.json"),
         )
         assert config_path.endswith(".json")
@@ -207,4 +202,7 @@ class TestGarakRunner:
 
         with open(config_path) as f:
             config = json.load(f)
-        assert config["url"] == "http://test.com/v1"
+        assert (
+            config["plugins"]["generators"]["openai"]["OpenAICompatible"]["uri"]
+            == "https://target.example/v1"
+        )

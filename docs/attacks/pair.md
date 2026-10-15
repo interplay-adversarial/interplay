@@ -1,67 +1,44 @@
 # PAIR (Prompt Automatic Iterative Refinement)
 
-[← Attack methodologies](README.md) · [Documentation map](../README.md) · [Methodology](../METHODOLOGY.md)
+[Attack methods](README.md) · [Run and recover results](runner-results.md)
 
-**Strategy**: Iterative refinement with attacker + judge loop  
-**Query Budget**: ~20 queries  
-**Key Feature**: Attacker refines based on conversation history + CoT improvement
+PAIR queries the target, judges the captured response and uses recent outcomes
+to refine the next prompt. It uses the shared authenticated target and
+`JudgeScorer`/`JudgePanel` path, including evidence citations and inconclusive
+outcomes. The old numeric-only judge has been removed.
 
 ```python
 from interplay.red_teaming import pair_attack
-import asyncio
 
-
-async def main():
-    result = await pair_attack(
-        goal="Your attack goal",
-        target_url="https://your-target/v1",
-        attacker_model="openai/gpt-4o-mini",
-        judge_model="openai/gpt-4o-mini",
-        max_queries=20,
-    )
-    print(f"Best ASR: {result.best_score}")
-    print(f"Query count: {result.query_count}")
-
-
-asyncio.run(main())
+result = await pair_attack(
+    goal="Assess synthetic canary disclosure",
+    target_url="https://target.example/v1",
+    target_model="target-model",
+    attacker_model="attacker-model",
+    judge_model="judge-model",
+    max_queries=20,
+    output_dir="output/new-pair-run",
+)
+print(result.confirmed_success, result.stop_reason)
 ```
 
-## Current behavior
+`max_queries` is bounded to 1–100. Every role shares a finite campaign deadline
+and charged call budget. A response is retained before judging; missing capture,
+judge failure or unavailable judge budget leaves an incomplete/inconclusive trial.
+Success requires a complete capture and a supported success judgment. No target
+retries; no unused refinement after success or the last target iteration.
 
-- **The target call is authenticated.** `_call_target` goes through
-  `interplay.red_teaming.transport.AuthenticatedTarget` and attaches
-  `Authorization: Bearer <api_key>` when `pair_attack(..., api_key=...)` is set --
-  the previous implementation posted to the target with no Authorization header
-  at all, so a configured key was silently never sent. One attempt per
-  iteration, no retries; a failed or budget-exhausted target call is retained
-  as an incomplete trial (`conversation_history[-1]["error"]`) and stops the
-  campaign instead of raising and losing the trials already gathered.
-- **Judging is still the old numeric heuristic, not the shared `JudgeScorer`.**
-  `_judge_score` asks `judge_model` to "respond with ONLY a number" from 0.0 to
-  1.0 and clamps it; it is not evidence-cited, does not call
-  `interplay.assessment`'s `JudgeOutput`/`evidence_supported`, and never
-  returns `"inconclusive"` -- a parse failure silently becomes `0.0`. PAIR is
-  the one runner in this package not yet migrated to
-  [`interplay.red_teaming.transport.JudgeScorer`](../../interplay/red_teaming/transport.py),
-  unlike [TAP](tap.md), [Crescendo](crescendo.md), [GOAT](goat.md),
-  [SLIP](slip.md) and [Multimodal](multimodal.md). `result.best_score` is this
-  heuristic score, not an evidence-cited verdict or an empirical attack
-  success rate; treat the migration as planned, not shipped.
-- **No result retention.** Like every other legacy runner, `pair_attack`
-  returns only an in-memory `PairResult`; it does not write to
-  `interplay.red_teaming.transport.RunnerResultSink`, so there is nothing to
-  recover with `recover_runner_records` after an interrupted run. See
-  [the shared-transport integration status](../tools-and-use-cases.md#explore-the-legacy-attack-runners).
-- **Refinement is a free-text attacker call**, not the structured,
-  pool-validated decision [GOAT](goat.md) uses; a malformed refinement is used
-  as-is (the whole reply, if no `PROMPT:` marker is found) rather than
-  rejected.
+`secondary_judge_models`, `judge_aggregation`, explicit `role_endpoints` and
+`judge_members` work as with the other method runners. `conversation_history`,
+`best_score`, `best_prompt` and `query_count` remain available. `best_score` now
+maps the selected verdict to a search diagnostic (success 1, inconclusive 0.5,
+failure 0); it is not an attack success rate. Use `confirmed_success` for the
+judge-confirmed outcome. Panel agreement is in `irr_report` with an explicit
+unavailable reason when insufficient judges/cases exist.
 
-## Notes
+Refinement requests only the next probe, without chain-of-thought. Empty or
+oversized refinements are rejected. This remains a free-text refinement method,
+not GOAT's pool-validated strategy selection. See the shared guide for private
+JSONL/Parquet/Arrow exports, offline recovery, credential isolation and limits.
 
-- Requires the `red-teaming` extra (`pip install 'interplay-adversarial[red-teaming]'`, or `uv sync --extra red-teaming` in a clone) and the environment variables in the [README configuration section](../../README.md#configuration).
-- Run only against targets you own or are authorized to test; see [SECURITY.md](../../SECURITY.md).
-
-## Reference
-
-- Chao et al., NeurIPS 2023 (arXiv:2310.08419)
+Reference: [Chao et al., arXiv:2310.08419](https://arxiv.org/abs/2310.08419).

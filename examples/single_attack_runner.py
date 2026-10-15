@@ -16,8 +16,7 @@ Usage:
     uv run python examples/single_attack_runner.py --method crescendo --goal "Your goal"
     uv run python examples/single_attack_runner.py --method goat --goal "Your goal" --max-turns 3
 
-Pass more than one --judge-models value to form a panel (TAP/Crescendo/GOAT/
-SLIP/Multimodal only, not PAIR): the aggregated verdict per --judge-aggregation
+Pass more than one --judge-models value to form a panel for any method: the aggregated verdict per --judge-aggregation
 becomes the trial's verdict, and the printed summary includes irr_report, a
 real Krippendorff's alpha across every judged case:
 
@@ -69,6 +68,8 @@ async def run_method(
     judge_aggregation: str,
     api_key: str | None,
     max_turns: int,
+    output_dir: str | None = None,
+    base_url: str | None = None,
 ):
     judge_model, secondary_judge_models = (
         (judge_models[0], judge_models[1:]) if judge_models else (None, None)
@@ -84,17 +85,21 @@ async def run_method(
             secondary_judge_models=secondary_judge_models,
             judge_aggregation=judge_aggregation,
             api_key=api_key,
+            output_dir=output_dir,
+            base_url=base_url,
         )
     if method == "pair":
-        # PAIR is not yet migrated to the shared JudgeScorer/JudgePanel -- see
-        # docs/attacks/pair.md -- so it has no panel/aggregation support.
         return await pair_attack(
             goal=goal,
             target_url=target_url,
             target_model=target_model,
             attacker_model=attacker_model,
             judge_model=judge_model,
+            secondary_judge_models=secondary_judge_models,
+            judge_aggregation=judge_aggregation,
             api_key=api_key,
+            output_dir=output_dir,
+            base_url=base_url,
         )
     if method == "crescendo":
         return await crescendo_attack(
@@ -107,6 +112,8 @@ async def run_method(
             judge_aggregation=judge_aggregation,
             max_turns=max_turns,
             api_key=api_key,
+            output_dir=output_dir,
+            base_url=base_url,
         )
     if method == "goat":
         return await goat_attack(
@@ -119,6 +126,8 @@ async def run_method(
             judge_aggregation=judge_aggregation,
             max_turns=max_turns,
             api_key=api_key,
+            output_dir=output_dir,
+            base_url=base_url,
         )
     if method == "slip":
         if not target_model:
@@ -132,6 +141,8 @@ async def run_method(
             secondary_judge_models=secondary_judge_models,
             judge_aggregation=judge_aggregation,
             api_key=api_key,
+            output_dir=output_dir,
+            base_url=base_url,
         )
     if method == "multimodal":
         return await multimodal_attack(
@@ -142,6 +153,8 @@ async def run_method(
             secondary_judge_models=secondary_judge_models,
             judge_aggregation=judge_aggregation,
             api_key=api_key,
+            output_dir=output_dir,
+            base_url=base_url,
         )
     raise ValueError(f"unknown method: {method}")  # pragma: no cover - argparse choices guards this
 
@@ -178,7 +191,7 @@ def main() -> int:
         "--judge-models",
         nargs="+",
         default=[os.getenv("JUDGE_MODEL")] if os.getenv("JUDGE_MODEL") else None,
-        help="one judge, or several to form a panel (not PAIR; see docs/attacks/pair.md)",
+        help="one judge, or several to form a panel",
     )
     parser.add_argument(
         "--judge-aggregation",
@@ -187,6 +200,8 @@ def main() -> int:
         help="only meaningful with more than one --judge-models value",
     )
     parser.add_argument("--api-key", default=os.getenv("TARGET_API_KEY"))
+    parser.add_argument("--output-dir", help="new private directory for durable runner datasets")
+    parser.add_argument("--base-url", help="shared attacker/evaluator/judge endpoint")
     parser.add_argument("--max-turns", type=int, default=5, help="crescendo/goat only")
     args = parser.parse_args()
 
@@ -204,6 +219,8 @@ def main() -> int:
             judge_aggregation=args.judge_aggregation,
             api_key=args.api_key,
             max_turns=args.max_turns,
+            output_dir=args.output_dir,
+            base_url=args.base_url,
         )
     )
     print(json.dumps(summarize(result), indent=2, sort_keys=True, default=str))
