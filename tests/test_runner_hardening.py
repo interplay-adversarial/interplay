@@ -492,3 +492,74 @@ async def test_judge_budget_exhaustion_stops_before_further_attacker_or_target_c
     assert len(result.trials) == 1 and len(result.records) == 1
     target.assert_called_once()
     attacker.assert_not_called()
+
+
+@pytest.mark.parametrize("fenced", [False, True])
+@pytest.mark.parametrize("array_refs", [False, True])
+async def test_judge_normalizes_equivalent_json_formats_without_changing_raw_reply(
+    fenced, array_refs
+):
+    raw = json.dumps(
+        {
+            "verdict": "failure",
+            "reasoning": "synthetic marker absent",
+            "evidence_refs_json": ["/response"] if array_refs else '["/response"]',
+        }
+    )
+    if fenced:
+        raw = "```json\n" + raw + "\n```"
+    call = AsyncMock(return_value=completion(raw))
+    with patch("any_llm.acompletion", call):
+        verdict, trace = await JudgeScorer(
+            ModelEndpoint(base_url="https://judge.example/v1", model="judge"),
+            api_key="synthetic-key",
+        ).score("goal", "probe", Observation(response="absent"), budget=CallBudget(RunBudget()))
+    assert verdict.verdict == "failure"
+    assert json.loads(verdict.evidence_refs_json) == ["/response"]
+    assert trace == raw
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        'Explanation before {"verdict":"success","reasoning":"fixture","evidence_refs_json":["/response"]}',
+        '{"verdict":"success","verdict":"failure","reasoning":"fixture","evidence_refs_json":["/response"]}',
+        '{"verdict":"success","reasoning":"fixture","evidence_refs_json":[123]}',
+        '```json\n{"verdict":"success"}\n```\n```json\n{"verdict":"failure"}\n```',
+        '{"verdict":"success",',
+    ],
+)
+async def test_invalid_judge_output_remains_inconclusive_and_retains_redacted_raw_reply(raw):
+    raw = raw.replace("fixture", "synthetic-reflected-key")
+    with patch("any_llm.acompletion", AsyncMock(return_value=completion(raw))):
+        verdict, trace = await JudgeScorer(
+            ModelEndpoint(base_url="https://judge.example/v1", model="judge"),
+            api_key="synthetic-reflected-key",
+        ).score("goal", "probe", Observation(response="observed"), budget=CallBudget(RunBudget()))
+    assert verdict.verdict == "inconclusive"
+    assert verdict.reasoning == "judge-call-failed"
+    assert trace == raw.replace("synthetic-reflected-key", "[REDACTED]")
+
+
+async def test_fenced_judge_cannot_confirm_unsupported_citations_or_truncated_output():
+    raw = (
+        '```json\n{"verdict":"success","reasoning":"fixture","evidence_refs_json":["/logs/0"]}\n```'
+    )
+    call = AsyncMock(return_value=completion(raw))
+    scorer = JudgeScorer(
+        ModelEndpoint(base_url="https://judge.example/v1", model="judge"), api_key="synthetic-key"
+    )
+    with patch("any_llm.acompletion", call):
+        verdict, trace = await scorer.score(
+            "goal", "probe", Observation(response="observed"), budget=CallBudget(RunBudget())
+        )
+    assert verdict.verdict == "inconclusive" and verdict.evidence_refs_json == "[]"
+    assert trace == raw
+    reply = completion(raw.replace("/logs/0", "/response"))
+    reply.choices[0].finish_reason = "length"
+    with patch("any_llm.acompletion", AsyncMock(return_value=reply)):
+        verdict, trace = await scorer.score(
+            "goal", "probe", Observation(response="observed"), budget=CallBudget(RunBudget())
+        )
+    assert verdict.verdict == "inconclusive" and verdict.reasoning == "judge-call-failed"
+    assert trace == reply.choices[0].message.content

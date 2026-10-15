@@ -135,3 +135,11 @@ member citations are removed, aggregate citations come from supporting members,
 and the final aggregate is checked against the captured evidence. Scores remain
 search diagnostics; these model judgments are not independently verified target
 side effects, containment decisions or empirical attack success rates.
+
+Judge wire replies may use a bare JSON object or a single whole-response JSON
+Markdown fence; citation arrays are canonicalized to the flat `evidence_refs_json`
+string. Strict schema and evidence validation still apply. Surrounding prose,
+multiple/contradictory objects, duplicate fields, malformed citations and
+unfinished outputs cannot establish success. Raw judge text is retained even
+when it cannot be parsed or was cut short; invalid output remains incomplete
+and inconclusive.
