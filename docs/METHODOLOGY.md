@@ -44,10 +44,19 @@ breadth across cultures; the attack runners give depth on specific goals.
 
 ### Scoring
 
-Attack runners report a best score for the goal, shown as ASR in the examples. A judge model scores
-responses; configure it separately from the target (`JUDGE_MODEL`). TAP can also report a judge-agreement
-kappa score through `judge-kappa`; the other runners do not yet. Treat single-run scores as indicative,
-not conclusive.
+Attack runners report method-specific scores; a single best score is not an
+empirical attack success rate. PAIR uses a model to score target responses. TAP
+currently ranks generated prompts without querying the target, and its optional
+kappa value is a fixed placeholder rather than measured agreement. Crescendo,
+GOAT, SLIP and Multimodal currently use placeholder response-scoring heuristics.
+These interfaces also differ in target authentication and conversation handling.
+See the [current implementation limits](tools-and-use-cases.md#explore-the-legacy-attack-runners).
+
+For captured responses/logs/traces, validated evidence citations, incomplete
+outcomes and consistent JSONL/Parquet/Arrow records, use the separate
+[description-driven assessment API](assessment.md), in batch or adaptive mode.
+Neither model scores nor assessment judgments establish boundary containment or
+release authority.
 
 ## 3. Limits and responsible use
 

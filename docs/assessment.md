@@ -1,5 +1,8 @@
 # Description-driven research assessments
 
+For workflow selection and dependency responsibilities, see the
+[tools and use-case guide](tools-and-use-cases.md).
+
 `interplay assess` generates probes from a description using NeMo DataDesigner,
 sends each probe to a fixed target, and uses a separate `JUDGE_MODEL` to evaluate
 the response and available logs/traces. It retains probe, adversarial intent,
