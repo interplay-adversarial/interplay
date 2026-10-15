@@ -18,23 +18,23 @@ agents, tool-using applications and harnesses served behind such an endpoint. Fo
   that regional-language prompts succeeded 67.2% of the time versus 49.2% in English — so the
   pipeline generates both probe types, grounded in specific cultural contexts rather than
   generic demographics. Three built-in taxonomies plus any two-group comparison you define. See
-  [docs/probe-generation.md](docs/probe-generation.md).
+  [docs/probe-generation.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/probe-generation.md).
 - **Attack methodologies** — seven runners (Garak, TAP, PAIR, Crescendo, GOAT, SLIP,
   Multimodal) covering search strategies from a static probe library through multi-turn and
   multimodal attacks, each scored by a judge model that cites its evidence. Five of them (not
   PAIR) can use **a panel of several judges instead of one**, with a configurable
   `"majority"`/`"unanimous"` verdict and a real inter-rater-reliability report (Krippendorff's
   alpha with a bootstrapped confidence interval) computed from the same judge calls. See
-  [docs/attacks/README.md](docs/attacks/README.md).
+  [docs/attacks/README.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/README.md).
 - **Description-driven assessment** — give it a free-text objective and success criterion;
   it generates probes, captures the target's response/logs/traces, and returns an
   evidence-cited verdict (`success`/`failure`/`inconclusive`) with matching JSONL/Parquet/Arrow
   datasets. Separate adversarial, target and judge models; reusable independently of any
-  boundary gate. See [docs/assessment.md](docs/assessment.md).
+  boundary gate. See [docs/assessment.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/assessment.md).
 
 Which of these three fits your question, how they relate, and their current scope and limits
-are in the [documentation map](docs/README.md) and the
-[tools and use-case guide](docs/tools-and-use-cases.md).
+are in the [documentation map](https://github.com/interplay-adversarial/interplay/blob/main/docs/README.md) and the
+[tools and use-case guide](https://github.com/interplay-adversarial/interplay/blob/main/docs/tools-and-use-cases.md).
 
 ## Install
 
@@ -68,7 +68,7 @@ interplay probes create --mode us-mexico --num-records 200  # extra arguments go
 ```
 
 Every mode, the diverse-dataset helper, output columns and how to add your own comparison:
-[docs/probe-generation.md](docs/probe-generation.md).
+[docs/probe-generation.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/probe-generation.md).
 
 ### Run an attack
 
@@ -91,7 +91,7 @@ uv run python examples/integrated_run.py --probe-file probes.jsonl --output-dir 
 
 Each runner can also be called directly from Python with its own parameters (query budget,
 judge panel, multimodal controls, ...); see its page in
-[docs/attacks/README.md](docs/attacks/README.md).
+[docs/attacks/README.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/attacks/README.md).
 
 ### Assess a custom objective
 
@@ -104,7 +104,7 @@ interplay assess --config private-providers.json --output private-campaign \
 ```
 
 Configuration shape, batch vs. adaptive search, and the dataset schema:
-[docs/assessment.md](docs/assessment.md).
+[docs/assessment.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/assessment.md).
 
 ## Configuration
 
@@ -116,9 +116,9 @@ Three independent configuration surfaces, matching the three capabilities above:
 - **Attack runners**: `TARGET_URL`/`TARGET_API_KEY`/`TARGET_MODEL`,
   `JUDGE_URL`/`JUDGE_API_KEY`/`JUDGE_MODEL`, `ATTACKER_URL`/`ATTACKER_API_KEY`/`ATTACKER_MODEL`,
   or the generic `LLM_PROVIDER`/`API_KEY`/`BASE_URL` fallback. See
-  [`.env.example`](.env.example) for the full list with defaults.
+  [`.env.example`](https://github.com/interplay-adversarial/interplay/blob/main/.env.example) for the full list with defaults.
 - **Assessment**: a separate, private (`chmod 0600`) JSON config file, never `.env` — see
-  [docs/assessment.md](docs/assessment.md).
+  [docs/assessment.md](https://github.com/interplay-adversarial/interplay/blob/main/docs/assessment.md).
 
 `any-llm-sdk` supports OpenAI, Anthropic, Google, Mistral, Cohere, Ollama, self-hosted
 vLLM/RHOAI and 20+ more — a self-hosted endpoint works exactly the same way as a hosted one,
@@ -138,9 +138,9 @@ uv run pytest               # unit tests (no LLM required)
 
 ## Security and content policy
 
-This project contains adversarial material. Read the [content policy](docs/CONTENT_POLICY.md)
+This project contains adversarial material. Read the [content policy](https://github.com/interplay-adversarial/interplay/blob/main/docs/CONTENT_POLICY.md)
 before contributing, and report vulnerabilities privately as described in
-[SECURITY.md](SECURITY.md). Use it only against systems you own or are authorized to test.
+[SECURITY.md](https://github.com/interplay-adversarial/interplay/blob/main/SECURITY.md). Use it only against systems you own or are authorized to test.
 
 ## Name and affiliation
 
