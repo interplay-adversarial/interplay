@@ -7,7 +7,7 @@ import pytest
 from interplay.red_teaming.base import create_completion_kwargs, get_env_var
 from interplay.red_teaming.crescendo_runner import CrescendoResult, crescendo_attack
 from interplay.red_teaming.garak_runner import create_custom_config, run_garak
-from interplay.red_teaming.goat_runner import GOATResult, goat_attack
+from interplay.red_teaming.goat_runner import GOATResult
 from interplay.red_teaming.multimodal_runner import MultimodalResult, multimodal_attack
 from interplay.red_teaming.pair_runner import PairResult, pair_attack
 from interplay.red_teaming.slip_runner import SLIPResult, slip_attack
@@ -164,34 +164,9 @@ class TestCrescendoRunner:
 
 
 class TestGOATRunner:
-    """Tests for GOAT attack runner."""
-
-    @pytest.mark.asyncio
-    async def test_goat_attack_basic(self):
-        """Test basic GOAT attack structure."""
-        with (
-            patch("interplay.red_teaming.goat_runner.acompletion") as mock_acompletion,
-            patch("interplay.red_teaming.goat_runner._call_target") as mock_target,
-            patch("interplay.red_teaming.goat_runner._score_response") as mock_score,
-        ):
-            # Mock responses
-            mock_acompletion.return_value = MagicMock(
-                choices=[MagicMock(message=MagicMock(content="STRATEGY: test\nPROMPT: prompt"))]
-            )
-            mock_target.return_value = "response"
-            mock_score.return_value = 0.4
-
-            result = await goat_attack(
-                goal="test goal",
-                target_url="http://test.com/v1",
-                attacker_model="openai/test",
-                max_turns=2,
-            )
-
-            assert isinstance(result, GOATResult)
-            assert result.goal == "test goal"
-            assert result.turns <= 2
-            assert len(result.strategy_trajectory) <= 2
+    """Tests for GOAT attack runner's result dataclass; the attack itself (real
+    target queries, strategy validation, judging, budgets) is covered in
+    tests/test_goat_runner.py since it needs a target fixture."""
 
     def test_goat_result_dataclass(self):
         """Test GOATResult dataclass structure."""
@@ -199,13 +174,13 @@ class TestGOATRunner:
             goal="test",
             best_score=0.6,
             best_prompt="prompt",
-            conversation_history=[],
-            strategy_trajectory=["test"],
+            trials=[],
             query_count=1,
             turns=1,
         )
         assert result.goal == "test"
-        assert len(result.strategy_trajectory) == 1
+        assert result.turns == 1
+        assert result.query_count == 1
 
 
 class TestSLIPRunner:
