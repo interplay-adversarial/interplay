@@ -50,8 +50,11 @@ queries the target only for branches its evaluator admits, judges each
 response with a separate evidence-cited judge, and selects its best candidate
 by that judged outcome, not the evaluator's pre-query likelihood; its optional
 kappa value is a real two-judge Cohen's kappa when a second judge is
-configured, or explicitly unavailable rather than a fixed placeholder.
-Crescendo, GOAT, SLIP and Multimodal currently use placeholder response-scoring heuristics.
+configured, or explicitly unavailable rather than a fixed placeholder. SLIP
+queries the target only for candidates its deterministic, bounded insertion
+and refinement rounds admit, and judges each response with a separate
+evidence-cited judge instead of a keyword/refusal heuristic.
+Crescendo, GOAT and Multimodal currently use placeholder response-scoring heuristics.
 These interfaces also differ in target authentication and conversation handling.
 See the [current implementation limits](tools-and-use-cases.md#explore-the-legacy-attack-runners).
 
