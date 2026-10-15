@@ -122,6 +122,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser(
         "assessment-recover", help="export interrupted campaign stages without model calls"
     )
+    sub.add_parser("runner-run", help="execute a method runner with durable private datasets")
+    sub.add_parser("runner-recover", help="export runner journal without model calls")
     probes = sub.add_parser(
         "probes",
         help="run the probe pipeline through data-designer",
@@ -146,6 +148,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     values = sys.argv[1:] if argv is None else argv
+    if values and values[0] in ("runner-run", "runner-recover"):
+        from interplay.red_teaming.cli import main as runner_main
+
+        return runner_main(values)
     if values and values[0] in ("assess", "assessment-recover"):
         from interplay.assessment.cli import main as assessment_main
 

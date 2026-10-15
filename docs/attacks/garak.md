@@ -1,35 +1,49 @@
-# Garak (Vulnerability Scanning)
+# Garak vulnerability scanning
 
-[← Attack methodologies](README.md) · [Documentation map](../README.md) · [Methodology](../METHODOLOGY.md)
+[Attack methods](README.md) · [Tool guide](../tools-and-use-cases.md)
 
-**Strategy**: Run a broad library of built-in probes against the target and collect the results  
-**Query Budget**: Depends on the probes selected (100+ built-in probes)  
-**Key Feature**: Comprehensive coverage; runs [Garak](https://github.com/NVIDIA/garak) as a subprocess against an OpenAI-compatible HTTP endpoint
+The wrapper supervises the external Garak CLI against an OpenAI-compatible
+endpoint and parses its native report JSONL. Install Garak in its own environment
+(`pip install 'interplay-adversarial[red-teaming,garak]'`); it has dependency conflicts with
+some assessment/provider extras.
 
 ```python
 from interplay.red_teaming import run_garak
 
 result = run_garak(
-    target_url="https://your-target/v1",
-    probe_file="probes.jsonl",
-    output_dir="output/garak",
+    target_url="https://target.example/v1",
+    target_model="target-model",
+    probe_file="test.Test",  # Garak plugin selector; historical parameter name
+    api_key_env="TARGET_API_KEY",
+    output_dir="output/new-garak-run",
+    campaign_seconds=600,
 )
-print(result["success"], result["returncode"])
+print(result["success"], result["returncode"], result["report"])
 ```
 
-`run_garak` returns a dict with `success`, `stdout`, `stderr` and `returncode`. `create_custom_config`
-builds a Garak config for your endpoint.
+`probe_file` means a Garak plugin selector, not an arbitrary JSONL probe file.
+The endpoint is passed through the `openai.OpenAICompatible` generator's `uri`
+option, the model through `--model_name`, and the report location through
+`--report_prefix`. `config_file` is an optional Garak run config.
+`create_custom_config` writes the corresponding endpoint config privately,
+without credentials. The key is passed through the scanner's environment,
+never command-line arguments.
 
-`parse_garak_results` is a stub: it currently returns `{"report_file": ..., "status": "pending"}`
-regardless of the report's contents, and does not parse Garak's actual HTML/JSON output. Read
-`run_garak`'s own `stdout`/`returncode`, or Garak's report file directly, until this is implemented.
+The scanner runs in a new private directory. It has a finite deadline and
+bounded captured console output; the process group is terminated on completion,
+error or cancellation so scanner workers cannot outlive supervision. Known
+configured keys are redacted from returned console text and retained reports.
 
-## Notes
+`success` means the scanner exited successfully; it is not an attack verdict.
+`report` retains each latest native attempt stage and every detector evaluation.
+`parse_garak_results(path)` also works offline, identifies incomplete/truncated
+reports, and rejects malformed committed lines or regressed attempt stages.
+No detector thresholds or judge verdicts are invented by the parser. Garak
+owns its own detector semantics and generator retry policy; the method runners'
+no-target-retry contract does not describe Garak internals.
 
-- Requires the `garak` extra (`pip install 'interplay-adversarial[garak]'`, or `uv sync --extra garak` in a clone), which installs Garak. Without it, `run_garak` raises a clear error.
-- Garak runs as an external process, so its own configuration and output format apply.
-- Run only against targets you own or are authorized to test; see [SECURITY.md](../../SECURITY.md).
-
-## Reference
-
-- Garak: https://github.com/NVIDIA/garak
+The CLI contract and report stages are documented in Garak's official
+[CLI reference](https://reference.garak.ai/en/stable/cliref.html) and
+[reporting reference](https://reference.garak.ai/en/stable/reporting.html).
+The wrapper is covered by a fake scanner executable and synthetic native JSONL
+fixtures; this does not qualify every installed Garak version/plugin.

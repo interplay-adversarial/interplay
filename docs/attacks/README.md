@@ -39,7 +39,7 @@ uv run python examples/single_attack_runner.py --method crescendo --goal "Your g
 
 Each page above shows the Python call for that runner. All of them need the `red-teaming` extra (`pip install 'interplay-adversarial[red-teaming]'`); Garak also needs the `garak` extra.
 
-All five runners except PAIR accept more than one judge model
+All six method runners accept more than one judge model
 (`secondary_judge_models`) to form a panel instead of a single judge, with a
 configurable `judge_aggregation` (`"majority"`/`"unanimous"`) and a real
 inter-rater-reliability report (`result.irr_report`). See
@@ -50,3 +50,6 @@ inter-rater-reliability report (`result.irr_report`). See
 These runners send adversarial content to the endpoints you configure. Use only targets you own or
 are authorized to test, in an isolated environment with throwaway credentials. See
 [SECURITY.md](../../SECURITY.md) and the [content policy](../CONTENT_POLICY.md).
+
+For explicit per-role credentials, durable datasets and offline CLI recovery, see
+[Run, retain and recover method evaluations](runner-results.md).

@@ -14,11 +14,12 @@ def test_red_teaming_import_without_extra_gives_install_hint():
     assert "interplay-adversarial[red-teaming]" in result.stderr
 
 
-def test_run_garak_without_garak_installed_gives_install_hint():
+def test_run_garak_without_garak_installed_gives_install_hint(monkeypatch):
     from interplay.red_teaming.garak_runner import run_garak
 
+    monkeypatch.setenv("OPENAICOMPATIBLE_API_KEY", "synthetic-key")
     with (
-        patch("subprocess.run", side_effect=FileNotFoundError("garak")),
-        pytest.raises(RuntimeError, match=r"interplay-adversarial\[garak\]"),
+        patch("subprocess.Popen", side_effect=FileNotFoundError("garak")),
+        pytest.raises(RuntimeError, match=r"interplay-adversarial\[red-teaming,garak\]"),
     ):
-        run_garak("http://localhost/v1", "probes.jsonl")
+        run_garak("http://localhost/v1", "test.Test")

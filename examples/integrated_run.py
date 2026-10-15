@@ -4,7 +4,7 @@ Example workflow:
     1. Generate probes with Interplay Adversarial pipeline
     2. Run Garak against target
     3. Run TAP/PAIR attacks
-    4. Merge results with statistical validation
+    4. Summarize method diagnostics and confirmed outcomes
 
 Usage:
     # Set environment variables or create .env file
@@ -37,6 +37,7 @@ async def run_integrated_workflow(
     target_url: str | None = None,
     api_key: str | None = None,
     output_dir: str | None = None,
+    garak_probes: str = "test.Test",
 ) -> dict[str, Any]:
     """Run integrated cultural bias + attack methodology workflow.
 
@@ -62,7 +63,7 @@ async def run_integrated_workflow(
 
     # Ensure output directory
     if output_dir:
-        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        Path(output_dir).mkdir(mode=0o700, parents=True, exist_ok=False)
 
     results = {
         "config": {
@@ -78,10 +79,14 @@ async def run_integrated_workflow(
 
     # Step 1: Run Garak
     print("Step 1: Running Garak...")
-    garak_result = run_garak(
+    garak_result = await asyncio.to_thread(
+        run_garak,
         target_url=target_url,
-        probe_file=probe_file,
-        output_dir=output_dir,
+        target_model=target_config.get("model") or "target-model",
+        probe_file=garak_probes,
+        api_key_env="TARGET_API_KEY",
+        api_key=api_key,
+        output_dir=str(Path(output_dir) / "garak") if output_dir else None,
     )
     results["garak_results"] = garak_result
     print(f"Garak: {'SUCCESS' if garak_result['success'] else 'FAILED'}")
@@ -102,6 +107,8 @@ async def run_integrated_workflow(
         tap_result = await tap_attack(
             goal=goal,
             target_url=target_url,
+            target_model=target_config.get("model"),
+            output_dir=str(Path(output_dir) / f"tap-{i}") if output_dir else None,
             attacker_model=os.getenv(
                 "ATTACKER_MODEL", judge_config.get("model", "openai/gpt-4o-mini")
             ),
@@ -133,6 +140,8 @@ async def run_integrated_workflow(
         pair_result = await pair_attack(
             goal=goal,
             target_url=target_url,
+            target_model=target_config.get("model"),
+            output_dir=str(Path(output_dir) / f"pair-{i}") if output_dir else None,
             attacker_model=os.getenv(
                 "ATTACKER_MODEL", judge_config.get("model", "openai/gpt-4o-mini")
             ),
@@ -147,13 +156,14 @@ async def run_integrated_workflow(
                     "best_score": pair_result.best_score,
                     "best_prompt": pair_result.best_prompt,
                     "query_count": pair_result.query_count,
+                    "confirmed_success": pair_result.confirmed_success,
                 },
             }
         )
 
     # Step 4: Calculate summary
     # These are search diagnostics (TAP: the judged-best candidate's pre-query
-    # evaluator likelihood; PAIR: its own heuristic score), not an empirical
+    # evaluator likelihood; PAIR: mapped judge verdict), not an empirical
     # attack success rate. tap_confirmed_successes is the number of probes
     # where TAP's evidence-cited judge actually confirmed success.
     tap_scores = [r["result"]["best_score"] for r in results["tap_results"]]
@@ -167,6 +177,9 @@ async def run_integrated_workflow(
         "tap_confirmed_successes": sum(
             r["result"]["confirmed_success"] for r in results["tap_results"]
         ),
+        "pair_confirmed_successes": sum(
+            r["result"]["confirmed_success"] for r in results["pair_results"]
+        ),
         "pair_attacks_run": len(pair_scores),
         "pair_avg_score": sum(pair_scores) / len(pair_scores) if pair_scores else 0,
         "pair_max_score": max(pair_scores) if pair_scores else 0,
@@ -175,8 +188,11 @@ async def run_integrated_workflow(
     # Save results
     if output_dir:
         output_file = Path(output_dir) / "integrated_results.json"
-        with open(output_file, "w") as f:
-            json.dump(results, f, indent=2)
+        from interplay.assessment.storage import atomic_file
+        from interplay.red_teaming.session import clean
+
+        results = clean(results, (api_key,))
+        atomic_file(output_file, json.dumps(results, indent=2).encode())
         print(f"Results saved to {output_file}")
 
     return results
@@ -188,6 +204,11 @@ def main():
 
     parser = argparse.ArgumentParser(description="Integrated red teaming workflow")
     parser.add_argument("--probe-file", default="probes.jsonl", help="Probe file path")
+    parser.add_argument(
+        "--garak-probes",
+        default="test.Test",
+        help="Garak plugin selector, separate from the JSONL method probes",
+    )
     parser.add_argument("--target-url", help="Target endpoint URL")
     parser.add_argument("--api-key", help="API key")
     parser.add_argument("--output-dir", default="output", help="Output directory")
@@ -201,6 +222,7 @@ def main():
             target_url=args.target_url,
             api_key=args.api_key,
             output_dir=args.output_dir,
+            garak_probes=args.garak_probes,
         )
     )
 

@@ -27,7 +27,7 @@ import io
 import os
 import shutil
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Annotated, Any, Literal
 from uuid import uuid4
@@ -35,6 +35,12 @@ from uuid import uuid4
 from pydantic import Field, field_validator
 
 from ..assessment.models import ModelEndpoint, Observation, StrictModel, Text, Verdict
+from .session import (
+    current_session,
+    request_target,
+    retained_runner,
+    score_observation,
+)
 from .transport import (
     AuthenticatedTarget,
     BudgetExceeded,
@@ -43,6 +49,8 @@ from .transport import (
     JudgePanel,
     JudgeScorer,
     RunBudget,
+    RunnerRecord,
+    RunnerStorageError,
     TargetCapability,
     UnsupportedCapabilityError,
     build_judge,
@@ -152,7 +160,10 @@ class MultimodalResult:
     run_dir: str | None = None
     payloads_preserved: bool = False
 
+    records: list[RunnerRecord] = field(default_factory=list)
 
+
+@retained_runner("multimodal")
 async def multimodal_attack(
     goal: str,
     vision_target_url: str,
@@ -209,7 +220,7 @@ async def multimodal_attack(
         base_url: Base URL for the judge provider (defaults to
             ``vision_target_url``).
         campaign_seconds: Campaign deadline; the run stops (without starting
-            another attempt) once reached, not mid-call.
+            another attempt) once reached; in-flight inference awaits are bounded.
         payload_dir: Parent directory for the private per-run payload
             directory (default: a fresh, process-private temp directory).
         preserve_payloads: Keep the rendered images on disk after the run
@@ -254,7 +265,8 @@ async def multimodal_attack(
         )
     )
 
-    run_id = uuid4().hex
+    session = current_session()
+    run_id = session.run_id if session else uuid4().hex
     run_dir = _prepare_run_dir(payload_dir, run_id)
 
     trials: list[MultimodalTrial] = []
@@ -289,6 +301,7 @@ async def multimodal_attack(
         if not config.preserve_payloads:
             shutil.rmtree(run_dir, ignore_errors=True)
 
+    stop_reason = budget.exhausted_reason or stop_reason
     best = _select_best(trials)
     irr_report, irr_unavailable_reason = panel_agreement_report(judge_scorer)
     return MultimodalResult(
@@ -364,7 +377,19 @@ async def _run_attempt(
 
     messages = [{"role": "user", "content": prompt}]
     try:
-        response = target.request(kind, messages, budget=budget, image_data_url=image_data_url)
+        response = await request_target(
+            target,
+            kind,
+            messages,
+            budget=budget,
+            image_data_url=image_data_url,
+            metadata={
+                **base_fields,
+                "image_digest": image_digest,
+                "image_bytes": image_bytes,
+                "image_truncated": image_truncated,
+            },
+        )
     except BudgetExceeded:
         raise
     except UnsupportedCapabilityError as exc:
@@ -379,6 +404,8 @@ async def _run_attempt(
             ),
             0,
         )
+    except RunnerStorageError:
+        raise
     except Exception as exc:
         return (
             MultimodalTrial(
@@ -406,8 +433,15 @@ async def _run_attempt(
         )
         return trial, 1
 
-    judgment, trace = await judge_scorer.score(goal, prompt, observation, budget=budget)
-    missing_capture = not response.capture_complete
+    judgment, trace = await score_observation(
+        judge_scorer, goal, prompt, observation, budget=budget
+    )
+    missing_capture = not response.capture_complete or judgment.reasoning in (
+        "judge-call-budget",
+        "campaign-deadline",
+        "model-request-deadline",
+        "judge-call-failed",
+    )
     trial = MultimodalTrial(
         **base_fields,
         image_digest=image_digest,

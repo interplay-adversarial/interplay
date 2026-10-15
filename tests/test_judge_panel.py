@@ -91,10 +91,10 @@ async def test_two_judges_majority_and_unanimous_are_identical():
     assert judgment.verdict == "inconclusive"  # same result unanimous would give
 
 
-async def test_aggregated_evidence_refs_are_the_union():
+async def test_aggregated_evidence_refs_are_the_supported_union():
     panel = make_panel(["success", "success"], aggregation="majority")
     panel.scorers[1]._raw["evidence_refs_json"] = '["/logs/0"]'
-    judgment, _trace = await score_panel(panel)
+    judgment, _trace = await score_panel(panel, Observation(response="hello", logs_json='["log"]'))
     refs = json.loads(judgment.evidence_refs_json)
     assert set(refs) == {"/response", "/logs/0"}
 

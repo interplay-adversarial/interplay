@@ -23,6 +23,7 @@ from .garak_runner import create_custom_config, parse_garak_results, run_garak
 from .goat_runner import GoatConfig, GOATResult, goat_attack
 from .multimodal_runner import MultimodalConfig, MultimodalResult, multimodal_attack
 from .pair_runner import PairResult, pair_attack
+from .session import JudgeMember
 from .slip_runner import SLIPResult, slip_attack
 from .tap_runner import TapResult, tap_attack
 from .transport import (
@@ -58,6 +59,7 @@ __all__ = [
     "JudgeAggregation",
     "JudgePanel",
     "JudgeScorer",
+    "JudgeMember",
     "RoleCredentialError",
     "RunBudget",
     "RunnerRecord",

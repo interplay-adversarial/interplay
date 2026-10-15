@@ -295,7 +295,7 @@ def test_malformed_judge_output_is_inconclusive_not_a_crash(endpoint):
             max_turns=1,
         )
     assert result.trials[0]["judge_verdict"] == "inconclusive"
-    assert result.trials[0]["status"] == "complete"
+    assert result.trials[0]["status"] == "incomplete"
 
 
 def test_lost_capture_is_retained_as_incomplete_and_inconclusive(endpoint):
@@ -539,6 +539,7 @@ def test_offline_retained_trial_export_without_target_replay(tmp_path, endpoint)
             probe=trial["prompt"],
             roles=roles,
         )
+        sink.stage(record)
         record = record.model_copy(
             update={
                 "response": trial["response"],
