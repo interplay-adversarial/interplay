@@ -20,7 +20,7 @@ from .base import (
 )
 from .crescendo_runner import CrescendoResult, crescendo_attack
 from .garak_runner import create_custom_config, parse_garak_results, run_garak
-from .goat_runner import GOATResult, goat_attack
+from .goat_runner import GoatConfig, GOATResult, goat_attack
 from .multimodal_runner import MultimodalResult, multimodal_attack
 from .pair_runner import PairResult, pair_attack
 from .slip_runner import SLIPResult, slip_attack
@@ -71,6 +71,7 @@ __all__ = [
     "CrescendoResult",
     "goat_attack",
     "GOATResult",
+    "GoatConfig",
     "slip_attack",
     "SLIPResult",
     "multimodal_attack",
