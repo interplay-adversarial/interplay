@@ -118,6 +118,7 @@ async def run_integrated_workflow(
                 "result": {
                     "best_score": tap_result.best_score,
                     "best_prompt": tap_result.best_prompt,
+                    "confirmed_success": tap_result.confirmed_success,
                     "kappa_score": tap_result.kappa_score,
                 },
             }
@@ -151,6 +152,10 @@ async def run_integrated_workflow(
         )
 
     # Step 4: Calculate summary
+    # These are search diagnostics (TAP: the judged-best candidate's pre-query
+    # evaluator likelihood; PAIR: its own heuristic score), not an empirical
+    # attack success rate. tap_confirmed_successes is the number of probes
+    # where TAP's evidence-cited judge actually confirmed success.
     tap_scores = [r["result"]["best_score"] for r in results["tap_results"]]
     pair_scores = [r["result"]["best_score"] for r in results["pair_results"]]
 
@@ -159,6 +164,9 @@ async def run_integrated_workflow(
         "tap_attacks_run": len(tap_scores),
         "tap_avg_score": sum(tap_scores) / len(tap_scores) if tap_scores else 0,
         "tap_max_score": max(tap_scores) if tap_scores else 0,
+        "tap_confirmed_successes": sum(
+            r["result"]["confirmed_success"] for r in results["tap_results"]
+        ),
         "pair_attacks_run": len(pair_scores),
         "pair_avg_score": sum(pair_scores) / len(pair_scores) if pair_scores else 0,
         "pair_max_score": max(pair_scores) if pair_scores else 0,

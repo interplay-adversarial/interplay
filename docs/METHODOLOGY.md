@@ -46,9 +46,12 @@ breadth across cultures; the attack runners give depth on specific goals.
 
 Attack runners report method-specific scores; a single best score is not an
 empirical attack success rate. PAIR uses a model to score target responses. TAP
-currently ranks generated prompts without querying the target, and its optional
-kappa value is a fixed placeholder rather than measured agreement. Crescendo,
-GOAT, SLIP and Multimodal currently use placeholder response-scoring heuristics.
+queries the target only for branches its evaluator admits, judges each
+response with a separate evidence-cited judge, and selects its best candidate
+by that judged outcome, not the evaluator's pre-query likelihood; its optional
+kappa value is a real two-judge Cohen's kappa when a second judge is
+configured, or explicitly unavailable rather than a fixed placeholder.
+Crescendo, GOAT, SLIP and Multimodal currently use placeholder response-scoring heuristics.
 These interfaces also differ in target authentication and conversation handling.
 See the [current implementation limits](tools-and-use-cases.md#explore-the-legacy-attack-runners).
 

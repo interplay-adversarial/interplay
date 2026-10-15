@@ -8,7 +8,7 @@ How they relate to each other, and to probe generation, is described in
 | Method | Strategy | Query budget | Details |
 |---|---|---|---|
 | **Garak** | Broad library of built-in probes | Depends on probes | [garak.md](garak.md) |
-| **TAP** | Branch-and-prune search with evaluator pruning | ~15-30 queries | [tap.md](tap.md) |
+| **TAP** | Branch-and-prune search, evaluator pruning, judged target execution | beam_width (≤10) x n_iterations (≤10) admitted-branch queries | [tap.md](tap.md) |
 | **PAIR** | Iterative refinement with attacker + judge loop | ~20 queries | [pair.md](pair.md) |
 | **Crescendo** | Multi-turn benign-to-harmful escalation | 5-10 turns | [crescendo.md](crescendo.md) |
 | **GOAT** | Dynamic strategy switching with reasoning | ≤5 turns | [goat.md](goat.md) |
