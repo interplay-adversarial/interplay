@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-15
+
 ### Changed
 - README.md restructured around "what it is / what it provides / how to start quickly": three capabilities (probe generation, attack methodologies including the judge panel, description-driven assessment) stated once up front instead of scattered across duplicate sections (there were two separate "Attack Methodologies" tables, a "Why" section, and a trailing "Methodology" section repeating the opening paragraph). Pipeline modes, the diverse-dataset helper, available specs and output columns move to new `docs/probe-generation.md`; the redundant detailed attack-methodology table is dropped in favor of `docs/attacks/README.md`; the full environment-variable dump is dropped in favor of `.env.example` (already the single source of truth for those values). README now mentions the judge panel/IRR capability, which it never had before.
 - GitHub Actions in all workflows are pinned to full commit SHAs with a version comment (Dependabot keeps them current)
