@@ -50,9 +50,7 @@ Attack runners report method-specific scores; a single best score is not an
 empirical attack success rate. PAIR uses a model to score target responses. TAP
 queries the target only for branches its evaluator admits, judges each
 response with a separate evidence-cited judge, and selects its best candidate
-by that judged outcome, not the evaluator's pre-query likelihood; its optional
-kappa value is a real two-judge Cohen's kappa when a second judge is
-configured, or explicitly unavailable rather than a fixed placeholder. SLIP
+by that judged outcome, not the evaluator's pre-query likelihood. SLIP
 queries the target only for candidates its deterministic, bounded insertion
 and refinement rounds admit, and judges each response with a separate
 evidence-cited judge instead of a keyword/refusal heuristic. Crescendo and
@@ -63,6 +61,15 @@ judges each response the same way; its explicit `"image-only"`/`"text-only"`/
 when the text (or the transform) could equally explain it.
 These interfaces also differ in target authentication and conversation handling.
 See the [current implementation limits](tools-and-use-cases.md#explore-the-legacy-attack-runners).
+
+All five (TAP, Crescendo, GOAT, SLIP, Multimodal -- not PAIR) accept more than
+one judge model as a panel and report inter-rater reliability: a real,
+N-capable Krippendorff's alpha with a bootstrapped confidence interval
+(`result.irr_report`), computed from the same judge calls that decided the
+verdict, not a separate re-judging pass or a fixed placeholder. The verdict
+itself follows a configurable aggregation rule, `"majority"` or
+`"unanimous"`. See [tap.md § Current behavior](attacks/tap.md#current-behavior)
+for the full semantics.
 
 For captured responses/logs/traces, validated evidence citations, incomplete
 outcomes and consistent JSONL/Parquet/Arrow records, use the separate

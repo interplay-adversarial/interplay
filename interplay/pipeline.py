@@ -863,13 +863,14 @@ if __name__ == "__main__":
         model=os.getenv("MODEL_NAME", "gpt-4o-mini"),
         provider="rhoai",
     )
-    dd_instance = DataDesigner(providers=[provider], model_configs=[model_config])
+    dd_instance = DataDesigner(model_providers=[provider])
 
     spec_name = os.getenv("BIAS_SPEC", "singapore")
     print(f"Mode: {spec_name}")
     builder = load_config_builder()
+    builder.add_model_config(model_config)
 
-    preview = dd_instance.preview(builder)
+    preview = dd_instance.preview(builder).dataset
     print(preview[["policy_concept", "probe_mode", "region"]].to_string())
     if "comparison_topic" in preview.columns:
         print(preview[["group_1_name", "group_2_name", "comparison_topic"]].to_string())
