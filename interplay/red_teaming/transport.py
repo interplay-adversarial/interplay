@@ -219,7 +219,7 @@ class AuthenticatedTarget:
 
 
 class RunnerScorer(Protocol):
-    def score(
+    async def score(
         self,
         goal: str,
         probe: str,
@@ -237,10 +237,10 @@ class JudgeScorer:
         self.endpoint = ModelEndpoint.model_validate(endpoint)
         self.api_key = api_key
 
-    def score(self, goal, probe, observation, *, budget):
+    async def score(self, goal, probe, observation, *, budget):
         budget.charge_call("judge")
         try:
-            judgment, trace = self._call(goal, probe, observation, budget=budget)
+            judgment, trace = await self._call(goal, probe, observation, budget=budget)
         except Exception:
             return (
                 JudgeOutput(
@@ -254,8 +254,13 @@ class JudgeScorer:
             judgment = judgment.model_copy(update={"verdict": "inconclusive"})
         return judgment, trace
 
-    def _call(self, goal, probe, observation, *, budget):
-        from any_llm import completion
+    async def _call(self, goal, probe, observation, *, budget):
+        # Every runner that owns a JudgeScorer is itself a coroutine running inside an
+        # active event loop, so this must use any_llm's async API: any_llm.completion()
+        # (the sync API) raises "Cannot use the sync API in an async context" there,
+        # and JudgeScorer.score()'s own except-Exception used to swallow that into a
+        # silent, deterministic "inconclusive" on every single call.
+        from any_llm import acompletion
 
         from .base import create_completion_kwargs
 
@@ -279,7 +284,7 @@ class JudgeScorer:
         remaining = min(self.endpoint.request_seconds, budget.remaining())
         if remaining <= 0:
             raise BudgetExceeded("campaign-deadline")
-        response = completion(
+        response = await acompletion(
             **kwargs,
             messages=[{"role": "user", "content": system_prompt}],
             max_tokens=self.endpoint.max_tokens,

@@ -1,6 +1,6 @@
 # Crescendo
 
-[← Attack methodologies](README.md) · [Methodology](../METHODOLOGY.md)
+[← Attack methodologies](README.md) · [Documentation map](../README.md) · [Methodology](../METHODOLOGY.md)
 
 **Strategy**: Multi-turn benign-to-harmful escalation
 **Query Budget**: ≤ `max_turns` (1-20) target queries, one per turn

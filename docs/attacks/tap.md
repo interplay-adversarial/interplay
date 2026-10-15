@@ -1,6 +1,6 @@
 # TAP (Tree of Attacks with Pruning)
 
-[← Attack methodologies](README.md) · [Methodology](../METHODOLOGY.md)
+[← Attack methodologies](README.md) · [Documentation map](../README.md) · [Methodology](../METHODOLOGY.md)
 
 **Strategy**: Branch-and-prune search with evaluator pruning, real target execution and
 evidence-cited judging

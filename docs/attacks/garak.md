@@ -1,6 +1,6 @@
 # Garak (Vulnerability Scanning)
 
-[← Attack methodologies](README.md) · [Methodology](../METHODOLOGY.md)
+[← Attack methodologies](README.md) · [Documentation map](../README.md) · [Methodology](../METHODOLOGY.md)
 
 **Strategy**: Run a broad library of built-in probes against the target and collect the results  
 **Query Budget**: Depends on the probes selected (100+ built-in probes)  
@@ -18,7 +18,11 @@ print(result["success"], result["returncode"])
 ```
 
 `run_garak` returns a dict with `success`, `stdout`, `stderr` and `returncode`. `create_custom_config`
-builds a Garak config for your endpoint and `parse_garak_results` summarizes a finished run.
+builds a Garak config for your endpoint.
+
+`parse_garak_results` is a stub: it currently returns `{"report_file": ..., "status": "pending"}`
+regardless of the report's contents, and does not parse Garak's actual HTML/JSON output. Read
+`run_garak`'s own `stdout`/`returncode`, or Garak's report file directly, until this is implemented.
 
 ## Notes
 

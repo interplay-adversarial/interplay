@@ -265,7 +265,7 @@ def test_secondary_judge_computes_a_real_measured_agreement(endpoint):
         def __init__(self, *a, **k):
             pass
 
-        def score(self, goal, probe, observation, *, budget):
+        async def score(self, goal, probe, observation, *, budget):
             budget.charge_call("judge")
             return (
                 JudgeOutput(
@@ -280,7 +280,7 @@ def test_secondary_judge_computes_a_real_measured_agreement(endpoint):
         def __init__(self, *a, **k):
             pass
 
-        def score(self, goal, probe, observation, *, budget):
+        async def score(self, goal, probe, observation, *, budget):
             budget.charge_call("judge")
             return (
                 JudgeOutput(

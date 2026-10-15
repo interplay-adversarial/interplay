@@ -96,11 +96,14 @@ FRANCE_ALGERIA_SPEC = BiasComparisonSpec(
 )
 
 # 2. Build the pipeline
+from data_designer.config import ModelConfig, ModelProvider  # noqa: E402
 from data_designer.interface import DataDesigner  # noqa: E402
-from data_designer.types.providers import ModelConfig, ModelProvider  # noqa: E402
 
-from pipeline import build_comparison_pipeline  # noqa: E402
+from interplay.pipeline import build_comparison_pipeline  # noqa: E402
 
+# ModelProvider.api_key names an environment variable (resolved by DataDesigner's
+# default secret resolver); it is never the key value itself. See the README
+# "Configuration" section for the full list of variables this project reads.
 provider = ModelProvider(
     name="default",
     endpoint=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
@@ -112,7 +115,10 @@ model_config = ModelConfig(
     model=os.getenv("MODEL_NAME", "gpt-4o-mini"),
     provider="default",
 )
-dd_instance = DataDesigner(providers=[provider], model_configs=[model_config])
+# Providers go on the DataDesigner instance; model configs go on each config
+# builder (interplay/assessment/designer.py uses the same split for the
+# description-driven assessment API).
+dd_instance = DataDesigner(model_providers=[provider])
 
 # 3. Preview first
 print(f"Spec: {FRANCE_ALGERIA_SPEC.name}")
@@ -120,11 +126,12 @@ print(f"Groups: {FRANCE_ALGERIA_SPEC.group_1.name} vs {FRANCE_ALGERIA_SPEC.group
 print()
 
 builder = build_comparison_pipeline(FRANCE_ALGERIA_SPEC)
+builder.add_model_config(model_config)
 preview = dd_instance.preview(builder)
 
 print("Preview:")
 print(
-    preview[
+    preview.dataset[
         [
             "policy_concept",
             "probe_mode",
@@ -139,6 +146,6 @@ print()
 
 # 4. Full run (uncomment when ready)
 # from data_designer.interface import ResumeMode
-# result = dd_instance.create(builder, num_records=100, resume=ResumeMode.IF_POSSIBLE)
-# result.to_json("france_algeria_probes.jsonl", orient="records", lines=True)
-# print(f"Generated {len(result)} probes → france_algeria_probes.jsonl")
+# results = dd_instance.create(builder, num_records=100, resume=ResumeMode.IF_POSSIBLE)
+# results.export("france_algeria_probes.jsonl")
+# print(f"Generated {results.count_records()} probes → france_algeria_probes.jsonl")

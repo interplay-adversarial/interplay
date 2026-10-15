@@ -1,5 +1,7 @@
 # Description-driven research assessments
 
+[← Documentation map](README.md) · [Methodology](METHODOLOGY.md)
+
 For workflow selection and dependency responsibilities, see the
 [tools and use-case guide](tools-and-use-cases.md).
 

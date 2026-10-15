@@ -10,6 +10,7 @@ venv/
 # Env
 .env
 .env.*
+!.env.example
 
 # DataDesigner outputs
 *.parquet
@@ -17,6 +18,9 @@ venv/
 *.feather
 *.jsonl
 !examples/*.jsonl
+
+# DataDesigner default artifact_path when run from the repo root
+artifacts/
 
 # Jupyter
 .ipynb_checkpoints/

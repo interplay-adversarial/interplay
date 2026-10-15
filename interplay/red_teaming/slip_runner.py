@@ -427,7 +427,9 @@ async def _query_and_judge(
             status="incomplete",
             error_code="no-judge-configured",
         )
-    judgment, _trace = judge_scorer.score(goal, candidate["prompt"], observation, budget=budget)
+    judgment, _trace = await judge_scorer.score(
+        goal, candidate["prompt"], observation, budget=budget
+    )
     # JudgeScorer.score() already downgrades an unsupported verdict to
     # inconclusive; a legitimately inconclusive judgment is a complete trial,
     # not a failure, so only missing capture marks this one incomplete.

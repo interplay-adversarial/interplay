@@ -1,6 +1,6 @@
 # Multimodal (Image Payload)
 
-[← Attack methodologies](README.md) · [Methodology](../METHODOLOGY.md)
+[← Attack methodologies](README.md) · [Documentation map](../README.md) · [Methodology](../METHODOLOGY.md)
 
 **Strategy**: Embed a transformed instruction in an image, with explicit text/image controls
 **Query Budget**: `len(transforms) * len(controls)` target queries (default 3×3 = 9)

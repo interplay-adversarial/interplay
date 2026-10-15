@@ -12,10 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - The publish workflow referenced `astral-sh/setup-uv@v10`, a tag that does not exist (that action publishes exact versions only); it is now pinned to v10.3.0
+- `JudgeScorer` (`interplay.red_teaming.transport`) called `any_llm.completion()`, the synchronous API, from inside the running event loop every attack runner executes in; `any_llm` raises `RuntimeError: Cannot use the sync API in an async context` there, which `JudgeScorer.score()`'s own exception handling silently turned into `judge_verdict="inconclusive"` on every call. This made TAP, Crescendo, GOAT, SLIP and Multimodal's evidence-cited judging never actually invoke the judge model in real usage. `JudgeScorer.score()`/`_call()` and `multimodal_runner._run_attempt()` are now `async` and use `any_llm.acompletion()`; the five runners' call sites now `await` them.
+- `create_completion_kwargs()` passed a caller-supplied `base_url` straight through as a `base_url` key; `any_llm.completion()`/`acompletion()` only accept `api_base`, so every attacker/judge call that set a custom endpoint (PAIR's own attacker/judge setup, and `JudgeScorer` for every other runner) raised `TypeError: unexpected keyword argument 'base_url'` once it reached the provider SDK. `base_url` is now translated to `api_base`.
+- `examples/custom_spec.py` and `examples/diverse_dataset.py` imported `data_designer.types.providers` (removed) and called `DataDesigner(providers=..., model_configs=...)`, both from before a data-designer refactor; neither script could run. Updated to the current API (`data_designer.config.{ModelProvider,ModelConfig}`, `DataDesigner(model_providers=...)`, `builder.add_model_config(...)`, `.preview(...).dataset`, `.create(...).load_dataset()`), and fixed `probe_quality_score` extraction (it is `{"quality": {"score": 0-3, "reasoning": ...}}`, not a flat number). Verified against `scripts/mock_openai.py`.
+- `docs/tools-and-use-cases.md` said TAP's judge-agreement (`judge-kappa`) computation "still needs implementation; current return is a placeholder"; it has computed a real two-judge Cohen's kappa since PR #46.
 
 ### Added
 - Dependabot keeps the GitHub Actions in the workflows up to date (weekly PRs)
 - `hygiene` CI check: every commit in a pull request carries the maintainer's `Signed-off-by`, the PR body ends with it, and no Claude or Hermes session link or id appears in commits, diffs or PR text (bot-authored PRs skip the sign-off)
+- `.env.example`, referenced by README.md and AGENTS.md's `cp .env.example .env` setup step but never committed
+- `examples/assessment_campaign.py`: a complete, runnable `interplay.assessment` campaign using the built-in `DataDesignerBackend`/`OpenAIEndpointTarget`, in batch and adaptive mode
+- `examples/single_attack_runner.py`: run any one of the six attack runners (including Crescendo, GOAT, SLIP and Multimodal, which had no example script) against a target from the command line
+- `docs/README.md`: a documentation map and reading-path index; cross-linked from every other doc page and the project README
 
 ## [0.2.1] - 2026-10-11
 
