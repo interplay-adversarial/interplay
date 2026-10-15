@@ -86,6 +86,7 @@ class CallBudget:
     deadline: float = field(default=None)  # type: ignore[assignment]
     calls: dict[str, int] = field(default_factory=dict)
     turns: int = 0
+    exhausted_reason: str | None = None
 
     def __post_init__(self):
         from .session import current_session
@@ -100,6 +101,8 @@ class CallBudget:
         return self.deadline - time.monotonic()
 
     def check_deadline(self):
+        if self.exhausted_reason:
+            raise BudgetExceeded(self.exhausted_reason)
         if self.remaining() <= 0:
             raise BudgetExceeded("campaign-deadline")
 
@@ -636,6 +639,9 @@ class RunnerResultSink:
     """
 
     def __init__(self, output: Path, *, recover: bool = False):
+        if not recover:
+            output.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        self._recovering = recover
         self._store = AssessmentStore(output, recover=recover, record_cls=RunnerRecord)
         self.root = self._store.root
         self._latest = {}
@@ -649,6 +655,8 @@ class RunnerResultSink:
                 pending.unlink()
 
     def stage(self, record: RunnerRecord):
+        if self._recovering:
+            raise ValueError("runner-recovery-export-only")
         validate_runner_stage(self._latest, record)
         size = len(json_bytes(record.model_dump(mode="json"))) + 1
         reserve = 1024 * 1024 if record.status == "attempted" else 0

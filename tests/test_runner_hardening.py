@@ -353,7 +353,7 @@ def test_cli_runs_and_recovers_datasets_without_replaying_models(tmp_path, capsy
     from interplay.cli import main
 
     config = tmp_path / "runner.json"
-    output = tmp_path / "cli"
+    output = tmp_path / "new-parent" / "cli"
     config.write_text(
         json.dumps(
             {
@@ -468,3 +468,27 @@ async def test_sdk_provider_fallback_key_is_known_before_target_observation(tmp_
         )
     assert result.records[0].response == "[REDACTED]"
     assert key not in (tmp_path / "fallback" / "events.jsonl").read_text()
+
+
+async def test_judge_budget_exhaustion_stops_before_further_attacker_or_target_calls(tmp_path):
+    from interplay.red_teaming.goat_runner import goat_attack
+
+    with (
+        patch.object(
+            AuthenticatedTarget, "request", return_value=TargetResponse(content="observed")
+        ) as target,
+        patch.object(JudgeScorer, "score", side_effect=BudgetExceeded("judge-call-budget")),
+        patch("interplay.red_teaming.goat_runner.acompletion") as attacker,
+    ):
+        result = await goat_attack(
+            goal="goal",
+            target_url="https://target.example/v1",
+            attacker_model="attacker",
+            judge_model="judge",
+            max_turns=3,
+            output_dir=tmp_path / "judge-budget",
+        )
+    assert result.stop_reason == "judge-call-budget" and result.query_count == 1
+    assert len(result.trials) == 1 and len(result.records) == 1
+    target.assert_called_once()
+    attacker.assert_not_called()

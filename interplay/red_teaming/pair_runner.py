@@ -176,6 +176,7 @@ async def pair_attack(
             parent_id = base["attempt_id"]
     except BudgetExceeded as exc:
         stop_reason = str(exc)
+    stop_reason = budget.exhausted_reason or stop_reason
     report, reason = panel_agreement_report(scorer)
     return PairResult(
         goal, best_score, best_prompt, history, query_count, confirmed, stop_reason, report, reason

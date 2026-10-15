@@ -301,6 +301,7 @@ async def multimodal_attack(
         if not config.preserve_payloads:
             shutil.rmtree(run_dir, ignore_errors=True)
 
+    stop_reason = budget.exhausted_reason or stop_reason
     best = _select_best(trials)
     irr_report, irr_unavailable_reason = panel_agreement_report(judge_scorer)
     return MultimodalResult(

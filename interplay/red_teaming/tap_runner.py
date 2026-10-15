@@ -282,6 +282,7 @@ async def tap_attack(
     except BudgetExceeded as exc:
         stop_reason = str(exc)
 
+    stop_reason = budget.exhausted_reason or stop_reason
     best = _select_best(trials)
     query_count = sum(1 for t in trials if not t.pruned)
     irr_report, irr_unavailable_reason = panel_agreement_report(judge_scorer)

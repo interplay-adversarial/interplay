@@ -289,6 +289,7 @@ def retained_runner(method):
 async def request_target(target, kind, messages, *, budget, metadata=None, **kwargs):
     """Commit attempted and observed stages before any judge or refinement call."""
     session = current_session()
+    budget.check_deadline()
     messages = clean(messages)
     record = session.start(messages, metadata or {}) if session else None
     try:
@@ -338,6 +339,7 @@ async def score_observation(scorer, goal, probe, observation, *, budget):
     try:
         judgment, trace = await scorer.score(clean(goal), clean(probe), observation, budget=budget)
     except BudgetExceeded as exc:
+        budget.exhausted_reason = str(exc)
         judgment, trace = (
             JudgeOutput(verdict="inconclusive", reasoning=str(exc), evidence_refs_json="[]"),
             None,

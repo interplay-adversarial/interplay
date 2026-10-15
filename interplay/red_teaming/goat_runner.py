@@ -330,6 +330,7 @@ async def goat_attack(
     except BudgetExceeded as exc:
         stop_reason = str(exc)
 
+    stop_reason = budget.exhausted_reason or stop_reason
     best = _select_best(trials)
     irr_report, irr_unavailable_reason = panel_agreement_report(judge_scorer)
     return GOATResult(
