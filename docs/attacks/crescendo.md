@@ -19,11 +19,14 @@ async def main():
         target_url="https://your-target/v1",
         attacker_model="openai/gpt-4o-mini",
         judge_model="openai/gpt-4o-mini",
+        secondary_judge_models=["anthropic/claude-3-haiku"],  # optional: forms a panel
+        judge_aggregation="unanimous",
         max_turns=10,
     )
     print(f"Judge-confirmed success: {result.confirmed_success}")
     print(f"Stop reason: {result.stop_reason}")
     print(f"Executed turns: {[(t['turn'], t['prompt']) for t in result.trials]}")
+    print(f"Inter-rater reliability: {result.irr_report}")
 
 
 asyncio.run(main())
@@ -60,6 +63,10 @@ asyncio.run(main())
   response a success; `result.best_score` is a diagnostic derived from the selected
   trial's verdict (success=1.0, inconclusive=0.5, failure=0.0), not an attack success
   rate.
+- **A judge panel and its aggregation rule (`judge_aggregation`) are configurable the
+  same way as every other migrated runner** -- see [tap.md § Current behavior](tap.md#current-behavior)
+  for the full semantics (`JudgePanel`, `"majority"`/`"unanimous"`, `irr_report`,
+  `judge_panel_json`), which apply here unchanged.
 - **Success is terminal.** Once a turn's judge verdict is `"success"` on a complete
   capture, the campaign stops immediately; no further attacker call is made to decide
   an escalation that will never run.

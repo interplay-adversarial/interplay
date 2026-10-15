@@ -249,57 +249,32 @@ def test_no_secondary_judge_reports_agreement_unavailable_not_a_placeholder(endp
             branching_factor=1,
             n_iterations=1,
         )
-    assert result.kappa_score is None
-    assert result.kappa_unavailable_reason == "insufficient-judges"
+    assert result.irr_report is None
+    assert result.irr_unavailable_reason == "insufficient-judges"
 
 
-def test_secondary_judge_computes_a_real_measured_agreement(endpoint):
+def test_secondary_judge_models_form_a_real_panel_with_irr(endpoint):
     base_url, _ = endpoint
-    # The first admitted candidate must not be a primary "success" -- that
-    # would stop the search before the second candidate is ever queried,
-    # leaving only one scored trial (agreement needs at least two).
+    # The first admitted candidate must not reach a panel-confirmed "success" --
+    # that would stop the search before the second candidate is ever queried,
+    # leaving only one scored trial (IRR needs at least two cases).
     primary_verdicts = iter(["failure", "success"])
     secondary_verdicts = iter(["success", "failure"])
 
-    class FakePrimary:
-        def __init__(self, *a, **k):
-            pass
-
-        async def score(self, goal, probe, observation, *, budget):
-            budget.charge_call("judge")
-            return (
-                JudgeOutput(
-                    verdict=next(primary_verdicts),
-                    reasoning="r",
-                    evidence_refs_json='["/response"]',
-                ),
-                "{}",
-            )
-
-    class FakeSecondary:
-        def __init__(self, *a, **k):
-            pass
-
-        async def score(self, goal, probe, observation, *, budget):
-            budget.charge_call("judge")
-            return (
-                JudgeOutput(
-                    verdict=next(secondary_verdicts),
-                    reasoning="r",
-                    evidence_refs_json='["/response"]',
-                ),
-                "{}",
-            )
-
-    calls_to_judgescorer = {"n": 0}
-
-    def judge_scorer_factory(*a, **k):
-        calls_to_judgescorer["n"] += 1
-        return FakePrimary() if calls_to_judgescorer["n"] == 1 else FakeSecondary()
+    def fake_call(self, goal, probe, observation, *, budget):
+        verdicts = primary_verdicts if self.endpoint.model == "openai/judge" else secondary_verdicts
+        return (
+            JudgeOutput(verdict=next(verdicts), reasoning="r", evidence_refs_json='["/response"]'),
+            "{}",
+        )
 
     with (
         patch("interplay.red_teaming.tap_runner.acompletion", new=_attacker_evaluator_mock()),
-        patch("interplay.red_teaming.tap_runner.JudgeScorer", side_effect=judge_scorer_factory),
+        patch(
+            "interplay.red_teaming.transport.JudgeScorer._call",
+            autospec=True,
+            side_effect=fake_call,
+        ),
     ):
         result = _run(
             tap_attack,
@@ -308,14 +283,23 @@ def test_secondary_judge_computes_a_real_measured_agreement(endpoint):
             attacker_model="openai/attacker",
             evaluator_model="openai/evaluator",
             judge_model="openai/judge",
-            secondary_judge_model="openai/judge-2",
+            secondary_judge_models=["openai/judge-2"],
+            judge_aggregation="unanimous",
             beam_width=2,
             branching_factor=2,
             n_iterations=1,
         )
-    assert result.kappa_unavailable_reason is None
-    assert result.kappa_score is not None
-    assert result.kappa_score != 0.85  # the old fixed placeholder
+    # Panel disagreed on both candidates (unanimous -> inconclusive each time), so
+    # neither is a confirmed success, but the IRR report is still real, not a
+    # fixed placeholder (the old code's bug: a fixed 0.85).
+    assert result.confirmed_success is False
+    assert result.irr_unavailable_reason is None
+    assert result.irr_report is not None
+    assert result.irr_report["n_judges"] == 2
+    assert result.irr_report["alpha"] != 0.85  # the old fixed Cohen's-kappa placeholder
+    judged_trial = next(t for t in result.trials if not t["pruned"])
+    assert judged_trial["judge_panel_json"] is not None
+    assert json.loads(judged_trial["judge_panel_json"])["aggregation"] == "unanimous"
 
 
 def test_invalid_search_config_is_rejected():

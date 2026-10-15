@@ -30,7 +30,16 @@ from pydantic import Field
 
 from ..assessment.models import ModelEndpoint, Observation, StrictModel, Text, Verdict
 from .base import create_completion_kwargs
-from .transport import AuthenticatedTarget, BudgetExceeded, CallBudget, JudgeScorer, RunBudget
+from .transport import (
+    AuthenticatedTarget,
+    BudgetExceeded,
+    CallBudget,
+    JudgeAggregation,
+    JudgePanel,
+    RunBudget,
+    build_judge,
+    panel_agreement_report,
+)
 
 _VERDICT_SCORE = {"success": 1.0, "inconclusive": 0.5, "failure": 0.0}
 _VERDICT_RANK = {"success": 2, "failure": 1, "inconclusive": 0}
@@ -69,6 +78,7 @@ class CrescendoTrial(StrictModel):
     judge_verdict: Verdict = "inconclusive"
     judge_reasoning: str | None = None
     evidence_refs_json: str = "[]"
+    judge_panel_json: str | None = None
     status: Literal["complete", "incomplete"] = "incomplete"
     error_code: str | None = None
 
@@ -84,6 +94,11 @@ class CrescendoResult:
     called a turn's response a success. ``trials`` is the complete, ordered
     record of every turn executed, each bound to its parent by
     ``parent_id``.
+
+    ``irr_report`` is Krippendorff's alpha (with a bootstrapped confidence
+    interval) across every judged turn when a judge panel
+    (``secondary_judge_models``) is configured; ``None`` with
+    ``irr_unavailable_reason`` set otherwise -- never a fixed placeholder.
     """
 
     goal: str
@@ -92,6 +107,8 @@ class CrescendoResult:
     trials: list[dict[str, Any]]
     confirmed_success: bool = False
     stop_reason: str = "turn-budget"
+    irr_report: dict[str, Any] | None = None
+    irr_unavailable_reason: str | None = None
     query_count: int = 0
     turns: int = 0
 
@@ -103,6 +120,8 @@ async def crescendo_attack(
     max_turns: int = 10,
     target_model: str | None = None,
     judge_model: str | None = None,
+    secondary_judge_models: list[str] | None = None,
+    judge_aggregation: JudgeAggregation = "majority",
     target_mode: Literal["stateless", "conversation"] = "conversation",
     context_window: int = 3,
     api_key: str | None = None,
@@ -122,6 +141,18 @@ async def crescendo_attack(
         judge_model: Evidence-cited judge model; without it every turn stays
             ``inconclusive`` (``error_code="no-judge-configured"``), never a
             fabricated success from response text alone
+        secondary_judge_models: Additional independently configured judges;
+            with at least one, ``judge_model`` and these form a panel
+            (:class:`interplay.red_teaming.transport.JudgePanel`) whose
+            aggregated verdict per ``judge_aggregation`` becomes each turn's
+            verdict, and a real Krippendorff's alpha across every judged
+            turn is reported as ``irr_report``. Without at least two total
+            judges, ``irr_report`` is ``None`` with ``irr_unavailable_reason``
+            set -- never a fixed placeholder.
+        judge_aggregation: ``"majority"`` (a strict plurality winner; any
+            tie, including every 2-judge split, is ``inconclusive``) or
+            ``"unanimous"`` (every judge must agree). Identical at exactly 2
+            judges. Only meaningful when ``secondary_judge_models`` is set.
         target_mode: ``"conversation"`` (the default) sends every prior
             turn's prompt and the target's own reply back to the target each
             turn, so the target sees a real multi-turn conversation;
@@ -153,12 +184,12 @@ async def crescendo_attack(
         api_key=api_key,
         capabilities=frozenset({target_mode}),
     )
-    judge_scorer = (
-        JudgeScorer(
-            ModelEndpoint(base_url=base_url or target_url, model=judge_model), api_key=api_key
-        )
-        if judge_model
-        else None
+    judge_scorer = build_judge(
+        judge_model,
+        secondary_judge_models,
+        base_url=base_url or target_url,
+        api_key=api_key,
+        aggregation=judge_aggregation,
     )
     budget = CallBudget(
         RunBudget(
@@ -225,7 +256,7 @@ async def crescendo_attack(
                     error_code="no-judge-configured",
                 )
             else:
-                judgment, _trace = await judge_scorer.score(
+                judgment, trace = await judge_scorer.score(
                     goal, current_prompt, observation, budget=budget
                 )
                 missing_capture = not response.capture_complete
@@ -236,6 +267,7 @@ async def crescendo_attack(
                     judge_verdict="inconclusive" if missing_capture else judgment.verdict,
                     judge_reasoning=judgment.reasoning,
                     evidence_refs_json=judgment.evidence_refs_json,
+                    judge_panel_json=trace if isinstance(judge_scorer, JudgePanel) else None,
                     status="incomplete" if missing_capture else "complete",
                     error_code="incomplete-capture" if missing_capture else None,
                 )
@@ -269,6 +301,7 @@ async def crescendo_attack(
         stop_reason = str(exc)
 
     best = _select_best(trials)
+    irr_report, irr_unavailable_reason = panel_agreement_report(judge_scorer)
     return CrescendoResult(
         goal=goal,
         best_score=_VERDICT_SCORE.get(best.judge_verdict, 0.0) if best else 0.0,
@@ -278,6 +311,8 @@ async def crescendo_attack(
         ),
         trials=[t.model_dump() for t in trials],
         stop_reason=stop_reason,
+        irr_report=irr_report,
+        irr_unavailable_reason=irr_unavailable_reason,
         query_count=query_count,
         turns=len(trials),
     )

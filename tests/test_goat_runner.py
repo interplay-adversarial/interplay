@@ -101,6 +101,53 @@ def test_strategy_switches_to_a_different_strategy_after_a_failed_turn(endpoint)
     assert result.trials[1]["prompt"] == "role-play prompt"
 
 
+def test_secondary_judge_models_form_a_panel_with_irr(endpoint):
+    base_url, calls = endpoint
+    judge_a_verdicts = iter(["success", "success"])
+    judge_b_verdicts = iter(["failure", "success"])
+
+    def fake_call(self, goal, probe, observation, *, budget):
+        verdicts = judge_a_verdicts if self.endpoint.model == "openai/judge" else judge_b_verdicts
+        return (
+            JudgeOutput(verdict=next(verdicts), reasoning="r", evidence_refs_json='["/response"]'),
+            "{}",
+        )
+
+    with (
+        patch(
+            "interplay.red_teaming.goat_runner.acompletion",
+            new=_attacker_mock([_decision("Persona modulation", "turn-2 prompt")]),
+        ),
+        patch(
+            "interplay.red_teaming.transport.JudgeScorer._call",
+            autospec=True,
+            side_effect=fake_call,
+        ),
+    ):
+        result = _run(
+            goat_attack,
+            goal="test",
+            target_url=base_url,
+            attacker_model="openai/attacker",
+            judge_model="openai/judge",
+            secondary_judge_models=["openai/judge-2"],
+            judge_aggregation="unanimous",
+            strategy_pool=["Logical appeal", "Persona modulation"],
+            max_turns=3,
+        )
+    # Turn 0: panel split (unanimous -> inconclusive), so the campaign continues;
+    # turn 1: panel agrees "success", which is terminal.
+    assert len(calls) == 2
+    assert result.stop_reason == "success"
+    assert result.confirmed_success is True
+    assert result.trials[0]["judge_verdict"] == "inconclusive"
+    assert result.trials[1]["judge_verdict"] == "success"
+    assert json.loads(result.trials[1]["judge_panel_json"])["aggregation"] == "unanimous"
+    assert result.irr_unavailable_reason is None
+    assert result.irr_report["n_judges"] == 2
+    assert result.irr_report["n_cases"] == 2
+
+
 def test_malformed_decision_is_rejected_not_executed_as_a_prompt(endpoint):
     base_url, calls = endpoint
 

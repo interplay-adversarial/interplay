@@ -16,6 +16,14 @@ Usage:
     uv run python examples/single_attack_runner.py --method crescendo --goal "Your goal"
     uv run python examples/single_attack_runner.py --method goat --goal "Your goal" --max-turns 3
 
+Pass more than one --judge-models value to form a panel (TAP/Crescendo/GOAT/
+SLIP/Multimodal only, not PAIR): the aggregated verdict per --judge-aggregation
+becomes the trial's verdict, and the printed summary includes irr_report, a
+real Krippendorff's alpha across every judged case:
+
+    uv run python examples/single_attack_runner.py --method crescendo --goal "Your goal" \\
+        --judge-models openai/gpt-4o-mini anthropic/claude-3-haiku --judge-aggregation unanimous
+
 SLIP needs its own target model name (it never falls back to ATTACKER_MODEL):
 
     uv run python examples/single_attack_runner.py --method slip --goal "Your goal" \\
@@ -57,10 +65,14 @@ async def run_method(
     target_url: str,
     target_model: str | None,
     attacker_model: str | None,
-    judge_model: str | None,
+    judge_models: list[str] | None,
+    judge_aggregation: str,
     api_key: str | None,
     max_turns: int,
 ):
+    judge_model, secondary_judge_models = (
+        (judge_models[0], judge_models[1:]) if judge_models else (None, None)
+    )
     if method == "tap":
         return await tap_attack(
             goal=goal,
@@ -69,9 +81,13 @@ async def run_method(
             attacker_model=attacker_model,
             evaluator_model=attacker_model,
             judge_model=judge_model,
+            secondary_judge_models=secondary_judge_models,
+            judge_aggregation=judge_aggregation,
             api_key=api_key,
         )
     if method == "pair":
+        # PAIR is not yet migrated to the shared JudgeScorer/JudgePanel -- see
+        # docs/attacks/pair.md -- so it has no panel/aggregation support.
         return await pair_attack(
             goal=goal,
             target_url=target_url,
@@ -87,6 +103,8 @@ async def run_method(
             target_model=target_model,
             attacker_model=attacker_model,
             judge_model=judge_model,
+            secondary_judge_models=secondary_judge_models,
+            judge_aggregation=judge_aggregation,
             max_turns=max_turns,
             api_key=api_key,
         )
@@ -97,6 +115,8 @@ async def run_method(
             target_model=target_model,
             attacker_model=attacker_model,
             judge_model=judge_model,
+            secondary_judge_models=secondary_judge_models,
+            judge_aggregation=judge_aggregation,
             max_turns=max_turns,
             api_key=api_key,
         )
@@ -109,6 +129,8 @@ async def run_method(
             target_model=target_model,
             refiner_model=attacker_model,
             judge_model=judge_model,
+            secondary_judge_models=secondary_judge_models,
+            judge_aggregation=judge_aggregation,
             api_key=api_key,
         )
     if method == "multimodal":
@@ -117,6 +139,8 @@ async def run_method(
             vision_target_url=target_url,
             vision_model=target_model,
             judge_model=judge_model,
+            secondary_judge_models=secondary_judge_models,
+            judge_aggregation=judge_aggregation,
             api_key=api_key,
         )
     raise ValueError(f"unknown method: {method}")  # pragma: no cover - argparse choices guards this
@@ -132,7 +156,8 @@ def summarize(result) -> dict:
         "best_control",
         "best_transform",
         "stop_reason",
-        "kappa_score",
+        "irr_report",
+        "irr_unavailable_reason",
         "query_count",
     )
     summary = {k: fields[k] for k in keys if k in fields}
@@ -149,7 +174,18 @@ def main() -> int:
     parser.add_argument("--target-url", default=os.getenv("TARGET_URL"))
     parser.add_argument("--target-model", default=os.getenv("TARGET_MODEL"))
     parser.add_argument("--attacker-model", default=os.getenv("ATTACKER_MODEL"))
-    parser.add_argument("--judge-model", default=os.getenv("JUDGE_MODEL"))
+    parser.add_argument(
+        "--judge-models",
+        nargs="+",
+        default=[os.getenv("JUDGE_MODEL")] if os.getenv("JUDGE_MODEL") else None,
+        help="one judge, or several to form a panel (not PAIR; see docs/attacks/pair.md)",
+    )
+    parser.add_argument(
+        "--judge-aggregation",
+        choices=("majority", "unanimous"),
+        default="majority",
+        help="only meaningful with more than one --judge-models value",
+    )
     parser.add_argument("--api-key", default=os.getenv("TARGET_API_KEY"))
     parser.add_argument("--max-turns", type=int, default=5, help="crescendo/goat only")
     args = parser.parse_args()
@@ -164,7 +200,8 @@ def main() -> int:
             target_url=args.target_url,
             target_model=args.target_model,
             attacker_model=args.attacker_model,
-            judge_model=args.judge_model,
+            judge_models=args.judge_models,
+            judge_aggregation=args.judge_aggregation,
             api_key=args.api_key,
             max_turns=args.max_turns,
         )

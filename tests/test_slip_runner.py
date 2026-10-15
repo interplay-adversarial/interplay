@@ -257,6 +257,45 @@ def test_judge_confirmed_success_stops_the_search_early(endpoint):
     assert len(calls) < 9
 
 
+def test_secondary_judge_models_form_a_panel_with_irr(endpoint):
+    base_url, calls = endpoint
+    judge_a_verdicts = iter(["failure"] * 20)
+    judge_b_verdicts = iter(
+        ["failure"] * 19 + ["success"]
+    )  # one disagreement; unanimous never flips
+
+    def fake_call(self, goal, probe, observation, *, budget):
+        verdicts = judge_a_verdicts if self.endpoint.model == "openai/judge" else judge_b_verdicts
+        return (
+            JudgeOutput(verdict=next(verdicts), reasoning="r", evidence_refs_json='["/response"]'),
+            "{}",
+        )
+
+    with patch(
+        "interplay.red_teaming.transport.JudgeScorer._call", autospec=True, side_effect=fake_call
+    ):
+        result = _run(
+            slip_attack,
+            goal="keylogger",
+            target_url=base_url,
+            target_model="target",
+            judge_model="openai/judge",
+            secondary_judge_models=["openai/judge-2"],
+            judge_aggregation="unanimous",
+            seed_width=3,
+            max_words=1,
+            refine_rounds=0,
+            max_candidates_per_round=30,
+        )
+    assert result.confirmed_success is False  # panel never unanimously agreed on success
+    assert len(calls) >= 2
+    assert result.irr_unavailable_reason is None
+    assert result.irr_report["n_judges"] == 2
+    assert result.irr_report["n_cases"] == len(calls)
+    queried = next(t for t in result.trials if not t["pruned"] and t["status"] == "complete")
+    assert json.loads(queried["judge_panel_json"])["aggregation"] == "unanimous"
+
+
 def test_invalid_search_config_is_rejected():
     from pydantic import ValidationError
 

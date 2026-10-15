@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - GitHub Actions in all workflows are pinned to full commit SHAs with a version comment (Dependabot keeps them current)
+- TAP's `secondary_judge_model` (singular, diagnostic-only: re-judged already-decided branches afterward purely to compute a Cohen's kappa, never affecting the verdict) is replaced by `secondary_judge_models` (plural), shared with every other migrated runner: it now forms a real voting panel with `judge_model`, and agreement comes from those same judge calls instead of a separate re-judging pass. `TapResult.kappa_score`/`kappa_unavailable_reason` are replaced by `irr_report`/`irr_unavailable_reason` (see Added).
 
 ### Fixed
 - The publish workflow referenced `astral-sh/setup-uv@v10`, a tag that does not exist (that action publishes exact versions only); it is now pinned to v10.3.0
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `examples/assessment_campaign.py`: a complete, runnable `interplay.assessment` campaign using the built-in `DataDesignerBackend`/`OpenAIEndpointTarget`, in batch and adaptive mode
 - `examples/single_attack_runner.py`: run any one of the six attack runners (including Crescendo, GOAT, SLIP and Multimodal, which had no example script) against a target from the command line
 - `docs/README.md`: a documentation map and reading-path index; cross-linked from every other doc page and the project README
+- `JudgePanel` (`interplay.red_teaming.transport`): a configurable judge panel/jury for TAP, Crescendo, GOAT, SLIP and Multimodal (not PAIR, which isn't migrated to `JudgeScorer`). Pass `secondary_judge_models` alongside `judge_model` to form a panel; `judge_aggregation` (`"majority"` or `"unanimous"`) decides how the judges' verdicts combine into the trial's verdict. Every result gains `irr_report` (a real, N-capable Krippendorff's alpha, via `judge_kappa.KrippendorffAlpha`, with a bootstrapped confidence interval, computed from those same judge calls) and `irr_unavailable_reason`; every trial gains `judge_panel_json` retaining each judge's individual verdict and reasoning, never collapsed away by the aggregation. A single `judge_model` with no secondary models is unaffected -- same `JudgeScorer`, same behavior as before this existed. `examples/single_attack_runner.py` gained `--judge-models`/`--judge-aggregation` to demonstrate it from the command line.
 
 ## [0.2.1] - 2026-10-11
 
