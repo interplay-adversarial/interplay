@@ -168,21 +168,50 @@ Read the current implementation as well as the [method pages](attacks/README.md)
 | `multimodal_attack` | Renders transformed text into images and queries a vision target | Needs Pillow and a vision endpoint; placeholder response scoring |
 | `run_garak` | Invokes external Garak tooling | Scanner-specific configuration, detectors and report semantics |
 
-PAIR/Crescendo/GOAT/SLIP's current direct target HTTP helpers do not attach an
-Authorization header. Their target authentication and model routing differ from
-the explicitly configured assessment adapter. Merely exporting `TARGET_API_KEY`
-does not make those helpers authenticated. Check the selected runner before using
-an authenticated service; use the assessment API for its implemented credential
-handling. Provider support in `any-llm-sdk` does not make every direct target helper
-support every provider protocol. Multi-turn attacker refinement also does not
-necessarily mean multi-turn target conversation.
+PAIR's target call now goes through `interplay.red_teaming.transport.AuthenticatedTarget`
+and attaches `Authorization: Bearer <api_key>` when `pair_attack(..., api_key=...)` is
+set. Crescendo/GOAT/SLIP's direct target HTTP helpers still do not attach an
+Authorization header; merely exporting `TARGET_API_KEY` does not make those
+helpers authenticated yet (tracked in #40/#41/#42 below, which also cover their
+placeholder response scoring). Their target authentication and model routing
+differ from the explicitly configured assessment adapter. Check the selected
+runner before using an authenticated service; use the assessment API for its
+implemented credential handling. Provider support in `any-llm-sdk` does not
+make every direct target helper support every provider protocol. Multi-turn
+attacker refinement also does not necessarily mean multi-turn target conversation.
+
+### Shared transport, scoring and result retention (`interplay.red_teaming.transport`)
+
+`interplay.red_teaming.transport` gives the method runners a common,
+independently tested target/scorer/result-sink path without coupling any
+runner's method logic (refinement strategy, branching, lexical search) to it,
+and without requiring Agent Boundary Gate or DataDesigner:
+
+| Interface | Contract |
+| --- | --- |
+| `resolve_role(role, endpoint)` | Resolves one role's (`attacker`/`target`/`evaluator`/`judge`) model and credential from its own `ModelEndpoint`; never falls back to another role's key |
+| `RunBudget` / `CallBudget` | Finite campaign deadline, per-role call count and turn count; `charge_call`/`charge_turn` raise `BudgetExceeded` instead of retrying |
+| `AuthenticatedTarget.request(kind, messages, budget=...)` | One authenticated, bounded-response target request (`stateless`, `conversation` or `image`); `UnsupportedCapabilityError` if `kind` was not declared at construction, with no request sent |
+| `JudgeScorer.score(goal, probe, observation, budget=...)` | Evidence-cited judge call reusing `interplay.assessment`'s `JudgeOutput`/`evidence_supported`; missing/invalid evidence or a provider failure returns `inconclusive`, never a fabricated zero |
+| `RunnerRecord` / `RunnerResultSink` | One retained row per attempted trial (prompt, response, strategy, verdict, status, error, role provenance), using the same private-journal/atomic-export discipline as `AssessmentStore` |
+| `recover_runner_records(output)` | Exports the latest committed stage per attempt without re-running a target or judge |
+
+Migrate off `get_judge_config()`/`get_attacker_config()` in
+[`interplay/red_teaming/base.py`](../interplay/red_teaming/base.py): both emit a
+`DeprecationWarning` when they fall back to `TARGET_URL`/`TARGET_API_KEY`
+because `JUDGE_*`/`ATTACKER_*` were unset -- the fallback that silently lets a
+judge or attacker inherit the target's credential. Build one `ModelEndpoint`
+per role instead (its own `api_key_env`, optionally its own `model`) and call
+`resolve_role` for each. A method runner's best/highest score remains a search
+diagnostic, never written to `RunnerResultSink` as an empirical attack success
+rate; it is also distinct from Agent Boundary Gate's boundary/containment
+effect evidence.
 
 Implementation work for these partial runners is tracked separately from the
 shipped capabilities above:
 
 | Issue | Work |
 | --- | --- |
-| [#38](https://github.com/interplay-adversarial/interplay/issues/38) | Shared authenticated transport, evidence-based judging and result collection |
 | [#39](https://github.com/interplay-adversarial/interplay/issues/39) | TAP target execution, response evaluation and complete branch lineage |
 | [#40](https://github.com/interplay-adversarial/interplay/issues/40) | Crescendo persistent target conversation and real judging |
 | [#41](https://github.com/interplay-adversarial/interplay/issues/41) | GOAT validated strategy selection and executed-strategy evidence |

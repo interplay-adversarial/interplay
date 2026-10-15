@@ -25,6 +25,19 @@ from .multimodal_runner import MultimodalResult, multimodal_attack
 from .pair_runner import PairResult, pair_attack
 from .slip_runner import SLIPResult, slip_attack
 from .tap_runner import TapResult, tap_attack
+from .transport import (
+    AuthenticatedTarget,
+    BudgetExceeded,
+    CallBudget,
+    JudgeScorer,
+    RoleCredentialError,
+    RunBudget,
+    RunnerRecord,
+    RunnerResultSink,
+    UnsupportedCapabilityError,
+    recover_runner_records,
+    resolve_role,
+)
 
 __all__ = [
     # Base utilities
@@ -34,6 +47,18 @@ __all__ = [
     "get_judge_config",
     "get_attacker_config",
     "create_completion_kwargs",
+    # Shared transport, scoring and result retention (see transport.py)
+    "AuthenticatedTarget",
+    "BudgetExceeded",
+    "CallBudget",
+    "JudgeScorer",
+    "RoleCredentialError",
+    "RunBudget",
+    "RunnerRecord",
+    "RunnerResultSink",
+    "UnsupportedCapabilityError",
+    "recover_runner_records",
+    "resolve_role",
     # Runners
     "run_garak",
     "create_custom_config",
