@@ -233,6 +233,46 @@ def test_later_turn_success_is_terminal(endpoint):
     assert result.trials[1]["parent_id"] == result.trials[0]["attempt_id"]
 
 
+def test_secondary_judge_models_form_a_panel_with_irr(endpoint):
+    base_url, calls = endpoint
+    judge_a_verdicts = iter(["failure", "failure"])
+    judge_b_verdicts = iter(["failure", "success"])
+
+    def fake_call(self, goal, probe, observation, *, budget):
+        verdicts = judge_a_verdicts if self.endpoint.model == "openai/judge" else judge_b_verdicts
+        return (
+            JudgeOutput(verdict=next(verdicts), reasoning="r", evidence_refs_json='["/response"]'),
+            "{}",
+        )
+
+    attacker_mock = _attacker_mock(["escalate-1"])
+    with (
+        patch("interplay.red_teaming.crescendo_runner.acompletion", new=attacker_mock),
+        patch(
+            "interplay.red_teaming.transport.JudgeScorer._call",
+            autospec=True,
+            side_effect=fake_call,
+        ),
+    ):
+        result = _run(
+            crescendo_attack,
+            goal="test",
+            target_url=base_url,
+            attacker_model="openai/attacker",
+            judge_model="openai/judge",
+            secondary_judge_models=["openai/judge-2"],
+            max_turns=2,
+        )
+    assert len(calls) == 2
+    assert result.stop_reason == "turn-budget"  # both judged turns stayed non-success
+    assert result.trials[0]["judge_verdict"] == "failure"  # panel agreed
+    assert result.trials[1]["judge_verdict"] == "inconclusive"  # panel split (tie)
+    assert json.loads(result.trials[0]["judge_panel_json"])["aggregation"] == "majority"
+    assert result.irr_unavailable_reason is None
+    assert result.irr_report["n_judges"] == 2
+    assert result.irr_report["n_cases"] == 2
+
+
 def test_malformed_judge_output_is_inconclusive_not_a_crash(endpoint):
     base_url, _calls = endpoint
 

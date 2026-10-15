@@ -196,6 +196,39 @@ def test_best_trial_reports_exactly_which_control_and_transform_succeeded(endpoi
     assert result.best_transform == "plain"
 
 
+def test_secondary_judge_models_form_a_panel_with_irr(endpoint):
+    base_url, calls = endpoint
+    judge_a_verdicts = iter(["failure", "failure"])
+    judge_b_verdicts = iter(["success", "failure"])
+
+    def fake_call(self, goal, probe, observation, *, budget):
+        verdicts = judge_a_verdicts if self.endpoint.model == "openai/judge" else judge_b_verdicts
+        return (
+            JudgeOutput(verdict=next(verdicts), reasoning="r", evidence_refs_json='["/response"]'),
+            "{}",
+        )
+
+    with patch(
+        "interplay.red_teaming.transport.JudgeScorer._call", autospec=True, side_effect=fake_call
+    ):
+        result = _run(
+            goal="goal",
+            vision_target_url=base_url,
+            judge_model="openai/judge",
+            secondary_judge_models=["openai/judge-2"],
+            transforms=("plain", "base64"),
+            controls=("text-only",),  # no image rendering needed
+        )
+    assert len(calls) == 2
+    assert result.confirmed_success is False  # judges never agreed on "success"
+    assert result.trials[0]["judge_verdict"] == "inconclusive"  # judges split: failure vs success
+    assert result.trials[1]["judge_verdict"] == "failure"  # judges agreed: failure vs failure
+    assert result.irr_unavailable_reason is None
+    assert result.irr_report["n_judges"] == 2
+    assert result.irr_report["n_cases"] == 2
+    assert json.loads(result.trials[0]["judge_panel_json"])["aggregation"] == "majority"
+
+
 def test_missing_capture_is_inconclusive_not_a_fabricated_verdict(endpoint):
     base_url, _calls = endpoint
 

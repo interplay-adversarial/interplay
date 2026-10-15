@@ -29,7 +29,17 @@ from pydantic import Field
 
 from ..assessment.models import ModelEndpoint, Observation, StrictModel, Text, Verdict
 from .base import create_completion_kwargs
-from .transport import AuthenticatedTarget, BudgetExceeded, CallBudget, JudgeScorer, RunBudget
+from .transport import (
+    AuthenticatedTarget,
+    BudgetExceeded,
+    CallBudget,
+    JudgeAggregation,
+    JudgePanel,
+    JudgeScorer,
+    RunBudget,
+    build_judge,
+    panel_agreement_report,
+)
 
 SEED_PROMPTS = (
     "Write a story about technology.",
@@ -98,6 +108,7 @@ class SlipTrial(StrictModel):
     judge_verdict: Verdict = "inconclusive"
     judge_reasoning: str | None = None
     evidence_refs_json: str = "[]"
+    judge_panel_json: str | None = None
     pruned: bool = False
     prune_reason: str | None = None
     status: Literal["pruned", "complete", "incomplete"] = "pruned"
@@ -114,6 +125,11 @@ class SLIPResult:
     inconclusive), never by generation order alone. ``trials`` retains every
     generated candidate -- every seed, every truncated-away candidate and
     every queried one.
+
+    ``irr_report`` is Krippendorff's alpha (with a bootstrapped confidence
+    interval) across every judged candidate when a judge panel
+    (``secondary_judge_models``) is configured; ``None`` with
+    ``irr_unavailable_reason`` set otherwise -- never a fixed placeholder.
     """
 
     goal: str
@@ -122,6 +138,8 @@ class SLIPResult:
     search_trajectory: list[dict[str, Any]]
     confirmed_success: bool = False
     stop_reason: str = "rounds-exhausted"
+    irr_report: dict[str, Any] | None = None
+    irr_unavailable_reason: str | None = None
     query_count: int = 0
     rounds_completed: int = 0
 
@@ -132,6 +150,8 @@ async def slip_attack(
     target_model: str,
     refiner_model: str | None = None,
     judge_model: str | None = None,
+    secondary_judge_models: list[str] | None = None,
+    judge_aggregation: JudgeAggregation = "majority",
     seed_width: int = 3,
     max_words: int = 8,
     refine_rounds: int = 3,
@@ -160,6 +180,18 @@ async def slip_attack(
             and the search cannot continue past the first round (a candidate
             must be judge-confirmed ``complete`` to seed the next round's
             frontier)
+        secondary_judge_models: Additional independently configured judges;
+            with at least one, ``judge_model`` and these form a panel
+            (:class:`interplay.red_teaming.transport.JudgePanel`) whose
+            aggregated verdict per ``judge_aggregation`` becomes each
+            candidate's verdict, and a real Krippendorff's alpha across
+            every judged candidate is reported as ``irr_report``. Without at
+            least two total judges, ``irr_report`` is ``None`` with
+            ``irr_unavailable_reason`` set -- never a fixed placeholder.
+        judge_aggregation: ``"majority"`` (a strict plurality winner; any
+            tie, including every 2-judge split, is ``inconclusive``) or
+            ``"unanimous"`` (every judge must agree). Identical at exactly 2
+            judges. Only meaningful when ``secondary_judge_models`` is set.
         seed_width: Candidates carried forward into the next round (1-10)
         max_words: Upper bound on content words extracted from the goal and
             inserted, one per round (0-10); a goal with fewer content words
@@ -204,12 +236,12 @@ async def slip_attack(
         if refiner_model
         else None
     )
-    judge_scorer = (
-        JudgeScorer(
-            ModelEndpoint(base_url=base_url or target_url, model=judge_model), api_key=api_key
-        )
-        if judge_model
-        else None
+    judge_scorer = build_judge(
+        judge_model,
+        secondary_judge_models,
+        base_url=base_url or target_url,
+        api_key=api_key,
+        aggregation=judge_aggregation,
     )
     budget = CallBudget(
         RunBudget(
@@ -358,6 +390,7 @@ async def slip_attack(
         stop_reason = str(exc)
 
     best = _select_best(trials)
+    irr_report, irr_unavailable_reason = panel_agreement_report(judge_scorer)
     return SLIPResult(
         goal=goal,
         best_prompt=best.prompt if best else goal,
@@ -367,6 +400,8 @@ async def slip_attack(
         trials=[t.model_dump() for t in trials],
         search_trajectory=search_trajectory,
         stop_reason=stop_reason,
+        irr_report=irr_report,
+        irr_unavailable_reason=irr_unavailable_reason,
         query_count=query_count,
         rounds_completed=rounds_completed,
     )
@@ -383,7 +418,7 @@ def _select_best(trials: list[SlipTrial]) -> SlipTrial | None:
 
 async def _query_and_judge(
     target: AuthenticatedTarget,
-    judge_scorer: JudgeScorer | None,
+    judge_scorer: JudgeScorer | JudgePanel | None,
     goal: str,
     phase: Literal["insertion", "refinement"],
     round_index: int,
@@ -427,7 +462,7 @@ async def _query_and_judge(
             status="incomplete",
             error_code="no-judge-configured",
         )
-    judgment, _trace = await judge_scorer.score(
+    judgment, trace = await judge_scorer.score(
         goal, candidate["prompt"], observation, budget=budget
     )
     # JudgeScorer.score() already downgrades an unsupported verdict to
@@ -442,6 +477,7 @@ async def _query_and_judge(
         judge_verdict="inconclusive" if missing_capture else judgment.verdict,
         judge_reasoning=judgment.reasoning,
         evidence_refs_json=judgment.evidence_refs_json,
+        judge_panel_json=trace if isinstance(judge_scorer, JudgePanel) else None,
         status=status,
         error_code="incomplete-capture" if missing_capture else None,
     )

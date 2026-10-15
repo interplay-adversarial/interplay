@@ -17,12 +17,21 @@ from typing import Annotated, Any, Literal
 from uuid import uuid4
 
 from any_llm import acompletion
-from judge_kappa import CohenKappa, JudgeVerdict, ScaleType
 from pydantic import Field
 
 from ..assessment.models import ModelEndpoint, Observation, StrictModel, Text, Verdict
 from .base import create_completion_kwargs
-from .transport import AuthenticatedTarget, BudgetExceeded, CallBudget, JudgeScorer, RunBudget
+from .transport import (
+    AuthenticatedTarget,
+    BudgetExceeded,
+    CallBudget,
+    JudgeAggregation,
+    JudgePanel,
+    JudgeScorer,
+    RunBudget,
+    build_judge,
+    panel_agreement_report,
+)
 
 STRATEGIES = (
     "logical-appeal",
@@ -61,6 +70,7 @@ class TapTrial(StrictModel):
     judge_verdict: Verdict = "inconclusive"
     judge_reasoning: str | None = None
     evidence_refs_json: str = "[]"
+    judge_panel_json: str | None = None
     status: Literal["pruned", "complete", "incomplete"] = "pruned"
     error_code: str | None = None
 
@@ -76,6 +86,11 @@ class TapResult:
     of ``best_prompt`` itself is by judged outcome (success > failure >
     inconclusive), not by ``best_score``, so a high-likelihood, judge-failed
     candidate never displaces a lower-likelihood, judge-confirmed one.
+
+    ``irr_report`` is Krippendorff's alpha (with a bootstrapped confidence
+    interval) across every admitted-and-queried candidate when a judge panel
+    (``secondary_judge_models``) is configured; ``None`` with
+    ``irr_unavailable_reason`` set otherwise -- never a fixed placeholder.
     """
 
     goal: str
@@ -85,8 +100,8 @@ class TapResult:
     search_trajectory: list[dict[str, Any]]
     confirmed_success: bool = False
     stop_reason: str = "iteration-budget"
-    kappa_score: float | None = None
-    kappa_unavailable_reason: str | None = None
+    irr_report: dict[str, Any] | None = None
+    irr_unavailable_reason: str | None = None
     query_count: int = 0
 
 
@@ -100,7 +115,8 @@ async def tap_attack(
     branching_factor: int = 3,
     n_iterations: int = 5,
     judge_model: str | None = None,
-    secondary_judge_model: str | None = None,
+    secondary_judge_models: list[str] | None = None,
+    judge_aggregation: JudgeAggregation = "majority",
     api_key: str | None = None,
     base_url: str | None = None,
     campaign_seconds: int = 900,
@@ -120,11 +136,19 @@ async def tap_attack(
         judge_model: Evidence-cited judge model; without it every admitted branch
             stays ``inconclusive`` (``error_code="no-judge-configured"``), never a
             fabricated success
-        secondary_judge_model: A second, independently configured judge; when set
-            alongside ``judge_model``, a real Cohen's kappa is computed over the
-            queried branches both judges scored. Without it, ``kappa_score`` is
-            ``None`` with ``kappa_unavailable_reason="insufficient-judges"`` --
-            never a fixed placeholder.
+        secondary_judge_models: Additional independently configured judges; with
+            at least one, ``judge_model`` and these form a panel
+            (:class:`interplay.red_teaming.transport.JudgePanel`) whose aggregated
+            verdict per ``judge_aggregation`` becomes the trial's verdict, and a
+            real Krippendorff's alpha (N-capable, with a bootstrapped confidence
+            interval) over every admitted-and-queried branch is reported as
+            ``irr_report``. Without at least two total judges, ``irr_report`` is
+            ``None`` with ``irr_unavailable_reason`` set -- never a fixed
+            placeholder.
+        judge_aggregation: ``"majority"`` (a strict plurality winner; any tie,
+            including every 2-judge split, is ``inconclusive``) or
+            ``"unanimous"`` (every judge must agree). Identical at exactly 2
+            judges. Only meaningful when ``secondary_judge_models`` is set.
         api_key: API key for providers
         base_url: Base URL for custom (attacker/evaluator/judge) providers
         campaign_seconds: Campaign deadline; the search stops (without starting
@@ -153,12 +177,12 @@ async def tap_attack(
         api_key=api_key,
         capabilities=frozenset({"stateless"}),
     )
-    judge_scorer = (
-        JudgeScorer(
-            ModelEndpoint(base_url=base_url or target_url, model=judge_model), api_key=api_key
-        )
-        if judge_model
-        else None
+    judge_scorer = build_judge(
+        judge_model,
+        secondary_judge_models,
+        base_url=base_url or target_url,
+        api_key=api_key,
+        aggregation=judge_aggregation,
     )
 
     budget = CallBudget(RunBudget(campaign_seconds=campaign_seconds, max_calls_per_role=500))
@@ -248,17 +272,7 @@ async def tap_attack(
 
     best = _select_best(trials)
     query_count = sum(1 for t in trials if not t.pruned)
-    kappa_score, kappa_reason = None, "insufficient-judges"
-    if judge_model and secondary_judge_model:
-        kappa_score, kappa_reason = await _measured_agreement(
-            ModelEndpoint(base_url=base_url or target_url, model=secondary_judge_model),
-            api_key,
-            goal,
-            trials,
-            budget=CallBudget(
-                RunBudget(campaign_seconds=max(campaign_seconds, 60), max_calls_per_role=500)
-            ),
-        )
+    irr_report, irr_unavailable_reason = panel_agreement_report(judge_scorer)
 
     return TapResult(
         goal=goal,
@@ -268,8 +282,8 @@ async def tap_attack(
         trials=[t.model_dump() for t in trials],
         search_trajectory=search_trajectory,
         stop_reason=stop_reason,
-        kappa_score=kappa_score,
-        kappa_unavailable_reason=None if kappa_score is not None else kappa_reason,
+        irr_report=irr_report,
+        irr_unavailable_reason=irr_unavailable_reason,
         query_count=query_count,
     )
 
@@ -285,7 +299,7 @@ def _select_best(trials: list[TapTrial]) -> TapTrial | None:
 
 async def _query_and_judge(
     target: AuthenticatedTarget,
-    judge_scorer: JudgeScorer | None,
+    judge_scorer: JudgeScorer | JudgePanel | None,
     goal: str,
     candidate: dict[str, Any],
     *,
@@ -335,7 +349,7 @@ async def _query_and_judge(
             response.content,
         )
     try:
-        judgment, _trace = await judge_scorer.score(
+        judgment, trace = await judge_scorer.score(
             goal, candidate["prompt"], observation, budget=budget
         )
     except BudgetExceeded:
@@ -353,58 +367,12 @@ async def _query_and_judge(
             judge_verdict="inconclusive" if missing_capture else judgment.verdict,
             judge_reasoning=judgment.reasoning,
             evidence_refs_json=judgment.evidence_refs_json,
+            judge_panel_json=trace if isinstance(judge_scorer, JudgePanel) else None,
             status=status,
             error_code="incomplete-capture" if missing_capture else None,
         ),
         response.content,
     )
-
-
-async def _measured_agreement(
-    secondary_endpoint: ModelEndpoint,
-    api_key: str | None,
-    goal: str,
-    trials: list[TapTrial],
-    *,
-    budget: CallBudget,
-) -> tuple[float | None, str]:
-    """Real two-judge Cohen's kappa over branches the primary judge scored;
-    never a fixed value. ``None`` with a reason when agreement cannot be computed."""
-    scored = [t for t in trials if not t.pruned and t.status == "complete" and t.response]
-    if len(scored) < 2:
-        return None, "insufficient-judged-cases"
-    secondary = JudgeScorer(secondary_endpoint, api_key=api_key)
-    verdicts = []
-    for trial in scored:
-        try:
-            observation = Observation(
-                response=trial.response, capture_complete=trial.capture_complete
-            )
-            judgment, _trace = await secondary.score(goal, trial.prompt, observation, budget=budget)
-        except BudgetExceeded as exc:
-            return None, str(exc)
-        verdicts.append(
-            JudgeVerdict(
-                judge_id="primary",
-                eval_case_id=trial.attempt_id,
-                variant_name=trial.strategy,
-                score=_VERDICT_SCORE.get(trial.judge_verdict, 0.5),
-                rationale=(trial.judge_reasoning or "")[:500],
-            )
-        )
-        verdicts.append(
-            JudgeVerdict(
-                judge_id="secondary",
-                eval_case_id=trial.attempt_id,
-                variant_name=trial.strategy,
-                score=_VERDICT_SCORE.get(judgment.verdict, 0.5),
-                rationale=judgment.reasoning[:500],
-            )
-        )
-    result = CohenKappa().compute(verdicts, scale_type=ScaleType.NOMINAL)
-    if result.kappa is None:
-        return None, "agreement-computation-insufficient"
-    return result.kappa, ""
 
 
 async def _generate_variant(

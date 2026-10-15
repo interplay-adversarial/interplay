@@ -18,12 +18,15 @@ async def main():
         vision_target_url="https://vision-target/v1",
         vision_model="openai/gpt-4o",
         judge_model="openai/gpt-4o-mini",
+        secondary_judge_models=["anthropic/claude-3-haiku"],  # optional: forms a panel
+        judge_aggregation="unanimous",
         transforms=("plain", "base64", "leetspeak"),
         controls=("image-only", "text-only", "combined"),
     )
     print(f"Judge-confirmed success: {result.confirmed_success}")
     print(f"Best control/transform: {result.best_control} / {result.best_transform}")
     print(f"Every attempted pair: {[(t['control'], t['transform']) for t in result.trials]}")
+    print(f"Inter-rater reliability: {result.irr_report}")
 
 
 asyncio.run(main())
@@ -48,6 +51,11 @@ Every attempt is judged by a separate evidence-cited judge (`judge_model`); with
 trial stays `inconclusive` (`error_code="no-judge-configured"`), never a keyword-matched score.
 `result.trials` retains every attempted pair, not only the best one, and `result.confirmed_success`
 is always paired with the exact `best_control`/`best_transform` that produced it.
+
+A judge panel and its aggregation rule (`judge_aggregation`) are configurable the same
+way as every other migrated runner -- see [tap.md § Current behavior](tap.md#current-behavior)
+for the full semantics (`JudgePanel`, `"majority"`/`"unanimous"`, `irr_report`,
+`judge_panel_json`), which apply here unchanged.
 
 ## Payloads
 

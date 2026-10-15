@@ -22,6 +22,8 @@ async def main():
         target_model="your-model",
         refiner_model="openai/gpt-4o-mini",
         judge_model="openai/gpt-4o-mini",
+        secondary_judge_models=["anthropic/claude-3-haiku"],  # optional: forms a panel
+        judge_aggregation="unanimous",
         max_words=8,
         refine_rounds=3,
     )
@@ -29,6 +31,7 @@ async def main():
     print(f"Stop reason: {result.stop_reason}")
     print(f"Search trajectory: {len(result.search_trajectory)} rounds")
     print(f"Every generated (truncated or queried) candidate: {len(result.trials)}")
+    print(f"Inter-rater reliability: {result.irr_report}")
 
 
 asyncio.run(main())
@@ -62,6 +65,10 @@ asyncio.run(main())
   judge-confirmed `complete` candidate can seed the next round's frontier, the search
   stops after the first round it runs (`stop_reason: "frontier-exhausted"`) instead of
   continuing on an unjudged basis.
+- **A judge panel and its aggregation rule (`judge_aggregation`) are configurable the
+  same way as every other migrated runner** -- see [tap.md § Current behavior](tap.md#current-behavior)
+  for the full semantics (`JudgePanel`, `"majority"`/`"unanimous"`, `irr_report`,
+  `judge_panel_json`), which apply here unchanged.
 - **Without `refiner_model`**, a round that would need refinement (because insertion
   words are exhausted but `refine_rounds` has rounds left) stops the search instead of
   silently skipping refinement (`stop_reason: "no-refiner-configured"`).
