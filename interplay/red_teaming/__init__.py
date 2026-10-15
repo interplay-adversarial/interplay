@@ -18,7 +18,7 @@ from .base import (
     get_target_config,
     load_env_file,
 )
-from .crescendo_runner import CrescendoResult, crescendo_attack
+from .crescendo_runner import CrescendoConfig, CrescendoResult, crescendo_attack
 from .garak_runner import create_custom_config, parse_garak_results, run_garak
 from .goat_runner import GoatConfig, GOATResult, goat_attack
 from .multimodal_runner import MultimodalResult, multimodal_attack
@@ -69,6 +69,7 @@ __all__ = [
     "PairResult",
     "crescendo_attack",
     "CrescendoResult",
+    "CrescendoConfig",
     "goat_attack",
     "GOATResult",
     "GoatConfig",

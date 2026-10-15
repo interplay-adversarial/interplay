@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from interplay.red_teaming.base import create_completion_kwargs, get_env_var
-from interplay.red_teaming.crescendo_runner import CrescendoResult, crescendo_attack
+from interplay.red_teaming.crescendo_runner import CrescendoResult
 from interplay.red_teaming.garak_runner import create_custom_config, run_garak
 from interplay.red_teaming.goat_runner import GOATResult
 from interplay.red_teaming.multimodal_runner import MultimodalResult, multimodal_attack
@@ -119,34 +119,9 @@ class TestPairRunner:
 
 
 class TestCrescendoRunner:
-    """Tests for Crescendo attack runner."""
-
-    @pytest.mark.asyncio
-    async def test_crescendo_attack_basic(self):
-        """Test basic Crescendo attack structure."""
-        with (
-            patch("interplay.red_teaming.crescendo_runner.acompletion") as mock_acompletion,
-            patch("interplay.red_teaming.crescendo_runner._call_target") as mock_target,
-            patch("interplay.red_teaming.crescendo_runner._score_response") as mock_score,
-        ):
-            # Mock responses
-            mock_acompletion.return_value = MagicMock(
-                choices=[MagicMock(message=MagicMock(content="escalated prompt"))]
-            )
-            mock_target.return_value = "response"
-            mock_score.return_value = 0.3
-
-            result = await crescendo_attack(
-                goal="test goal",
-                target_url="http://test.com/v1",
-                attacker_model="openai/test",
-                max_turns=2,
-            )
-
-            assert isinstance(result, CrescendoResult)
-            assert result.goal == "test goal"
-            assert result.turns <= 2
-            assert len(result.conversation_history) <= 2
+    """Tests for Crescendo attack runner's result dataclass; the attack itself (real
+    target queries, escalation decisions, judging, budgets) is covered in
+    tests/test_crescendo_runner.py since it needs a target fixture."""
 
     def test_crescendo_result_dataclass(self):
         """Test CrescendoResult dataclass structure."""
@@ -154,7 +129,7 @@ class TestCrescendoRunner:
             goal="test",
             best_score=0.7,
             best_prompt="prompt",
-            conversation_history=[],
+            trials=[],
             query_count=1,
             turns=1,
         )
