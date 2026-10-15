@@ -1,11 +1,19 @@
 """PAIR (Prompt Automatic Iterative Refinement) implementation for Interplay Adversarial."""
 
+import asyncio
 from dataclasses import dataclass
 from typing import Any
 
+import httpx
 from any_llm import acompletion
 
+from ..assessment.models import ModelEndpoint
 from .base import create_completion_kwargs
+from .transport import AuthenticatedTarget, BudgetExceeded, CallBudget, RunBudget
+
+# A single failed/budget-exhausted target call ends the campaign with the trials
+# already gathered, instead of raising out of pair_attack and losing them.
+_TARGET_FAILURE_EXCEPTIONS = (BudgetExceeded, ValueError, httpx.HTTPError)
 
 
 @dataclass
@@ -58,6 +66,9 @@ async def pair_attack(
         base_url=base_url,
     )
 
+    # Shared target-call budget: no automatic retries, bounded total target calls.
+    budget = CallBudget(RunBudget(campaign_seconds=3600, max_calls_per_role=max_queries + 1))
+
     # Initialize conversation history
     conversation_history = []
     current_prompt = goal
@@ -66,8 +77,23 @@ async def pair_attack(
     query_count = 0
 
     for iteration in range(max_queries):
-        # Get target response
-        target_response = await _call_target(target_url, current_prompt, target_model)
+        # Get target response; a failed or budget-exhausted call is retained as
+        # an incomplete trial and stops the campaign, not retried or raised.
+        try:
+            target_response = await _call_target(
+                target_url, current_prompt, target_model, api_key=api_key, budget=budget
+            )
+        except _TARGET_FAILURE_EXCEPTIONS as exc:
+            conversation_history.append(
+                {
+                    "iteration": iteration,
+                    "prompt": current_prompt,
+                    "response": None,
+                    "score": 0.0,
+                    "error": str(exc),
+                }
+            )
+            break
         query_count += 1
 
         # Judge scores the response
@@ -110,26 +136,31 @@ async def _call_target(
     target_url: str,
     prompt: str,
     model: str | None = None,
+    *,
+    api_key: str | None = None,
+    budget: CallBudget | None = None,
 ) -> str:
-    """Call target endpoint."""
-    import httpx
+    """Call target endpoint through the shared authenticated transport.
 
-    payload = {
-        "model": model or "target-model",
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 512,
-    }
-
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{target_url}/chat/completions",
-            json=payload,
-            headers={"Content-Type": "application/json"},
-            timeout=30,
-        )
-        response.raise_for_status()
-        data = response.json()
-        return data["choices"][0]["message"]["content"]
+    Attaches ``Authorization: Bearer <api_key>`` when ``api_key`` is set; the
+    previous implementation posted to the target with no Authorization header
+    at all, so a configured ``TARGET_API_KEY`` was silently never sent. One
+    attempt, no retries; bounded by ``budget`` (a fresh one covering the whole
+    attack when not supplied, so an unbudgeted caller still gets one).
+    """
+    target = AuthenticatedTarget(
+        ModelEndpoint(base_url=target_url, model=model or "target-model", max_tokens=512),
+        api_key=api_key,
+        capabilities=frozenset({"stateless"}),
+    )
+    budget = budget or CallBudget(RunBudget(campaign_seconds=30, max_calls_per_role=1))
+    response = await asyncio.to_thread(
+        target.request,
+        "stateless",
+        [{"role": "user", "content": prompt}],
+        budget=budget,
+    )
+    return response.content or ""
 
 
 async def _judge_score(

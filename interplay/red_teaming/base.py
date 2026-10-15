@@ -1,6 +1,7 @@
 """Shared utilities for red teaming runners."""
 
 import os
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -43,7 +44,24 @@ def get_target_config() -> dict[str, Any]:
 
 
 def get_judge_config() -> dict[str, Any]:
-    """Get judge endpoint configuration from env vars."""
+    """Get judge endpoint configuration from env vars.
+
+    Deprecated: falls back to ``TARGET_URL``/``TARGET_API_KEY`` when
+    ``JUDGE_URL``/``JUDGE_API_KEY`` are unset, so an operator who configures
+    only the target role silently judges with the target's own credential.
+    Use :func:`interplay.red_teaming.transport.resolve_role` with its own
+    ``ModelEndpoint`` (``api_key_env="JUDGE_API_KEY"``) instead, which has no
+    such fallback.
+    """
+    if not os.getenv("JUDGE_URL") or not os.getenv("JUDGE_API_KEY"):
+        warnings.warn(
+            "get_judge_config() falls back to TARGET_URL/TARGET_API_KEY when JUDGE_URL/"
+            "JUDGE_API_KEY are unset; set them explicitly, or migrate to "
+            "interplay.red_teaming.transport.resolve_role for a role config with no "
+            "fallback to another role's key.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     return {
         "url": os.getenv("JUDGE_URL", os.getenv("TARGET_URL")),
         "api_key": os.getenv("JUDGE_API_KEY", os.getenv("TARGET_API_KEY")),
@@ -52,7 +70,20 @@ def get_judge_config() -> dict[str, Any]:
 
 
 def get_attacker_config() -> dict[str, Any]:
-    """Get attacker model configuration from env vars."""
+    """Get attacker model configuration from env vars.
+
+    Deprecated: falls back to ``TARGET_URL``/``TARGET_API_KEY`` when
+    ``ATTACKER_URL``/``ATTACKER_API_KEY`` are unset; see :func:`get_judge_config`.
+    """
+    if not os.getenv("ATTACKER_URL") or not os.getenv("ATTACKER_API_KEY"):
+        warnings.warn(
+            "get_attacker_config() falls back to TARGET_URL/TARGET_API_KEY when "
+            "ATTACKER_URL/ATTACKER_API_KEY are unset; set them explicitly, or migrate to "
+            "interplay.red_teaming.transport.resolve_role for a role config with no "
+            "fallback to another role's key.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     return {
         "url": os.getenv("ATTACKER_URL", os.getenv("TARGET_URL")),
         "api_key": os.getenv("ATTACKER_API_KEY", os.getenv("TARGET_API_KEY")),

@@ -50,27 +50,37 @@ def atomic_file(path, data):
         temporary.unlink(missing_ok=True)
 
 
-def to_arrow(records):
+def to_arrow(
+    records, *, record_cls=AssessmentRecord, schema_version=None, int_fields=(), bool_fields=()
+):
     import pyarrow as pa
 
     # Nested forensic values stay canonical JSON strings, avoiding schema drift
     # between empty, error, tool-call and successful observations.
+    int_fields = int_fields or ("ordinal", "round_index")
+    bool_fields = bool_fields or ("release_eligible", "capture_complete")
+    schema_version = schema_version or "interplay-assessment/2"
     fields = []
-    for name in AssessmentRecord.model_fields:
+    for name in record_cls.model_fields:
         kind = (
-            pa.int32()
-            if name in ("ordinal", "round_index")
-            else pa.bool_()
-            if name in ("release_eligible", "capture_complete")
-            else pa.string()
+            pa.int32() if name in int_fields else pa.bool_() if name in bool_fields else pa.string()
         )
         fields.append(pa.field(name, kind))
-    schema = pa.schema(fields, metadata={b"schema_version": b"interplay-assessment/2"})
+    schema = pa.schema(fields, metadata={b"schema_version": schema_version.encode()})
     return pa.Table.from_pylist([r.model_dump(mode="json") for r in records], schema=schema)
 
 
 class AssessmentStore:
-    def __init__(self, output: Path, *, recover=False):
+    """Append-only private journal and matching analytics export.
+
+    Generic over ``record_cls`` so other result sinks (for example the shared
+    red-teaming runner result sink) reuse this same locking, fsync and atomic
+    export discipline instead of reimplementing it; each caller's own
+    ``schema_version``/journal filename keeps the on-disk layouts independent.
+    """
+
+    def __init__(self, output: Path, *, recover=False, record_cls=AssessmentRecord):
+        self.record_cls = record_cls
         if not recover:
             output.mkdir(mode=0o700, exist_ok=False)
         info = output.lstat()
@@ -98,7 +108,7 @@ class AssessmentStore:
             os.close(fd)
 
     def stage(self, record):
-        record = AssessmentRecord.model_validate(record)
+        record = self.record_cls.model_validate(record)
         data = json_bytes(record.model_dump(mode="json")) + b"\n"
         if len(data) > 512 * 1024:
             raise ValueError("assessment-record-limit")
@@ -120,11 +130,17 @@ class AssessmentStore:
         finally:
             os.close(directory)
 
-    def export(self, records):
+    def export(self, records, *, schema_version=None, int_fields=(), bool_fields=()):
         import pyarrow as pa
         import pyarrow.parquet as pq
 
-        table = to_arrow(records)
+        table = to_arrow(
+            records,
+            record_cls=self.record_cls,
+            schema_version=schema_version,
+            int_fields=int_fields,
+            bool_fields=bool_fields,
+        )
         atomic_file(
             self.root / "records.jsonl",
             b"".join(json_bytes(r.model_dump(mode="json")) + b"\n" for r in records),
