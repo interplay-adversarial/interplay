@@ -2352,6 +2352,7 @@ all = [
     { name = "any-llm-sdk", extra = ["all"], marker = "extra == 'extra-21-interplay-adversarial-all' or extra == 'extra-21-interplay-adversarial-assessment' or extra != 'extra-21-interplay-adversarial-garak' or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
     { name = "httpx" },
     { name = "judge-kappa" },
+    { name = "pillow" },
 ]
 assessment = [
     { name = "any-llm-sdk" },
@@ -2361,6 +2362,7 @@ dev = [
     { name = "any-llm-sdk" },
     { name = "httpx" },
     { name = "judge-kappa" },
+    { name = "pillow" },
     { name = "pip-audit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -2368,6 +2370,9 @@ dev = [
 ]
 garak = [
     { name = "garak" },
+]
+multimodal = [
+    { name = "pillow" },
 ]
 providers = [
     { name = "any-llm-sdk", extra = ["all"], marker = "extra == 'extra-21-interplay-adversarial-providers' or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak')" },
@@ -2383,6 +2388,7 @@ dev = [
     { name = "any-llm-sdk" },
     { name = "httpx" },
     { name = "judge-kappa" },
+    { name = "pillow" },
     { name = "pip-audit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -2408,6 +2414,9 @@ requires-dist = [
     { name = "judge-kappa", marker = "extra == 'red-teaming'", specifier = ">=0.2" },
     { name = "numpy", specifier = ">=2.0" },
     { name = "pandas", specifier = ">=2.2" },
+    { name = "pillow", marker = "extra == 'all'", specifier = ">=10.0" },
+    { name = "pillow", marker = "extra == 'dev'", specifier = ">=10.0" },
+    { name = "pillow", marker = "extra == 'multimodal'", specifier = ">=10.0" },
     { name = "pip-audit", marker = "extra == 'dev'", specifier = ">=2.7" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
@@ -2416,13 +2425,14 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
 ]
-provides-extras = ["all", "assessment", "dev", "garak", "providers", "red-teaming"]
+provides-extras = ["all", "assessment", "dev", "garak", "multimodal", "providers", "red-teaming"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "any-llm-sdk", specifier = ">=1.33" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "judge-kappa", specifier = ">=0.2" },
+    { name = "pillow", specifier = ">=10.0" },
     { name = "pip-audit", specifier = ">=2.7" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
