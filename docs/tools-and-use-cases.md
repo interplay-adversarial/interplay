@@ -177,6 +177,18 @@ handling. Provider support in `any-llm-sdk` does not make every direct target he
 support every provider protocol. Multi-turn attacker refinement also does not
 necessarily mean multi-turn target conversation.
 
+Implementation work for these partial runners is tracked separately from the
+shipped capabilities above:
+
+| Issue | Work |
+| --- | --- |
+| [#38](https://github.com/interplay-adversarial/interplay/issues/38) | Shared authenticated transport, evidence-based judging and result collection |
+| [#39](https://github.com/interplay-adversarial/interplay/issues/39) | TAP target execution, response evaluation and complete branch lineage |
+| [#40](https://github.com/interplay-adversarial/interplay/issues/40) | Crescendo persistent target conversation and real judging |
+| [#41](https://github.com/interplay-adversarial/interplay/issues/41) | GOAT validated strategy selection and executed-strategy evidence |
+| [#42](https://github.com/interplay-adversarial/interplay/issues/42) | SLIP reproducible lexical search and evidence-based scoring |
+| [#43](https://github.com/interplay-adversarial/interplay/issues/43) | Multimodal judging, private payloads and controlled evidence collection |
+
 The [integrated example](../examples/integrated_run.py) combines method-specific
 outputs; it is not the assessment journal or a boundary evidence bridge.
 
