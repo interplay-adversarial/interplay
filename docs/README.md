@@ -18,6 +18,7 @@ This page is the index; it does not duplicate what each page already says.
 | Get a probe → response → evidence-cited verdict record for a custom criterion | [assessment.md](assessment.md) |
 | Report a vulnerability or understand what's in/out of scope for content | [../SECURITY.md](../SECURITY.md), [CONTENT_POLICY.md](CONTENT_POLICY.md) |
 | Cut a release | [RELEASING.md](RELEASING.md) |
+| Find planned work, dependencies and qualification scope | [ROADMAP.md](ROADMAP.md), [runner-qualification.md](runner-qualification.md) |
 | Work on the repo itself as an AI agent | [../AGENTS.md](../AGENTS.md) |
 
 ## All pages
@@ -28,6 +29,8 @@ README.md (this page)
 ├── tools-and-use-cases.md ─── which of the 3 interfaces to use, and their current limits
 ├── probe-generation.md ────── every pipeline mode/spec, the diverse-dataset helper, output columns
 ├── assessment.md ──────────── description-driven campaigns (interplay.assessment)
+├── ROADMAP.md ──────────────── prioritized work items and linked issues
+├── runner-qualification.md ── fixture/live coverage matrix and repeatable CLI drills
 ├── attacks/
 │   ├── README.md ──────────── legacy attack runners overview, query budgets
 │   ├── tap.md / pair.md / crescendo.md / goat.md / slip.md / multimodal.md / garak.md
