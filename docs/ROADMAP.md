@@ -11,7 +11,7 @@ the current task state. There are no delivery-date commitments.
 
 | Order | Item | Outcome | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| 1 | [QUAL-01 / #59](https://github.com/interplay-adversarial/interplay/issues/59) | Repeatable CLI conformance and bounded live qualification for every runner, with interruption/recovery where supported | In progress: fixture conformance first; broader live qualification pending | Existing runner evidence contracts |
+| 1 | [QUAL-01 / #59](https://github.com/interplay-adversarial/interplay/issues/59) | Repeatable CLI conformance and bounded live qualification for every runner, with interruption/recovery where supported | In progress: both fixture profiles and six native single-observation live smokes recorded; advanced live paths/Garak pending | Existing runner evidence contracts |
 | 2 | [JUDGE-01 / #60](https://github.com/interplay-adversarial/interplay/issues/60) | Human-labeled calibration of single judges and panels, with accuracy, coverage and uncertainty | Planned | QUAL-01; independent human labels |
 | 3 | [BENCH-01 / #61](https://github.com/interplay-adversarial/interplay/issues/61) | Reproducible paired comparisons of models/configurations under equal query budgets | Planned | QUAL-01; JUDGE-01 for accuracy-sensitive conclusions |
 | 4 | [AGENT-01 / #62](https://github.com/interplay-adversarial/interplay/issues/62) | Optional instrumented NeMo Gym TargetAdapter with captured tool and environment outcomes | Planned | QUAL-01; optional Gym environment |
@@ -32,8 +32,12 @@ observation and a SIGKILL after the response is durably observed but before the
 judge returns, then performs repeated offline recovery. See the
 [qualification matrix and instructions](runner-qualification.md).
 
-Remaining work includes bounded live-model qualification of PAIR, Crescendo,
-GOAT, SLIP and Multimodal; refinement/multi-turn and real image coverage; and
+The next increment adds an extended fixture profile with actual attacker
+refinement, multi-turn conversations, TAP pruning/lineage and the full PNG
+image-control matrix. Five additional bounded live single-observation smokes
+(PAIR, Crescendo, GOAT, SLIP and Multimodal text-only) and their offline recovery
+checks pass, alongside the earlier TAP smoke. Remaining work includes live
+refinement/multi-turn and vision coverage, distinct models/providers, and
 isolated Garak qualification with its scanner-specific report semantics.
 The existing TAP live smoke exercises plumbing using one model for every role;
 it does not establish judge independence or adversarial robustness.
