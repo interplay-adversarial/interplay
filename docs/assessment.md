@@ -2,6 +2,9 @@
 
 [← Documentation map](README.md) · [Methodology](METHODOLOGY.md)
 
+Use [`interplay report`](campaign-reports.md) to inspect retained exports offline
+as a private HTML report, including incomplete attempts and evidence references.
+
 For workflow selection and dependency responsibilities, see the
 [tools and use-case guide](tools-and-use-cases.md).
 

@@ -2,6 +2,9 @@
 
 [Attack methods](README.md) · [Tool guide](../tools-and-use-cases.md)
 
+Use [`interplay report`](../campaign-reports.md) to inspect retained exports
+offline with lineage, citations, panel disagreements and incomplete outcomes.
+
 PAIR, TAP, Crescendo, GOAT, SLIP and Multimodal share authenticated target
 transport, evidence-cited judging and per-invocation result retention. Each
 Python entry point accepts these additional keyword arguments:

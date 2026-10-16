@@ -15,7 +15,7 @@ the current task state. There are no delivery-date commitments.
 | 2 | [JUDGE-01 / #60](https://github.com/interplay-adversarial/interplay/issues/60) | Human-labeled calibration of single judges and panels, with accuracy, coverage and uncertainty | Planned | QUAL-01; independent human labels |
 | 3 | [BENCH-01 / #61](https://github.com/interplay-adversarial/interplay/issues/61) | Reproducible paired comparisons of models/configurations under equal query budgets | Planned | QUAL-01; JUDGE-01 for accuracy-sensitive conclusions |
 | 4 | [AGENT-01 / #62](https://github.com/interplay-adversarial/interplay/issues/62) | Optional instrumented NeMo Gym TargetAdapter with captured tool and environment outcomes | Planned | QUAL-01; optional Gym environment |
-| 5 | [REPORT-01 / #63](https://github.com/interplay-adversarial/interplay/issues/63) | Offline readable reports with lineage, citations, errors and judge disagreements | Planned; can proceed alongside calibration | QUAL-01 schemas |
+| 5 | [REPORT-01 / #63](https://github.com/interplay-adversarial/interplay/issues/63) | Offline readable reports with lineage, citations, errors and judge disagreements | Implemented for assessment/runner v1/v2 JSONL, Parquet and Arrow exports; validation and review in progress | QUAL-01 schemas |
 | 6 | [BOUNDARY-01 / #64](https://github.com/interplay-adversarial/interplay/issues/64) | Reviewed gate source admission and explicit bindings to independently observed effects | Planned; coordinate gate-side work | QUAL-01; AGENT-01 where applicable |
 | 7 | [CULTURE-01 / #65](https://github.com/interplay-adversarial/interplay/issues/65) | Matched multilingual benign/adversarial datasets with native-speaker review | Planned | JUDGE-01; qualified reviewers |
 
@@ -48,6 +48,16 @@ current method-specific scope rather than treating implementation or a fixture
 pass as full live qualification.
 The existing TAP live smoke exercises plumbing using one model for every role;
 it does not establish judge independence or adversarial robustness.
+
+## Offline reports: REPORT-01
+
+`interplay report` creates a private standalone HTML report and JSON summary
+from one retained export snapshot, without provider imports or model calls.
+It includes incomplete/error outcomes, attack lineage, citation-resolution checks
+and retained panel disagreements. Captured values are escaped; search scores and
+model judgments do not establish independently verified environment effects.
+See [campaign reports](campaign-reports.md) for supported schemas, privacy and
+recovery requirements. Judge calibration and wider qualification remain separate.
 
 ## Release checkpoint
 
