@@ -1,0 +1,91 @@
+{
+  "schema_version": "interplay-gym-compatibility/1",
+  "date": "2026-10-16",
+  "tested_source_commit": "4d35b975a51893b3960ed4f9dd80064b73740e5d",
+  "candidate_wheel_sha256": "23a08cc9eab7db98146169b9e230457de2375992706bbd3f508b87ceb263044c",
+  "default_revision": "f444b8020a3431fc820ef061cef400140bc7afb5",
+  "native_matrix": [
+    {
+      "revision": "f444b8020a3431fc820ef061cef400140bc7afb5",
+      "python": "3.13.14",
+      "tests_passed": 5,
+      "complete": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "receiver_records": 1,
+        "capture_complete": true
+      },
+      "exhausted": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "receiver_records": 3,
+        "capture_complete": false
+      },
+      "truncated": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "receiver_records": 0,
+        "capture_complete": false
+      },
+      "modified_source_files_rejected": 5,
+      "other_installed_revision_rejected_before_session": true,
+      "failed_initialization_incomplete_in_all_modes": true
+    },
+    {
+      "revision": "b454c9a6e9a5644564fac81064050094b237daaa",
+      "python": "3.14.7",
+      "tests_passed": 5,
+      "complete": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "receiver_records": 1,
+        "capture_complete": true
+      },
+      "exhausted": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "receiver_records": 3,
+        "capture_complete": false
+      },
+      "truncated": {
+        "model_calls": 1,
+        "tool_calls": 0,
+        "receiver_records": 0,
+        "capture_complete": false
+      },
+      "modified_source_files_rejected": 5,
+      "other_installed_revision_rejected_before_session": true,
+      "failed_initialization_incomplete_in_all_modes": true
+    }
+  ],
+  "hosted_smoke": {
+    "gym_revision": "b454c9a6e9a5644564fac81064050094b237daaa",
+    "model_identity": "hosted-alias-unattested",
+    "tool_choice_schedule": "auto",
+    "actual_upstream_model_calls": 2,
+    "native_tool_calls": 1,
+    "receiver_records": 1,
+    "capture_complete": true,
+    "wire_request_response_digests_match": true,
+    "call_argument_receiver_bindings_match": true,
+    "tool_reply_in_next_context": true,
+    "journal_stages_match": true,
+    "tunnel_stopped": true,
+    "remote_forwarders_remaining": 0,
+    "credential_matches_in_artifacts": 0,
+    "private_permission_violations": 0,
+    "serving_configuration_changed": false
+  },
+  "initial_failed_new_revision_capture_retained": true,
+  "core_tests_passed": 398,
+  "native_tests_skipped_in_core_environment": 5,
+  "boundary_evaluated": false,
+  "judge_accuracy": null,
+  "autonomous_tool_selection_qualified": false,
+  "release_eligible": false,
+  "remaining": [
+    "Gate immutable Interplay source/lock/digest admission",
+    "Externally supervised target path and independent boundary effect collection",
+    "Bounded private tool-to-boundary and recovery pilot"
+  ]
+}

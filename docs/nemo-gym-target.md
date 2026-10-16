@@ -8,13 +8,22 @@ probe is appended as user text to a fixed operator-owned request. The adapter
 binds the probe digest, assessment attempt ID, task ID and rollout ID to captured
 responses, tool dispatches and a separately observed environment outcome.
 
-This initial integration supports the SimpleAgent compatibility surface at Gym
-revision `f444b8020a3431fc820ef061cef400140bc7afb5`. It calls the revision's private
-`_create_episode` interface; selected imported source files are checked against
-[the recorded hashes](../interplay/assessment/gym_source.json) before any session
-is opened. This check covers the recorded compatibility surface, not all Gym,
-its dependencies, in-memory modifications or served model weights. Other harnesses,
-remote Gym server APIs, image environments and source revisions are not qualified.
+The adapter supports two explicit SimpleAgent compatibility baselines:
+
+| Gym revision | Selection | Native test interpreter | Source manifest |
+| --- | --- | --- | --- |
+| `f444b8020a3431fc820ef061cef400140bc7afb5` | Original default | Python 3.13.14 | [Original hashes](../interplay/assessment/gym_source.json) |
+| `b454c9a6e9a5644564fac81064050094b237daaa` | Set `gym_revision` explicitly | Python 3.14.7 | [Gate-compatible hashes](../interplay/assessment/gym_source_b454.json) |
+
+It calls the selected revision's private `_create_episode` interface. All five
+recorded imported files must match that revision's manifest before any session
+opens; selecting the other installed revision fails instead of falling back.
+Every capture binding records the selected revision. Newer Gym initializes
+client checkpoint state from its configuration; the recording wrapper preserves
+the native client's validated fields while retaining dispatch restrictions.
+These checks cover the recorded compatibility surface, not all Gym, dependencies,
+in-memory modifications or served model weights. Other harnesses, remote Gym
+server APIs, image environments and source revisions are not qualified.
 
 ## Optional isolated environment
 
@@ -39,6 +48,15 @@ git -C /path/to/gym-source checkout f444b8020a3431fc820ef061cef400140bc7afb5
 PYTHONPATH=/path/to/gym-source .venv-gym/bin/python scripts/gym_target_conformance.py \
   --gym-source /path/to/gym-source --output private-fixture
 ```
+
+For the Gate-compatible revision, use a separate Python 3.14.7 environment and
+`onboarding/gym/requirements-b454.txt`, then set
+`GymTargetConfig(gym_revision="b454c9a6e9a5644564fac81064050094b237daaa", ...)`.
+The conformance CLI likewise requires `--gym-revision` with that exact revision.
+Do not overlay the new requirements onto an existing original-baseline environment.
+The installed native distribution contains the needed modules; a matching source
+checkout is also supported for the drill. Never place a different revision on
+`PYTHONPATH`: admission checks the actual imported file bytes.
 
 The requirements file records a tested dependency baseline, not a universal
 compatibility or production qualification claim. Keep it separate from Garak and
@@ -210,3 +228,38 @@ rejected with HTTP 400 before parser configuration. Their zero-tool outcomes
 are retained. The successful automatic-tool rollout is one synthetic integration
 check, with no broader autonomy, judge accuracy, adversarial robustness or
 containment qualification.
+
+## Native compatibility regression
+
+The hosted `gym-target` matrix installs each immutable official Gym revision in
+its own Python environment and runs five native tests per revision. These use
+actual SimpleAgent and Responses/chat conversion with deterministic model
+responses and a separately read synthetic file receiver. Complete mode observes
+2 model calls, 1 tool and 1 receiver record; exhaustion observes 3/3/3 and stays
+incomplete; truncation observes 1/0/0 and stays incomplete. Failed initialization
+cannot satisfy any drill mode. Each of the five imported-file modifications is
+rejected, as is selecting the other installed revision, before a session opens.
+
+```bash
+GYM_TEST_REVISION=b454c9a6e9a5644564fac81064050094b237daaa \
+  .venv-gym-b454/bin/python -m unittest discover -s tests -p test_gym_target_native.py -v
+```
+
+Native compatibility does not enable Gate's target selector or qualify an
+independently authenticated tool-to-boundary path. Gate must separately review
+and admit the new Interplay source/lock/digests, preserve independent effect and
+cleanup observation, then complete the bounded private live/recovery pilot.
+BOUNDARY-01 remains open through those steps. The earlier live receipt above
+remains an unchanged observation of the original baseline.
+
+A bounded hosted-model smoke on the newer revision also passes: two actual
+upstream model calls, one native tool and one independently read local receiver
+record. Independent retained-byte readback joins the wire call ID/arguments to
+native tool execution and the receiver attempt/marker, and verifies the tool
+reply appears in the next model context. Tunnel retirement and private artifact
+permission/credential checks pass. The serving configuration was unchanged.
+The initial failed newer-revision fixture remains retained as incomplete;
+its wrapper-initialization issue is fixed rather than reclassified.
+See the [sanitized compatibility receipt](evidence/gym-compatibility-20261016.json).
+This smoke does not execute a boundary-controlled remote effect or establish
+judge accuracy, containment or general autonomous tool selection.

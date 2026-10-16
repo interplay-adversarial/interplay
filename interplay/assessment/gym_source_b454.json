@@ -1,0 +1,10 @@
+{
+  "revision": "b454c9a6e9a5644564fac81064050094b237daaa",
+  "files": {
+    "responses_api_agents/simple_agent/app.py": "be5d49f62bae64b315b47440dbeecab1429e2af40996a71c7367099a3e6d4bf6",
+    "nemo_gym/openai_utils.py": "099d103e182c783090415189d8d3447b6616fba13c362be01552bb2eb0435506",
+    "nemo_gym/rollout_observability.py": "6d72c1f19c982726345453af4cfa79a05d103ee721373789032a9f88d927b752",
+    "nemo_gym/server_utils.py": "cb0e5d06f2f6948cae877eb4b04309f6afaff828ce951f0c287a0a8721c68dea",
+    "nemo_gym/responses_converter.py": "77bcf48d35d66b7b120436c6c8406bf7c84008ee2c282a4bbfb1b5aeb5c42825"
+  }
+}

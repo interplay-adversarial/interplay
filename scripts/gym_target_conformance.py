@@ -15,7 +15,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from uuid import uuid4
 
-from interplay.assessment.gym import GymSession, GymTargetConfig, NeMoGymTarget
+from interplay.assessment.gym import (
+    GYM_REVISION,
+    GYM_SOURCE_MANIFESTS,
+    GymSession,
+    GymTargetConfig,
+    NeMoGymTarget,
+)
 from interplay.assessment.models import ModelEndpoint, Probe
 from interplay.assessment.storage import atomic_file, json_bytes, private_file
 from interplay.benchmark.models import profile
@@ -24,7 +30,15 @@ MARKER = "GYM-SYNTHETIC-CANARY"
 ATTEMPT = "a" * 32
 
 
-def run(gym_source, output, provider_path=None, *, mode="complete", tool_choice_schedule="auto"):
+def run(
+    gym_source,
+    output,
+    provider_path=None,
+    *,
+    mode="complete",
+    tool_choice_schedule="auto",
+    gym_revision=GYM_REVISION,
+):
     """Execute actual native SimpleAgent/converter with a separate file observer."""
     sys.path.insert(0, str(Path(gym_source).resolve()))
     import aiohttp
@@ -55,6 +69,7 @@ def run(gym_source, output, provider_path=None, *, mode="complete", tool_choice_
         json_bytes(
             {
                 "mode": mode,
+                "gym_revision": gym_revision,
                 "tool_choice_schedule": tool_choice_schedule,
                 "autonomous_tool_selection_qualified": False,
                 "max_model_calls": 3,
@@ -243,6 +258,7 @@ def run(gym_source, output, provider_path=None, *, mode="complete", tool_choice_
         ],
     }
     config = GymTargetConfig(
+        gym_revision=gym_revision,
         task_id="synthetic-receiver",
         request_json=json.dumps(template),
         max_steps=3,
@@ -266,8 +282,11 @@ def run(gym_source, output, provider_path=None, *, mode="complete", tool_choice_
     )
     logs = json.loads(observation.logs_json)
     traces = json.loads(observation.traces_json)
+    outcome = logs.get("environment_outcome")
+    outcome = outcome if isinstance(outcome, dict) else {}
     receiver_rows = [json.loads(private_file(p)) for p in sorted(receiver.glob("*.json"))]
     summary = {
+        "gym_revision": gym_revision,
         "tool_choice_schedule": tool_choice_schedule,
         "autonomous_tool_selection_qualified": False,
         "schema_version": "interplay-gym-conformance/1",
@@ -277,8 +296,7 @@ def run(gym_source, output, provider_path=None, *, mode="complete", tool_choice_
         "model_calls": counters["model"],
         "tool_calls": counters["tool"],
         "receiver_records": len(receiver_rows),
-        "receiver_matches_observation": receiver_rows
-        == logs.get("environment_outcome", {}).get("receiver_records"),
+        "receiver_matches_observation": receiver_rows == outcome.get("receiver_records"),
         "attempt_binding": logs["attempt_id"] == attempt_id and logs["rollout_id"] == attempt_id,
         "native_tool_calls": len((traces.get("native_trajectory") or {}).get("tool_calls", [])),
         "boundary_evaluated": False,
@@ -286,7 +304,8 @@ def run(gym_source, output, provider_path=None, *, mode="complete", tool_choice_
         "release_eligible": False,
     }
     summary["verification_passed"] = bool(
-        summary["attempt_binding"]
+        logs["gym_revision"] == gym_revision
+        and summary["attempt_binding"]
         and summary["receiver_matches_observation"]
         and (
             (mode == "complete" and observation.capture_complete and receiver_rows)
@@ -302,6 +321,7 @@ def main():
     parser.add_argument("--gym-source", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--provider", type=Path)
+    parser.add_argument("--gym-revision", choices=tuple(GYM_SOURCE_MANIFESTS), default=GYM_REVISION)
     parser.add_argument(
         "--tool-choice-schedule", choices=("auto", "forced-first-tool"), default="auto"
     )
@@ -319,6 +339,7 @@ def main():
             args.provider,
             mode=args.mode,
             tool_choice_schedule=args.tool_choice_schedule,
+            gym_revision=args.gym_revision,
         )
         print(json.dumps(summary, sort_keys=True))
         return 0 if summary["verification_passed"] else 2

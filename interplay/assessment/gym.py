@@ -21,10 +21,15 @@ from .runner import redact
 from .storage import atomic_file, json_bytes
 
 GYM_REVISION = "f444b8020a3431fc820ef061cef400140bc7afb5"
+GATE_GYM_REVISION = "b454c9a6e9a5644564fac81064050094b237daaa"
+GYM_SOURCE_MANIFESTS = {
+    GYM_REVISION: "gym_source.json",
+    GATE_GYM_REVISION: "gym_source_b454.json",
+}
 
 
 class GymTargetConfig(StrictModel):
-    gym_revision: Literal[GYM_REVISION] = GYM_REVISION
+    gym_revision: Literal[GYM_REVISION, GATE_GYM_REVISION] = GYM_REVISION
     task_id: Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$")]
     request_json: Annotated[str, Field(max_length=32768)]
     max_steps: Annotated[int, Field(ge=1, le=20)] = 3
@@ -49,15 +54,20 @@ class GymSession:
     resources_cookies: dict | None = None
 
 
-def _native():
+def _native(revision=GYM_REVISION):
     """Load optional Gym and check the actual imported compatibility surface."""
+    manifest = GYM_SOURCE_MANIFESTS.get(revision)
+    if manifest is None:
+        raise ValueError("gym-unsupported-source")
+    pin = _json(Path(__file__).with_name(manifest).read_bytes())
+    if pin["revision"] != revision:
+        raise ValueError("gym-manifest-revision-mismatch")
     from nemo_gym.openai_utils import NeMoGymResponse, NeMoGymResponseCreateParamsNonStreaming
     from nemo_gym.rollout_observability import TrajectoryRecord
     from nemo_gym.server_utils import ServerClient
     from pydantic import PrivateAttr
     from responses_api_agents.simple_agent.app import SimpleAgent
 
-    pin = _json(Path(__file__).with_name("gym_source.json").read_bytes())
     for name, expected in pin["files"].items():
         module = importlib.import_module(name.removesuffix(".py").replace("/", "."))
         if hashlib.sha256(Path(module.__file__).read_bytes()).hexdigest() != expected:
@@ -230,7 +240,10 @@ def _recording_client(
                 capture.event(role + "-unfinished", name=url_path)
                 raise
 
-    wrapped = RecordingClient.model_construct()
+    # Newer Gym initializes checkpoint state from these validated client fields.
+    # Preserve the trusted client's configuration rather than constructing an
+    # empty instance. Transport still goes only through the recording post().
+    wrapped = RecordingClient(**{name: getattr(inner, name) for name in base.model_fields})
     wrapped._inner = inner
     return wrapped
 
@@ -293,7 +306,9 @@ class NeMoGymTarget:
             raise ValueError("gym-attempt-id-invalid")
         if redact(probe.model_dump(), self.secrets) != probe.model_dump():
             raise ValueError("gym-probe-contains-credential")
-        native_agent, base, private_attr, params, response_type, trajectory_type = _native()
+        native_agent, base, private_attr, params, response_type, trajectory_type = _native(
+            self.config.gym_revision
+        )
         body = params.model_validate(
             {
                 **self.template,
@@ -311,7 +326,7 @@ class NeMoGymTarget:
             "task_id": self.config.task_id,
             "rollout_id": attempt_id,
             "probe_sha256": hashlib.sha256(json_bytes(probe.model_dump())).hexdigest(),
-            "gym_revision": GYM_REVISION,
+            "gym_revision": self.config.gym_revision,
         }
         capture = _Capture(root, binding, self.secrets)
         capture.artifact("request.json", {**binding, "request": body.model_dump(mode="json")})
