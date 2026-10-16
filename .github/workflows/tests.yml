@@ -43,6 +43,8 @@ jobs:
         run: pytest tests -q
       - name: Runner CLI execution and hard-interruption recovery (loopback fixtures only)
         run: python scripts/runner_cli_conformance.py --output "$RUNNER_TEMP/runner-conformance"
+      - name: Runner refinement, conversation and image conformance (loopback fixtures only)
+        run: python scripts/runner_cli_conformance.py --profile extended --output "$RUNNER_TEMP/runner-extended-conformance"
 
   audit:
     # pip-audit (PyPA, open source) checks the installed dependency set against the
