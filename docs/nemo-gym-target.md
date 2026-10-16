@@ -251,3 +251,15 @@ and admit the new Interplay source/lock/digests, preserve independent effect and
 cleanup observation, then complete the bounded private live/recovery pilot.
 BOUNDARY-01 remains open through those steps. The earlier live receipt above
 remains an unchanged observation of the original baseline.
+
+A bounded hosted-model smoke on the newer revision also passes: two actual
+upstream model calls, one native tool and one independently read local receiver
+record. Independent retained-byte readback joins the wire call ID/arguments to
+native tool execution and the receiver attempt/marker, and verifies the tool
+reply appears in the next model context. Tunnel retirement and private artifact
+permission/credential checks pass. The serving configuration was unchanged.
+The initial failed newer-revision fixture remains retained as incomplete;
+its wrapper-initialization issue is fixed rather than reclassified.
+See the [sanitized compatibility receipt](evidence/gym-compatibility-20261016.json).
+This smoke does not execute a boundary-controlled remote effect or establish
+judge accuracy, containment or general autonomous tool selection.
