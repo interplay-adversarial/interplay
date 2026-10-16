@@ -24,7 +24,7 @@ MARKER = "GYM-SYNTHETIC-CANARY"
 ATTEMPT = "a" * 32
 
 
-def run(gym_source, output, provider_path=None, *, mode="complete"):
+def run(gym_source, output, provider_path=None, *, mode="complete", tool_choice_schedule="auto"):
     """Execute actual native SimpleAgent/converter with a separate file observer."""
     sys.path.insert(0, str(Path(gym_source).resolve()))
     import aiohttp
@@ -50,6 +50,19 @@ def run(gym_source, output, provider_path=None, *, mode="complete"):
     else:
         endpoint = ModelEndpoint(base_url="http://127.0.0.1/v1", model="fixture", max_tokens=512)
         extra = {}
+    atomic_file(
+        root / "conformance.json",
+        json_bytes(
+            {
+                "mode": mode,
+                "tool_choice_schedule": tool_choice_schedule,
+                "autonomous_tool_selection_qualified": False,
+                "max_model_calls": 3,
+                "provider": endpoint.model_dump(exclude={"api_key_env"}),
+                "extra_body": extra,
+            }
+        ),
+    )
     converter = VLLMConverter(return_token_id_information=False, uses_reasoning_parser=True)
     packets = []
 
@@ -152,6 +165,12 @@ def run(gym_source, output, provider_path=None, *, mode="complete"):
                             parallel_tool_calls=False,
                             **extra,
                         )
+                        if tool_choice_schedule == "forced-first-tool":
+                            payload["tool_choice"] = (
+                                {"type": "function", "function": {"name": "record_marker"}}
+                                if counters["model"] == 1
+                                else "none"
+                            )
                         value = await fetch(payload, session)
                         completion = NeMoGymChatCompletion.model_validate(value)
                         if completion.model != endpoint.model or len(completion.choices) != 1:
@@ -249,6 +268,8 @@ def run(gym_source, output, provider_path=None, *, mode="complete"):
     traces = json.loads(observation.traces_json)
     receiver_rows = [json.loads(private_file(p)) for p in sorted(receiver.glob("*.json"))]
     summary = {
+        "tool_choice_schedule": tool_choice_schedule,
+        "autonomous_tool_selection_qualified": False,
         "schema_version": "interplay-gym-conformance/1",
         "fixture": not bool(provider_path),
         "mode": mode,
@@ -282,6 +303,9 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--provider", type=Path)
     parser.add_argument(
+        "--tool-choice-schedule", choices=("auto", "forced-first-tool"), default="auto"
+    )
+    parser.add_argument(
         "--mode", choices=("complete", "exhausted", "truncated"), default="complete"
     )
     args = parser.parse_args()
@@ -289,7 +313,13 @@ def main():
         parser.error("fault modes use fixture transport only")
     old = os.umask(0o077)
     try:
-        summary = run(args.gym_source, args.output, args.provider, mode=args.mode)
+        summary = run(
+            args.gym_source,
+            args.output,
+            args.provider,
+            mode=args.mode,
+            tool_choice_schedule=args.tool_choice_schedule,
+        )
         print(json.dumps(summary, sort_keys=True))
         return 0 if summary["verification_passed"] else 2
     except Exception:

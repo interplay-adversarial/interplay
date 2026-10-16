@@ -178,3 +178,12 @@ recorded in the profile. The receiver only writes fixed synthetic records in the
 new output directory; the model cannot select a filesystem path or contact another
 service through this tool. `verification.json` is machine-readable. A fixture pass
 alone does not qualify an actual model-backed rollout or independent judge accuracy.
+
+For endpoints that support named function calls but disable automatic tool choice,
+`--tool-choice-schedule forced-first-tool` explicitly names `record_marker` on the
+first model request and selects `none` on subsequent requests. The conformance
+manifest and actual request packets record this schedule. It tests native tool
+execution and observation plumbing; it does not qualify autonomous tool selection.
+Named and automatic calling have different serving requirements; see the
+[vLLM tool-calling documentation](https://docs.vllm.ai/en/v0.15.0/features/tool_calling/).
+No serving flags or deployments are changed by this drill.
