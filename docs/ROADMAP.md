@@ -4,14 +4,14 @@
 
 This roadmap tracks proposed work and its acceptance criteria. An implemented
 method, a fixture pass, a live smoke pass and validated evaluation quality are
-separate milestones. Status below is recorded on 2026-10-15; linked issues own
+separate milestones. Status below is recorded on 2026-10-16; linked issues own
 the current task state. There are no delivery-date commitments.
 
 ## Delivery sequence
 
 | Order | Item | Outcome | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| 1 | [QUAL-01 / #59](https://github.com/interplay-adversarial/interplay/issues/59) | Repeatable CLI conformance and bounded live qualification for every runner, with interruption/recovery where supported | In progress: live PAIR/TAP/GOAT/SLIP continuation passes; Crescendo failed on empty attacker reply; real Garak loopback passes; vision and Garak live remain pending | Existing evidence contracts; Garak dependency blocker [#68](https://github.com/interplay-adversarial/interplay/issues/68) |
+| 1 | [QUAL-01 / #59](https://github.com/interplay-adversarial/interplay/issues/59) | Repeatable CLI conformance and bounded live qualification for every runner, with interruption/recovery where supported | In progress: live PAIR/TAP/Crescendo/GOAT/SLIP continuation passes in recorded configurations; real Garak loopback passes; vision and Garak live remain pending | Existing evidence contracts; Garak dependency blocker [#68](https://github.com/interplay-adversarial/interplay/issues/68) |
 | 2 | [JUDGE-01 / #60](https://github.com/interplay-adversarial/interplay/issues/60) | Human-labeled calibration of single judges and panels, with accuracy, coverage and uncertainty | Planned | QUAL-01; independent human labels |
 | 3 | [BENCH-01 / #61](https://github.com/interplay-adversarial/interplay/issues/61) | Reproducible paired comparisons of models/configurations under equal query budgets | Planned | QUAL-01; JUDGE-01 for accuracy-sensitive conclusions |
 | 4 | [AGENT-01 / #62](https://github.com/interplay-adversarial/interplay/issues/62) | Optional instrumented NeMo Gym TargetAdapter with captured tool and environment outcomes | Planned | QUAL-01; optional Gym environment |
@@ -35,12 +35,14 @@ judge returns, then performs repeated offline recovery. See the
 The extended fixture profile covers actual attacker refinement, multi-turn
 conversations, TAP pruning/lineage and the full PNG image-control matrix. All
 six native methods have bounded single-observation live smokes and recovery
-checks. Live continuation is also recorded for PAIR, TAP, GOAT and SLIP using an explicit
-synthetic target-system control and retained wire evidence. Crescendo's failed
-empty-escalation run is preserved. Installed Garak 0.17.0 loopback compatibility
+checks. Live continuation is also recorded for PAIR, TAP, Crescendo, GOAT and SLIP using an explicit
+synthetic target-system control and retained wire evidence. Crescendo passes
+three turns and final-observation interruption/recovery with recorded attacker
+sampling overrides. Its empty-escalation and judge-false-positive failures
+remain preserved; this does not establish judge reliability. Installed Garak 0.17.0 loopback compatibility
 exposed and now covers valid final JSON without a newline; its separate
-dependency audit remains blocked in #68. Remaining work includes valid live
-Crescendo continuation, vision coverage, distinct models/providers and isolated
+dependency audit remains blocked in #68. Remaining work includes
+vision coverage, distinct models/providers, wider method budgets and isolated
 Garak live qualification. See the qualification matrix for the
 current method-specific scope rather than treating implementation or a fixture
 pass as full live qualification.
