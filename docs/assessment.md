@@ -73,7 +73,9 @@ optional top-level JSON `logs` and `traces` fields. A request/message conversati
 trace is retained separately: it is not an agent's internal execution trace.
 Endpoint-provided logs/traces are labeled `endpoint-reported`, not independently
 attested. Other systems can implement `TargetAdapter.observe(probe, attempt_id,
-deadline=...) -> Observation` with adapter-observed logs/traces.
+deadline=...) -> Observation` with adapter-observed logs/traces. The optional
+[NeMo Gym target](nemo-gym-target.md) captures native SimpleAgent tool activity and
+a separately observed environment outcome through this Python interface.
 
 Set `required_surfaces` to include `logs` and/or `traces` when the criterion needs
 them. Missing required surfaces, truncated capture, target failure, malformed
