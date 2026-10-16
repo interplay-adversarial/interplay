@@ -16,6 +16,7 @@ This page is the index; it does not duplicate what each page already says.
 | Generate cultural-bias or harm probes | [probe-generation.md](probe-generation.md), then [../interplay/specs/CONTRIBUTING.md](../interplay/specs/CONTRIBUTING.md) to add a comparison |
 | Run TAP, PAIR, Crescendo, GOAT, SLIP, Multimodal or Garak against a target, optionally with a panel of judges | [attacks/README.md](attacks/README.md) |
 | Get a probe → response → evidence-cited verdict record for a custom criterion | [assessment.md](assessment.md) |
+| Read retained campaign evidence without running models | [campaign-reports.md](campaign-reports.md) |
 | Report a vulnerability or understand what's in/out of scope for content | [../SECURITY.md](../SECURITY.md), [CONTENT_POLICY.md](CONTENT_POLICY.md) |
 | Cut a release | [RELEASING.md](RELEASING.md) |
 | Find planned work, dependencies and qualification scope | [ROADMAP.md](ROADMAP.md), [runner-qualification.md](runner-qualification.md) |
@@ -29,6 +30,7 @@ README.md (this page)
 ├── tools-and-use-cases.md ─── which of the 3 interfaces to use, and their current limits
 ├── probe-generation.md ────── every pipeline mode/spec, the diverse-dataset helper, output columns
 ├── assessment.md ──────────── description-driven campaigns (interplay.assessment)
+├── campaign-reports.md ────── private offline HTML summaries, lineage and judge evidence
 ├── ROADMAP.md ──────────────── prioritized work items and linked issues
 ├── runner-qualification.md ── fixture/live coverage matrix and repeatable CLI drills
 ├── attacks/

@@ -24,9 +24,10 @@ from uuid import uuid4
 from judge_kappa import JudgeVerdict, KrippendorffAlpha, ScaleType
 from pydantic import Field
 
-from ..assessment.models import JudgeOutput, ModelEndpoint, Observation, StrictModel, Text, Verdict
+from ..assessment.models import JudgeOutput, ModelEndpoint, Observation, StrictModel
 from ..assessment.runner import evidence_supported, redact
 from ..assessment.storage import AssessmentStore, json_bytes
+from ..runner_records import RUNNER_SCHEMA_VERSION, RunnerRecord
 
 RoleName = Literal["attacker", "target", "evaluator", "judge"]
 TargetCapability = Literal["stateless", "conversation", "image"]
@@ -35,8 +36,6 @@ JudgeAggregation = Literal["majority", "unanimous"]
 # Matches each runner's private _VERDICT_SCORE mapping (tap/crescendo/goat/multimodal_runner.py);
 # kept here too so JudgePanel's IRR accumulation doesn't depend on any one runner's module.
 VERDICT_SCORE = {"success": 1.0, "inconclusive": 0.5, "failure": 0.0}
-
-RUNNER_SCHEMA_VERSION = "interplay-runner/2"
 
 
 class RunnerStorageError(RuntimeError):
@@ -605,31 +604,6 @@ def panel_agreement_report(
     if isinstance(judge_scorer, JudgePanel):
         return judge_scorer.agreement_report()
     return None, "insufficient-judges"
-
-
-class RunnerRecord(StrictModel):
-    """One attempted trial of a legacy runner; retained whether it completed or not."""
-
-    schema_version: Literal["interplay-runner/1", "interplay-runner/2"] = RUNNER_SCHEMA_VERSION
-    run_id: Annotated[str, Field(pattern=r"^[0-9a-f]{32}$")]
-    attempt_id: Annotated[str, Field(pattern=r"^[0-9a-f]{32}$")]
-    ordinal: Annotated[int, Field(ge=0, le=4999)]
-    method: Annotated[str, Field(min_length=1, max_length=40)]
-    strategy: Annotated[str, Field(min_length=1, max_length=200)]
-    goal: Annotated[str, Field(max_length=16384)]
-    probe: Text
-    response: str | None = None
-    capture_complete: bool = True
-    conversation_trace_json: str | None = None
-    judge_verdict: Verdict = "inconclusive"
-    judge_reasoning: str | None = None
-    evidence_refs_json: str = "[]"
-    raw_judge_json: str | None = None
-    role_provenance_json: Annotated[str, Field(max_length=4096)]
-    method_metadata_json: str = "{}"
-    status: Literal["attempted", "observed", "complete", "incomplete"] = "attempted"
-    error_code: str | None = None
-    created_at: str
 
 
 def role_provenance(roles: dict[str, ModelEndpoint]) -> str:
