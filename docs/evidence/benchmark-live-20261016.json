@@ -1,0 +1,60 @@
+{
+  "verification_passed": true,
+  "accuracy": null,
+  "same_model_all_roles": true,
+  "judge_independent": false,
+  "release_eligible": false,
+  "installed_source_matches": true,
+  "source_commit": "82684eeb18b080e113cac8da295955d3c388143a",
+  "actual_upstream_chat_calls": 8,
+  "paired_cases": 2,
+  "request_response_digests_match": true,
+  "usage_matches": true,
+  "offline_network_attempts": 0,
+  "model_judgments": {
+    "baseline": {
+      "inconclusive": 0,
+      "success": 2
+    },
+    "candidate": {
+      "inconclusive": 0,
+      "success": 2
+    }
+  },
+  "observed_tokens": {
+    "baseline": {
+      "completion_tokens": 128,
+      "prompt_tokens": 316,
+      "total_tokens": 444
+    },
+    "candidate": {
+      "completion_tokens": 128,
+      "prompt_tokens": 316,
+      "total_tokens": 444
+    }
+  },
+  "observed_cost_usd": null,
+  "tunnel_stopped": true,
+  "remote_forwarders_remaining": 0,
+  "private_permission_violations": 0,
+  "credential_matches_in_artifacts": 0,
+  "schema_version": "interplay-benchmark-live-receipt/1",
+  "observed_at": "2026-10-16",
+  "method": "fixed-probe",
+  "configuration_difference": {
+    "baseline_temperature": 0.0,
+    "candidate_temperature": 0.6
+  },
+  "target_query_cap_per_variant": 2,
+  "shared_judge_query_cap_per_variant": 2,
+  "max_tokens_per_request": 512,
+  "request_seconds": 45,
+  "cumulative_request_seconds_per_variant": 180,
+  "transport_overrides": null,
+  "declared_request_extras": {
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  },
+  "scope": "Harmless marker compliance; one self-hosted model for both targets and judging. No accuracy, independent judging, adaptive search parity, robustness or release qualification."
+}

@@ -2,11 +2,11 @@
 
 import asyncio
 import hashlib
-import json
 import os
 import time
 from pathlib import Path
 
+from ..assessment.http import request as captured_request
 from ..assessment.models import ModelEndpoint
 from ..assessment.runner import redact
 from ..assessment.storage import atomic_file, json_bytes, private_file
@@ -148,57 +148,27 @@ async def _collect(cases, entries, keys, output, campaign_seconds):
                     },
                 )
                 attempts += 1
-                raw_reply, finish, error, response_hash = None, "error", None, None
-                try:
-                    timeout = min(remaining, endpoint.request_seconds)
-                    async with asyncio.timeout(timeout):
-                        async with client.stream(
-                            "POST",
-                            endpoint.base_url + "/chat/completions",
-                            content=body,
-                            headers={
-                                "Authorization": "Bearer " + key,
-                                "Content-Type": "application/json",
-                            },
-                            timeout=timeout,
-                        ) as response:
-                            data = bytearray()
-                            async for chunk in response.aiter_bytes():
-                                data.extend(chunk)
-                                if len(data) > 1024 * 1024:
-                                    raise ValueError("response-limit")
-                            response_hash = hashlib.sha256(data).hexdigest()
-                            response.raise_for_status()
-                    choice = _json(bytes(data))["choices"][0]
-                    raw_reply = choice["message"]["content"]
-                    if not isinstance(raw_reply, str) or len(raw_reply) > 65536:
-                        raise ValueError("invalid-content")
-                    raw_reply = redact(raw_reply, keys)
-                    for secret in keys:
-                        for ascii_only in (True, False):
-                            raw_reply = raw_reply.replace(
-                                json.dumps(secret, ensure_ascii=ascii_only)[1:-1], "[REDACTED]"
-                            )
-                    finish = choice["finish_reason"]
-                    if finish not in ("stop", "length", "tool_calls"):
-                        finish, error = "error", "unexpected-finish-reason"
-                    if time.monotonic() >= deadline:
-                        finish, error = "error", "campaign-deadline"
-                except Exception:
-                    # No exception text, credentials, response URLs or provider diagnostics escape.
-                    if not isinstance(raw_reply, str) or len(raw_reply) > 65536:
-                        raw_reply = None
-                    finish, error = "error", "judge-request-failed"
+                wire = await captured_request(
+                    client,
+                    endpoint,
+                    key,
+                    payload,
+                    seconds=remaining,
+                    secrets=keys,
+                    failure_code="judge-request-failed",
+                )
+                if time.monotonic() >= deadline and wire["error_code"] is None:
+                    wire["finish_reason"], wire["error_code"] = "error", "campaign-deadline"
                 row = Prediction(
                     case_id=case.case_id,
                     case_sha256=case.digest(),
                     judge_id=judge.judge_id,
                     judge_sha256=judge.digest(),
-                    raw_reply=raw_reply,
-                    finish_reason=finish,
-                    error_code=error,
+                    raw_reply=wire["raw_reply"],
+                    finish_reason=wire["finish_reason"],
+                    error_code=wire["error_code"],
                     request_sha256=request_hash,
-                    response_sha256=response_hash,
+                    response_sha256=wire["response_sha256"],
                 )
                 _append(output / "predictions.jsonl", row.model_dump())
     return {
