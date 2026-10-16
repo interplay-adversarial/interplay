@@ -1,0 +1,72 @@
+{
+  "schema_version": "interplay-gym-qualification/1",
+  "observed_at": "2026-10-16",
+  "adapter_source_revision": "7993d4c097df94aa4b811fe7e09081e6105d899b",
+  "conformance_source_revision": "ce9ba37a3d5b327bffe4ccbf5f1d2bd680aa7773",
+  "supported_gym_revision": "f444b8020a3431fc820ef061cef400140bc7afb5",
+  "core_tests_passed": 395,
+  "adapter_tests_passed": 20,
+  "native_fixtures": {
+    "complete": {
+      "verification_passed": true,
+      "capture_complete": true,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "independently_observed_receiver_records": 1
+    },
+    "exhausted": {
+      "verification_passed": true,
+      "capture_complete": false,
+      "model_calls": 3,
+      "tool_calls": 3,
+      "independently_observed_receiver_records": 3
+    },
+    "truncated": {
+      "verification_passed": true,
+      "capture_complete": false,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "independently_observed_receiver_records": 0
+    }
+  },
+  "live_attempts": [
+    {
+      "endpoint_kind": "existing-hosted",
+      "client_model_attempts": 1,
+      "completed_model_observations": 0,
+      "tool_calls": 0,
+      "capture_complete": false,
+      "subsequent_inventory_http_status": 503
+    },
+    {
+      "endpoint_kind": "existing-self-hosted",
+      "tool_choice_schedule": "auto",
+      "client_model_attempts": 1,
+      "http_status": 400,
+      "error_code": "automatic-tool-parser-required",
+      "tool_calls": 0,
+      "capture_complete": false
+    },
+    {
+      "endpoint_kind": "existing-self-hosted",
+      "tool_choice_schedule": "forced-first-tool",
+      "client_model_attempts": 1,
+      "http_status": 400,
+      "error_code": "named-tool-parser-required",
+      "tool_calls": 0,
+      "capture_complete": false
+    }
+  ],
+  "live_qualified": false,
+  "live_blocker": "Existing tool-capable model endpoint needed. Infrastructure deployment was not authorized by AGENT-01.",
+  "candidate_wheel_sources_match": true,
+  "native_environment_modified": false,
+  "infrastructure_deployed": false,
+  "remaining_remote_forwarders": 0,
+  "credential_matches_in_artifacts": 0,
+  "private_permission_violations": 0,
+  "judge_accuracy": null,
+  "autonomous_tool_selection_qualified": false,
+  "boundary_evaluated": false,
+  "release_eligible": false
+}

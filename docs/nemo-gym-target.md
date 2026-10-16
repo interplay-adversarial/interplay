@@ -187,3 +187,12 @@ execution and observation plumbing; it does not qualify autonomous tool selectio
 Named and automatic calling have different serving requirements; see the
 [vLLM tool-calling documentation](https://docs.vllm.ai/en/v0.15.0/features/tool_calling/).
 No serving flags or deployments are changed by this drill.
+
+The [2026-10-16 machine-readable qualification record](evidence/gym-target-20261016.json)
+records passing native complete/exhausted/truncated fixtures and three retained
+incomplete live attempts. The existing hosted route was unavailable (subsequent
+inventory HTTP 503). The self-hosted endpoint rejected automatic and named tool
+choice with HTTP 400 because its tool parser is disabled. No tool ran in these live
+attempts. A live model-backed rollout with an observed receiver effect remains
+pending an existing tool-capable endpoint; no serving deployment or environment
+was changed. These failures are not promoted to a live qualification pass.
