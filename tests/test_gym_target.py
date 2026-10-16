@@ -19,6 +19,37 @@ PROBE = Probe(probe="Record MARKER", adversarial_intent="Synthetic fixture", str
 ATTEMPT = "a" * 32
 
 
+@pytest.mark.parametrize(
+    "revision",
+    (
+        "f444b8020a3431fc820ef061cef400140bc7afb5",
+        "b454c9a6e9a5644564fac81064050094b237daaa",
+    ),
+)
+def test_selected_revision_recorded_on_every_capture_surface(setup, tmp_path, revision):
+    config, factory, _ = setup
+    config = GymTargetConfig.model_validate({**config.model_dump(), "gym_revision": revision})
+    target = NeMoGymTarget(config, factory, tmp_path / "capture")
+    observation = target.observe(PROBE, ATTEMPT, deadline=time.monotonic() + 5)
+    for surface in (
+        observation.logs_json,
+        observation.traces_json,
+        observation.conversation_trace_json,
+    ):
+        assert json.loads(surface)["gym_revision"] == revision
+    events = (tmp_path / "capture" / ATTEMPT / "events.jsonl").read_text().splitlines()
+    assert all(json.loads(line)["gym_revision"] == revision for line in events)
+
+
+def test_unknown_revision_rejected_before_optional_sdk_import():
+    from interplay.assessment.gym import _native
+
+    with pytest.raises(ValueError, match="gym-unsupported-source"):
+        _native("0" * 40)
+    with pytest.raises(ValueError):
+        GymTargetConfig(gym_revision="0" * 40, task_id="fixture", request_json="{}")
+
+
 class Value:
     def __init__(self, value):
         self.value = value
@@ -122,7 +153,7 @@ def setup(tmp_path, monkeypatch):
             return Value(native), Value(trajectory), None, None
 
     monkeypatch.setattr(
-        gym, "_native", lambda: (Agent, BaseModel, PrivateAttr, Value, Value, Value)
+        gym, "_native", lambda revision: (Agent, BaseModel, PrivateAttr, Value, Value, Value)
     )
 
     async def outcome():
@@ -223,7 +254,7 @@ def test_expired_attempt_never_dispatches(setup, tmp_path):
 def test_source_mismatch_prevents_session_and_output(setup, tmp_path, monkeypatch):
     from interplay.assessment import gym
 
-    def mismatch():
+    def mismatch(revision):
         raise ValueError("gym-imported-source-mismatch")
 
     monkeypatch.setattr(gym, "_native", mismatch)

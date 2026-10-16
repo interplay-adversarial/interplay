@@ -104,8 +104,10 @@ withholds complete correlation and authenticated violations remain visible.
 
 The first Gate increment exercises a bounded loopback receiver effect and offline
 re-evaluation without replay. It does not enable Interplay runner or Gym target
-selection. Gate's newer Gym pin and the revision qualified for `NeMoGymTarget`
-need explicit compatibility qualification before a bounded private live
+selection. `NeMoGymTarget` now supports both explicit Gym revisions with separate native
+complete/fault/source-rejection tests and CI environments. The original revision
+remains the default. Gate still needs to admit that updated Interplay source
+before enabling its target path and the independently observed private live
 tool-to-boundary/recovery pilot. BOUNDARY-01 stays open until that work passes.
 
 ## Release checkpoint
