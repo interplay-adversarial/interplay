@@ -12,10 +12,10 @@ the current task state. There are no delivery-date commitments.
 | Order | Item | Outcome | Status | Dependencies |
 | --- | --- | --- | --- | --- |
 | 1 | [QUAL-01 / #59](https://github.com/interplay-adversarial/interplay/issues/59) | Repeatable CLI conformance and bounded live qualification for every runner, with interruption/recovery where supported | In progress: live PAIR/TAP/Crescendo/GOAT/SLIP continuation passes in recorded configurations; real Garak loopback passes; vision and Garak live remain pending | Existing evidence contracts; Garak dependency blocker [#68](https://github.com/interplay-adversarial/interplay/issues/68) |
-| 2 | [JUDGE-01 / #60](https://github.com/interplay-adversarial/interplay/issues/60) | Human-labeled calibration of single judges and panels, with accuracy, coverage and uncertainty | Planned | QUAL-01; independent human labels |
+| 2 | [JUDGE-01 / #60](https://github.com/interplay-adversarial/interplay/issues/60) | Human-labeled calibration of single judges and panels, with accuracy, coverage and uncertainty | In progress: rubric, 60 synthetic cases, human-label workflow, bounded collector and offline metrics; actual human reviews and two-model run pending | QUAL-01; independent human labels |
 | 3 | [BENCH-01 / #61](https://github.com/interplay-adversarial/interplay/issues/61) | Reproducible paired comparisons of models/configurations under equal query budgets | Planned | QUAL-01; JUDGE-01 for accuracy-sensitive conclusions |
 | 4 | [AGENT-01 / #62](https://github.com/interplay-adversarial/interplay/issues/62) | Optional instrumented NeMo Gym TargetAdapter with captured tool and environment outcomes | Planned | QUAL-01; optional Gym environment |
-| 5 | [REPORT-01 / #63](https://github.com/interplay-adversarial/interplay/issues/63) | Offline readable reports with lineage, citations, errors and judge disagreements | Implemented for assessment/runner v1/v2 JSONL, Parquet and Arrow exports; validation and review in progress | QUAL-01 schemas |
+| 5 | [REPORT-01 / #63](https://github.com/interplay-adversarial/interplay/issues/63) | Offline readable reports with lineage, citations, errors and judge disagreements | Completed in merged [#71](https://github.com/interplay-adversarial/interplay/pull/71) | QUAL-01 schemas |
 | 6 | [BOUNDARY-01 / #64](https://github.com/interplay-adversarial/interplay/issues/64) | Reviewed gate source admission and explicit bindings to independently observed effects | Planned; coordinate gate-side work | QUAL-01; AGENT-01 where applicable |
 | 7 | [CULTURE-01 / #65](https://github.com/interplay-adversarial/interplay/issues/65) | Matched multilingual benign/adversarial datasets with native-speaker review | Planned | JUDGE-01; qualified reviewers |
 
@@ -58,6 +58,17 @@ and retained panel disagreements. Captured values are escaped; search scores and
 model judgments do not establish independently verified environment effects.
 See [campaign reports](campaign-reports.md) for supported schemas, privacy and
 recovery requirements. Judge calibration and wider qualification remain separate.
+
+## Judge calibration: JUDGE-01
+
+`interplay calibration prepare` creates 60 matched synthetic tasks and two
+review packets with no prefilled human verdicts. Gold compilation requires two
+distinct attested human reviewers per case and a third reviewer for disagreements.
+An explicit bounded collector retains model replies; offline scoring compares
+single judges and the existing plurality/unanimous policies with confusion,
+coverage, error, agreement and uncertainty summaries. Design intent and test
+fixtures are not human gold. Actual human reviews and a real two-model run
+remain pending. See [judge calibration](judge-calibration.md).
 
 ## Release checkpoint
 

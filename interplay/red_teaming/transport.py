@@ -14,7 +14,6 @@ success rate, and is never written to the result sink as one.
 
 import asyncio
 import time
-from collections import Counter
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -24,6 +23,8 @@ from uuid import uuid4
 from judge_kappa import JudgeVerdict, KrippendorffAlpha, ScaleType
 from pydantic import Field
 
+from ..assessment.judgments import aggregate_verdicts
+from ..assessment.judgments import parse_judge_output as _judge_output
 from ..assessment.models import JudgeOutput, ModelEndpoint, Observation, StrictModel
 from ..assessment.runner import evidence_supported, redact
 from ..assessment.storage import AssessmentStore, json_bytes
@@ -267,30 +268,6 @@ class _JudgeOutputError(ValueError):
         self.raw = raw[:65536] if isinstance(raw, str) else None
 
 
-def _judge_output(content: str) -> JudgeOutput:
-    """Normalize equivalent wire formats, never extract JSON from arbitrary prose."""
-    import json
-    import re
-
-    text = content.strip()
-    fence = re.fullmatch(r"```(?:json)?[ \t]*\r?\n(.*?)\r?\n```", text, re.DOTALL | re.IGNORECASE)
-    if fence:
-        text = fence[1]
-
-    def unique_fields(pairs):
-        result = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError("judge-duplicate-field")
-            result[key] = value
-        return result
-
-    parsed = json.loads(text, object_pairs_hook=unique_fields)
-    if isinstance(parsed, dict) and isinstance(parsed.get("evidence_refs_json"), list):
-        parsed["evidence_refs_json"] = json_bytes(parsed["evidence_refs_json"]).decode()
-    return JudgeOutput.model_validate(parsed)
-
-
 class JudgeScorer:
     """Evidence-cited scorer; missing/invalid evidence or a provider failure is
     ``inconclusive``, never a fabricated zero or a keyword-matched success."""
@@ -477,13 +454,7 @@ class JudgePanel:
         import json as _json
 
         verdicts = [judgment.verdict for judgment, _trace in results]
-        counts = Counter(verdicts).most_common()
-        if self.aggregation == "unanimous":
-            final_verdict = verdicts[0] if len(counts) == 1 else "inconclusive"
-        else:  # majority: a strict plurality winner, any tie (incl. every 2-judge split) -> inconclusive
-            final_verdict = (
-                counts[0][0] if len(counts) == 1 or counts[0][1] > counts[1][1] else "inconclusive"
-            )
+        final_verdict = aggregate_verdicts(verdicts, self.aggregation)
 
         refs: list[str] = []
         judges_detail = []
