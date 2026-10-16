@@ -99,6 +99,39 @@ def test_malformed_committed_report_is_rejected(tmp_path):
         parse_garak_results(str(path))
 
 
+@pytest.mark.parametrize("tail", ["completion", "digest"])
+def test_valid_native_final_object_without_newline_is_not_truncated(tmp_path, tail):
+    path = tmp_path / "report.jsonl"
+    entries = [
+        {"entry_type": "attempt", "uuid": "a", "status": 2, "outputs": [{"text": "observed"}]},
+        {"entry_type": "eval", "probe": "test.Blank", "detector": "any.AnyOutput", "fails": 1},
+    ]
+    if tail == "digest":
+        entries.append({"entry_type": "completion"})
+    entries.append({"entry_type": tail})
+    original = "\n".join(json.dumps(entry) for entry in entries).encode()
+    path.write_bytes(original)
+    result = parse_garak_results(str(path))
+    assert result["status"] == "complete" and not result["truncated_tail"]
+    assert result["attempt_count"] == 1 and result["evaluations"][0]["fails"] == 1
+    assert path.read_bytes() == original
+
+
+def test_torn_digest_after_completion_stays_incomplete(tmp_path):
+    path = tmp_path / "report.jsonl"
+    path.write_text('{"entry_type":"completion"}\n{"entry_type":"digest","partial":')
+    result = parse_garak_results(str(path))
+    assert result["status"] == "incomplete" and result["truncated_tail"]
+
+
+@pytest.mark.parametrize("tail", ["null", "[]", "42"])
+def test_valid_json_tail_must_still_be_an_object(tmp_path, tail):
+    path = tmp_path / "report.jsonl"
+    path.write_text('{"entry_type":"completion"}\n' + tail)
+    with pytest.raises(ValueError, match="garak-report-entry-invalid"):
+        parse_garak_results(str(path))
+
+
 def test_arbitrary_probe_files_are_not_misrepresented_as_supported(tmp_path):
     with pytest.raises(ValueError, match="selector-invalid"):
         run_garak("https://target.example/v1", str(tmp_path / "probes.jsonl"))

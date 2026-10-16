@@ -11,7 +11,7 @@ the current task state. There are no delivery-date commitments.
 
 | Order | Item | Outcome | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| 1 | [QUAL-01 / #59](https://github.com/interplay-adversarial/interplay/issues/59) | Repeatable CLI conformance and bounded live qualification for every runner, with interruption/recovery where supported | In progress: both fixture profiles and six native single-observation live smokes recorded; advanced live paths/Garak pending | Existing runner evidence contracts |
+| 1 | [QUAL-01 / #59](https://github.com/interplay-adversarial/interplay/issues/59) | Repeatable CLI conformance and bounded live qualification for every runner, with interruption/recovery where supported | In progress: live PAIR/TAP/GOAT/SLIP continuation passes; Crescendo failed on empty attacker reply; real Garak loopback passes; vision and Garak live remain pending | Existing evidence contracts; Garak dependency blocker [#68](https://github.com/interplay-adversarial/interplay/issues/68) |
 | 2 | [JUDGE-01 / #60](https://github.com/interplay-adversarial/interplay/issues/60) | Human-labeled calibration of single judges and panels, with accuracy, coverage and uncertainty | Planned | QUAL-01; independent human labels |
 | 3 | [BENCH-01 / #61](https://github.com/interplay-adversarial/interplay/issues/61) | Reproducible paired comparisons of models/configurations under equal query budgets | Planned | QUAL-01; JUDGE-01 for accuracy-sensitive conclusions |
 | 4 | [AGENT-01 / #62](https://github.com/interplay-adversarial/interplay/issues/62) | Optional instrumented NeMo Gym TargetAdapter with captured tool and environment outcomes | Planned | QUAL-01; optional Gym environment |
@@ -32,13 +32,18 @@ observation and a SIGKILL after the response is durably observed but before the
 judge returns, then performs repeated offline recovery. See the
 [qualification matrix and instructions](runner-qualification.md).
 
-The next increment adds an extended fixture profile with actual attacker
-refinement, multi-turn conversations, TAP pruning/lineage and the full PNG
-image-control matrix. Five additional bounded live single-observation smokes
-(PAIR, Crescendo, GOAT, SLIP and Multimodal text-only) and their offline recovery
-checks pass, alongside the earlier TAP smoke. Remaining work includes live
-refinement/multi-turn and vision coverage, distinct models/providers, and
-isolated Garak qualification with its scanner-specific report semantics.
+The extended fixture profile covers actual attacker refinement, multi-turn
+conversations, TAP pruning/lineage and the full PNG image-control matrix. All
+six native methods have bounded single-observation live smokes and recovery
+checks. Live continuation is also recorded for PAIR, TAP, GOAT and SLIP using an explicit
+synthetic target-system control and retained wire evidence. Crescendo's failed
+empty-escalation run is preserved. Installed Garak 0.17.0 loopback compatibility
+exposed and now covers valid final JSON without a newline; its separate
+dependency audit remains blocked in #68. Remaining work includes valid live
+Crescendo continuation, vision coverage, distinct models/providers and isolated
+Garak live qualification. See the qualification matrix for the
+current method-specific scope rather than treating implementation or a fixture
+pass as full live qualification.
 The existing TAP live smoke exercises plumbing using one model for every role;
 it does not establish judge independence or adversarial robustness.
 
