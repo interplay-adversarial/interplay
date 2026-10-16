@@ -174,7 +174,8 @@ def create_custom_config(target_url: str, output_path: str) -> str:
 def parse_garak_results(report_file: str) -> dict:
     """Read native JSONL stages, keeping latest attempts and all detector summaries.
 
-    An incomplete final line is reported and ignored. Malformed committed lines,
+    A valid final JSON object needs no trailing newline (Garak's native digest
+    uses this form). An incomplete final line is reported and ignored. Malformed committed lines,
     regressed attempt stages and unsupported attempt statuses fail explicitly.
     No HTML scraping, keyword verdicts or assumed detector pass thresholds.
     """
@@ -182,8 +183,14 @@ def parse_garak_results(report_file: str) -> dict:
     if path.stat().st_size > 64 * 1024 * 1024:
         raise ValueError("garak-report-limit")
     raw = path.read_bytes()
-    truncated = bool(raw and not raw.endswith(b"\n"))
-    lines = raw.splitlines()[:-1] if truncated else raw.splitlines()
+    lines = raw.splitlines()
+    truncated = False
+    if raw and not raw.endswith(b"\n"):
+        try:
+            json.loads(lines[-1])
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            truncated = True
+            lines = lines[:-1]
     attempts, evaluations = {}, []
     completed = False
     for line in lines:
