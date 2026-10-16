@@ -128,6 +128,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser(
         "calibration", help="prepare human references and score retained judge predictions offline"
     )
+    sub.add_parser("benchmark", help="reproducible paired model/configuration comparisons")
     probes = sub.add_parser(
         "probes",
         help="run the probe pipeline through data-designer",
@@ -152,6 +153,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     values = sys.argv[1:] if argv is None else argv
+    if values and values[0] == "benchmark":
+        from interplay.benchmark.cli import main as benchmark_main
+
+        return benchmark_main(values)
     if values and values[0] == "calibration":
         from interplay.calibration.cli import main as calibration_main
 
