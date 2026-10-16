@@ -16,7 +16,7 @@ the current task state. There are no delivery-date commitments.
 | 3 | [BENCH-01 / #61](https://github.com/interplay-adversarial/interplay/issues/61) | Reproducible paired comparisons of models/configurations under equal query budgets | Implemented in this increment: fixed-probe manifests, paired runner/imports, offline recovery and bounded live comparison | QUAL-01; JUDGE-01 for accuracy-sensitive conclusions |
 | 4 | [AGENT-01 / #62](https://github.com/interplay-adversarial/interplay/issues/62) | Optional instrumented NeMo Gym TargetAdapter with captured tool and environment outcomes | Implemented in this increment: optional pinned target, native fixtures and bounded live receiver-effect rollout | QUAL-01; optional Gym environment |
 | 5 | [REPORT-01 / #63](https://github.com/interplay-adversarial/interplay/issues/63) | Offline readable reports with lineage, citations, errors and judge disagreements | Completed in merged [#71](https://github.com/interplay-adversarial/interplay/pull/71) | QUAL-01 schemas |
-| 6 | [BOUNDARY-01 / #64](https://github.com/interplay-adversarial/interplay/issues/64) | Reviewed gate source admission and explicit bindings to independently observed effects | Planned; coordinate gate-side work | QUAL-01; AGENT-01 where applicable |
+| 6 | [BOUNDARY-01 / #64](https://github.com/interplay-adversarial/interplay/issues/64) | Reviewed gate source admission and explicit bindings to independently observed effects | In progress: optional pin/native admission and offline correlation in [gate #56](https://github.com/interplay-adversarial/agent-boundary-gate/issues/56); live tool-to-boundary qualification pending | QUAL-01; AGENT-01 where applicable |
 | 7 | [CULTURE-01 / #65](https://github.com/interplay-adversarial/interplay/issues/65) | Matched multilingual benign/adversarial datasets with native-speaker review | Planned | JUDGE-01; qualified reviewers |
 
 Each issue defines scope and measurable acceptance criteria. In particular,
@@ -91,6 +91,22 @@ change infrastructure itself. Native complete/exhausted/truncated fixtures and
 a bounded live automatic-tool receiver-effect rollout pass. Earlier unavailable/
 unsupported attempts remain retained; the existing model service was separately
 configured for tool calling at the user’s direction. See [NeMo Gym target](nemo-gym-target.md).
+
+## Independent effects: BOUNDARY-01
+
+Gate-side [issue #56](https://github.com/interplay-adversarial/agent-boundary-gate/issues/56)
+tracks the reviewed immutable Interplay pin, isolated lock/source-digest refresh
+and native endpoint assessment conformance. Its first offline bridge binds an
+assessment snapshot to a collector-owned campaign/attempt/target/probe/provenance
+plan and independently authenticated boundary records. Research verdicts remain
+separate from effects, containment and cleanup; missing or mismatched data
+withholds complete correlation and authenticated violations remain visible.
+
+The first Gate increment exercises a bounded loopback receiver effect and offline
+re-evaluation without replay. It does not enable Interplay runner or Gym target
+selection. Gate's newer Gym pin and the revision qualified for `NeMoGymTarget`
+need explicit compatibility qualification before a bounded private live
+tool-to-boundary/recovery pilot. BOUNDARY-01 stays open until that work passes.
 
 ## Release checkpoint
 
