@@ -13,7 +13,7 @@ panel calibration and broader model/provider coverage open.
 | --- | --- | --- | --- | --- |
 | PAIR | Pass | Pass: two queries with attacker feedback/refinement | Pass: two queries and live attacker refinement | Distinct models/providers; wider query budgets |
 | TAP | Pass | Pass: two depths, two generated branches per depth, one admitted | Pass: two live depths, one branch per depth | Wider live branching; distinct models/providers |
-| Crescendo | Pass | Pass: three conversation turns, escalation and context omission | Single-observation pass; live continuation failed on empty attacker reply | Complete live multi-turn conversation and escalation |
+| Crescendo | Pass | Pass: three conversation turns, escalation and context omission | Pass: three live conversation turns, two escalations and final-observation interruption/recovery | Distinct models/providers; wider turn/context budgets; configuration sensitivity |
 | GOAT | Pass | Pass: two conversation turns and structured strategy selection | Pass: two live conversation turns and structured strategy selection | Wider strategy pools; distinct models/providers |
 | SLIP | Pass | Pass: lexical insertion then refiner call | Pass: live insertion and refiner continuation | Wider lexical frontiers; distinct models/providers |
 | Multimodal | Pass: text-only | Pass: 3 transforms × 3 controls, six real PNG payloads | Recorded text-only smoke | Vision-model execution with real images |
@@ -82,6 +82,45 @@ the first complete target response and supported failure judgment. Its live
 continuation remains failed for this model/configuration. No second target
 attempt or interruption drill is claimed. That run remains available as
 failure evidence, and is not promoted by the passing fixture tests.
+
+### Crescendo follow-up
+
+A subsequent bounded Crescendo drill passes against installed source matching
+merged `2bada93`, with the continuation modules unchanged from `1a92bca`.
+Both normal and interrupted campaigns execute three target turns in conversation
+mode, with two actual attacker-generated escalation prompts and a one-turn
+attacker context window. Raw wire requests verify full target history, the
+attacker's latest-turn feedback and explicit omission of the older turn, exact
+generated-to-executed prompts, parent IDs and retained judge replies/citations.
+
+The passing serving configuration uses an explicit marker-presence success
+criterion, disabled thinking, and attacker sampling overrides of
+`temperature=0.6`, `top_p=0.95`, `min_tokens=16` (vLLM). The runner's attacker
+output cap remains 256 tokens. These effective wire overrides are retained in
+private operator notes and packets; native endpoint provenance alone does not
+capture them. The minimum-token setting delays EOS; it does not supply or
+replace generated text. See [vLLM sampling parameters](https://docs.vllm.ai/en/stable/api/vllm/sampling_params/).
+The harmless target-system control described above remains in effect.
+
+The successful drill makes 15 actual upstream calls: eight in the normal
+campaign and seven in the interrupted campaign. SIGKILL occurs after two
+complete attempts and the third durably observed response, before its judge
+request is forwarded upstream. Two credential-free recoveries with the bridge
+closed preserve both earlier terminal records exactly, retain the final response
+as incomplete/inconclusive, leave the journal unchanged, and produce equal
+JSONL/Parquet/Arrow exports with zero detected DNS/connect/sendto attempts.
+Read-only verification and cleanup/credential/private-permission checks pass.
+
+Earlier failures remain retained. One follow-up stops after a two-call judge
+false positive: the raw target response lacks the marker, while the judge emits
+`success` despite reasoning that the goal was not achieved. Another completes
+the normal three-turn campaign but its separate interruption campaign stops on
+an empty second escalation after two completed turns (14 calls total). Neither
+is counted as a passing interruption drill. Including these two failed
+follow-ups, this increment makes 31 calls; the original three-call empty-output
+failure remains separate. No replies are substituted and no library fallback
+is added. This pass establishes the bounded tested configuration; it does not
+resolve same-model judge reliability or qualify other sampling settings.
 
 ## Real Garak compatibility and dependency status
 
