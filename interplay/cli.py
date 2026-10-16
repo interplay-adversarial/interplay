@@ -125,6 +125,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("runner-run", help="execute a method runner with durable private datasets")
     sub.add_parser("runner-recover", help="export runner journal without model calls")
     sub.add_parser("report", help="create a private offline HTML report from retained exports")
+    sub.add_parser(
+        "calibration", help="prepare human references and score retained judge predictions offline"
+    )
     probes = sub.add_parser(
         "probes",
         help="run the probe pipeline through data-designer",
@@ -149,6 +152,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     values = sys.argv[1:] if argv is None else argv
+    if values and values[0] == "calibration":
+        from interplay.calibration.cli import main as calibration_main
+
+        return calibration_main(values)
     if values and values[0] == "report":
         from interplay.report import main as report_main
 
