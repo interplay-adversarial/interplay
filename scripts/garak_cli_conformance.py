@@ -5,10 +5,10 @@ not a vulnerability assessment or dependency security qualification.
 """
 
 import argparse
+import hashlib
 import importlib.metadata
 import json
 import os
-import shutil
 import subprocess
 import sys
 import threading
@@ -18,7 +18,7 @@ from pathlib import Path
 MARKER = "GARAK-CLI-FIXTURE-OUTPUT"
 KEY = "synthetic-garak-fixture-key"
 CHILD = """
-import json, sys
+import hashlib, json, sys
 from pathlib import Path
 root, port = Path(sys.argv[1]), int(sys.argv[2])
 from interplay.red_teaming.garak_runner import run_garak
@@ -27,6 +27,7 @@ result = run_garak(
     probe_file="test.Blank", config_file=str(root / "config.json"),
     api_key_env="GARAK_FIXTURE_KEY", output_dir=str(root / "scan"), campaign_seconds=90,
 )
+result["interplay_parser_sha256"] = hashlib.sha256(Path(run_garak.__code__.co_filename).read_bytes()).hexdigest()
 print(json.dumps(result))
 """
 NETWORK_GUARD = """
@@ -36,12 +37,16 @@ from pathlib import Path
 root = Path(os.environ["GARAK_FIXTURE_ROOT"])
 port = int(os.environ["GARAK_FIXTURE_PORT"])
 def guard(event, args):
-    if event == "socket.connect":
-        address = args[1]
-        if not isinstance(address, tuple) or address[:2] != ("127.0.0.1", port):
-            with (root / "unexpected-network.txt").open("a") as stream:
-                stream.write(event + "\\n")
-            raise RuntimeError("unexpected-scanner-network")
+    forbidden = False
+    if event in ("socket.connect", "socket.sendto"):
+        address = args[-1]
+        forbidden = not isinstance(address, tuple) or address[:2] != ("127.0.0.1", port)
+    elif event == "socket.getaddrinfo":
+        forbidden = args[0] not in ("127.0.0.1", "localhost") or args[1] != port
+    if forbidden:
+        with (root / "unexpected-network.txt").open("a") as stream:
+            stream.write(event + "\\n")
+        raise RuntimeError("unexpected-scanner-network")
 sys.addaudithook(guard)
 """
 
@@ -104,9 +109,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True, help="new private directory")
     args = parser.parse_args()
-    scanner = shutil.which("garak")
-    if scanner is None or Path(scanner).parent != Path(sys.executable).parent:
-        parser.error("run with an isolated interpreter whose bin directory contains garak on PATH")
+    if os.name != "posix":
+        parser.error("scanner process-group supervision requires POSIX")
+    scanner = Path(sys.executable).parent / "garak"
+    if not scanner.is_file() or not os.access(scanner, os.X_OK):
+        parser.error("run with an isolated interpreter whose bin directory contains garak")
     os.umask(0o077)
     root = args.output.resolve()
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
@@ -137,6 +144,9 @@ def main():
         "live_model_calls": 0,
         "garak_version": importlib.metadata.version("garak"),
         "interplay_version": importlib.metadata.version("interplay-adversarial"),
+        "python_version": sys.version.split()[0],
+        "harness_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "dependency_security_qualified": False,
     }
     try:
         env = {
@@ -163,6 +173,7 @@ def main():
         require(result.returncode == 0, "wrapper-child-failed; see private console.txt")
         scanned = json.loads(result.stdout.decode().splitlines()[-1])
         save(root / "scanner-result.json", scanned)
+        receipt["interplay_parser_sha256"] = scanned["interplay_parser_sha256"]
         require(
             scanned["success"] and scanned["returncode"] == 0,
             "scanner-failed; see scanner-result.json",

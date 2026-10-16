@@ -11,13 +11,13 @@ panel calibration and broader model/provider coverage open.
 
 | Method | Single-observation fixture | Extended fixture | Live CLI smoke + offline recovery | Additional coverage still needed |
 | --- | --- | --- | --- | --- |
-| PAIR | Pass | Pass: two queries with attacker feedback/refinement | Recorded single-observation smoke | Live attacker refinement; distinct models/providers |
-| TAP | Pass | Pass: two depths, two generated branches per depth, one admitted | Recorded for #58 candidate | Wider live branching; distinct models/providers |
-| Crescendo | Pass | Pass: three conversation turns, escalation and context omission | Recorded single-observation smoke | Live multi-turn conversation and escalation |
-| GOAT | Pass | Pass: two conversation turns and structured strategy selection | Recorded single-observation smoke | Live structured strategy selection after seed |
-| SLIP | Pass | Pass: lexical insertion then refiner call | Recorded single-observation smoke | Live lexical frontier and refinement |
+| PAIR | Pass | Pass: two queries with attacker feedback/refinement | Pass: two queries and live attacker refinement | Distinct models/providers; wider query budgets |
+| TAP | Pass | Pass: two depths, two generated branches per depth, one admitted | Pass: two live depths, one branch per depth | Wider live branching; distinct models/providers |
+| Crescendo | Pass | Pass: three conversation turns, escalation and context omission | Single-observation pass; live continuation failed on empty attacker reply | Complete live multi-turn conversation and escalation |
+| GOAT | Pass | Pass: two conversation turns and structured strategy selection | Pass: two live conversation turns and structured strategy selection | Wider strategy pools; distinct models/providers |
+| SLIP | Pass | Pass: lexical insertion then refiner call | Pass: live insertion and refiner continuation | Wider lexical frontiers; distinct models/providers |
 | Multimodal | Pass: text-only | Pass: 3 transforms × 3 controls, six real PNG payloads | Recorded text-only smoke | Vision-model execution with real images |
-| Garak | Separate scanner path | Not in this drill | Pending | Isolated install, live scanner run and native report checks |
+| Garak | Pass: real 0.17.0 CLI, one loopback generation | Scanner-native semantics | Pending: dependency blocker [#68](https://github.com/interplay-adversarial/interplay/issues/68) | Clean dependency profile and bounded live scanner run |
 
 All six fixture checks passed on 2026-10-15 against installed package 0.3.1,
 whose Python sources matched merged main `c9b8348` byte-for-byte. The drill
@@ -47,6 +47,75 @@ cleanup/credential/permission receipts. PAIR, GOAT and Multimodal text-only
 emitted the marker; Crescendo and SLIP produced supported failure judgments.
 All five passed the transport/evidence/recovery smoke. Earlier TAP evidence
 adds a separate single-observation live smoke; advanced live paths remain open.
+
+## Live continuation checks (2026-10-16)
+
+PAIR, TAP, GOAT and SLIP also pass bounded live continuation and interruption
+drills. The continuation-relevant package modules match merged source `1a92bca`;
+private verification receipts retain their SHA-256 bindings. PAIR/GOAT/SLIP
+each execute two target observations and a live attacker/refiner call per
+campaign. TAP executes two live attacker/evaluator/target/judge rounds with
+one branch per depth. Every attacker output is checked against the exact next
+executed prompt; GOAT's selected strategy and actual conversation history are
+bound to the observations. Interrupted runs preserve an earlier complete row
+and the final observed response through two offline recoveries.
+
+These are controlled live plumbing checks: the private bridge records an
+explicit target-system instruction requesting a harmless fixed response, so
+the marker criterion fails and continuation can execute. It also records the
+effective thinking override and actual role routing. Raw model responses are
+not replaced. Effective wire messages, including this system control, are
+verified separately from the runner's conversation trace; the injected serving
+configuration is not automatically represented in native row provenance.
+Same-model judging remains non-independent, and these runs do not measure
+adversarial robustness or general model quality.
+
+The four passing methods made 42 real upstream chat calls and eight offline
+recoveries with zero detected network attempts. Read-only checks verify raw
+responses, citations, parent bindings, generated prompts, histories, preserved
+terminal rows and cleanup/credential/permission receipts.
+
+Crescendo's separate live attempt made three calls: target, judge and attacker.
+The attacker returned an empty content string with a completed response; the
+runner stopped with `attacker-output-invalid:empty-escalation-prompt`, retaining
+the first complete target response and supported failure judgment. Its live
+continuation remains failed for this model/configuration. No second target
+attempt or interruption drill is claimed. That run remains available as
+failure evidence, and is not promoted by the passing fixture tests.
+
+## Real Garak compatibility and dependency status
+
+Garak 0.17.0 is installed in a separate frozen optional environment. The real
+scanner, OpenAICompatible generator and `any.AnyOutput` detector pass one
+authenticated loopback `test.Blank` generation. The native evaluated attempt,
+detector result, completion and final digest are retained. A valid final JSON
+object without a newline is accepted; a torn tail stays incomplete. This
+compatibility result makes no vulnerability or detector-quality claim.
+
+The isolated dependency audit reports three advisories in datasets 3.6.0,
+fsspec 2025.3.0 and nltk 3.10.3. Garak's `datasets<4.0` requirement and the
+selected datasets/DataDesigner fsspec constraints prevent a straightforward
+upgrade to the audit-reported patched versions. NLTK has no fixed version in
+that audit result. [Issue #68](https://github.com/interplay-adversarial/interplay/issues/68)
+tracks remediation and verification. The loopback compatibility pass does
+not establish release-ready dependencies; a live scanner run remains pending.
+
+Repeat the compatibility drill from a checkout using a separate environment:
+
+```sh
+UV_PROJECT_ENVIRONMENT=/tmp/interplay-garak-env uv sync --frozen --no-dev --extra red-teaming --extra garak
+/tmp/interplay-garak-env/bin/python scripts/garak_cli_conformance.py --output /tmp/interplay-garak-conformance
+```
+
+The output directory must be new and the interpreter must run on POSIX. The script isolates configuration, passes a
+synthetic credential through the child environment and propagates a Python
+network guard into the scanner subprocess. That guard permits its loopback
+fixture endpoint and records unexpected DNS/connect/sendto operations even if a
+library swallows the error. No model weights are downloaded and no live model
+is called. A pass checks scanner execution and native report interpretation,
+not the dependency audit. The receipt binds the Python/package versions,
+conformance harness digest and actual parser source digest. Review #68 before selecting the
+environment for broader work.
 
 ## Repeat the fixture drill
 
