@@ -14,7 +14,7 @@ the current task state. There are no delivery-date commitments.
 | 1 | [QUAL-01 / #59](https://github.com/interplay-adversarial/interplay/issues/59) | Repeatable CLI conformance and bounded live qualification for every runner, with interruption/recovery where supported | In progress: live PAIR/TAP/Crescendo/GOAT/SLIP continuation passes in recorded configurations; real Garak loopback passes; vision and Garak live remain pending | Existing evidence contracts; Garak dependency blocker [#68](https://github.com/interplay-adversarial/interplay/issues/68) |
 | 2 | [JUDGE-01 / #60](https://github.com/interplay-adversarial/interplay/issues/60) | Human-labeled calibration of single judges and panels, with accuracy, coverage and uncertainty | In progress: rubric, 60 synthetic cases, human-label workflow, bounded collector and offline metrics; actual human reviews and two-model run pending | QUAL-01; independent human labels |
 | 3 | [BENCH-01 / #61](https://github.com/interplay-adversarial/interplay/issues/61) | Reproducible paired comparisons of models/configurations under equal query budgets | Implemented in this increment: fixed-probe manifests, paired runner/imports, offline recovery and bounded live comparison | QUAL-01; JUDGE-01 for accuracy-sensitive conclusions |
-| 4 | [AGENT-01 / #62](https://github.com/interplay-adversarial/interplay/issues/62) | Optional instrumented NeMo Gym TargetAdapter with captured tool and environment outcomes | Planned | QUAL-01; optional Gym environment |
+| 4 | [AGENT-01 / #62](https://github.com/interplay-adversarial/interplay/issues/62) | Optional instrumented NeMo Gym TargetAdapter with captured tool and environment outcomes | Implemented in this increment: optional pinned target, native fixtures and bounded live receiver-effect rollout | QUAL-01; optional Gym environment |
 | 5 | [REPORT-01 / #63](https://github.com/interplay-adversarial/interplay/issues/63) | Offline readable reports with lineage, citations, errors and judge disagreements | Completed in merged [#71](https://github.com/interplay-adversarial/interplay/pull/71) | QUAL-01 schemas |
 | 6 | [BOUNDARY-01 / #64](https://github.com/interplay-adversarial/interplay/issues/64) | Reviewed gate source admission and explicit bindings to independently observed effects | Planned; coordinate gate-side work | QUAL-01; AGENT-01 where applicable |
 | 7 | [CULTURE-01 / #65](https://github.com/interplay-adversarial/interplay/issues/65) | Matched multilingual benign/adversarial datasets with native-speaker review | Planned | JUDGE-01; qualified reviewers |
@@ -80,6 +80,17 @@ unavailable. Adaptive search parity and calibrated accuracy are not established.
 The fixture regression and an eight-request installed-CLI live comparison pass.
 See [benchmark comparisons](benchmark-comparisons.md) and its sanitized machine-readable
 receipt; private raw captures are not published.
+
+## Instrumented agent target: AGENT-01
+
+The optional `NeMoGymTarget` plugs into the assessment Python API using a
+fresh pinned SimpleAgent session per attempt. It retains tool dispatches/native
+trajectories and a separately observed environment outcome, with cooperative
+deadlines and incomplete capture handling. It does not enforce containment or
+change infrastructure itself. Native complete/exhausted/truncated fixtures and
+a bounded live automatic-tool receiver-effect rollout pass. Earlier unavailable/
+unsupported attempts remain retained; the existing model service was separately
+configured for tool calling at the user’s direction. See [NeMo Gym target](nemo-gym-target.md).
 
 ## Release checkpoint
 

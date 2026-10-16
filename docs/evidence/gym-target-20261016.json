@@ -1,0 +1,95 @@
+{
+  "schema_version": "interplay-gym-qualification/1",
+  "observed_at": "2026-10-16",
+  "adapter_source_revision": "7993d4c097df94aa4b811fe7e09081e6105d899b",
+  "conformance_source_revision": "ce9ba37a3d5b327bffe4ccbf5f1d2bd680aa7773",
+  "supported_gym_revision": "f444b8020a3431fc820ef061cef400140bc7afb5",
+  "core_tests_passed": 395,
+  "adapter_tests_passed": 20,
+  "native_fixtures": {
+    "complete": {
+      "verification_passed": true,
+      "capture_complete": true,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "independently_observed_receiver_records": 1
+    },
+    "exhausted": {
+      "verification_passed": true,
+      "capture_complete": false,
+      "model_calls": 3,
+      "tool_calls": 3,
+      "independently_observed_receiver_records": 3
+    },
+    "truncated": {
+      "verification_passed": true,
+      "capture_complete": false,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "independently_observed_receiver_records": 0
+    }
+  },
+  "live_attempts": [
+    {
+      "endpoint_kind": "existing-hosted",
+      "client_model_attempts": 1,
+      "completed_model_observations": 0,
+      "tool_calls": 0,
+      "capture_complete": false,
+      "subsequent_inventory_http_status": 503
+    },
+    {
+      "endpoint_kind": "existing-self-hosted",
+      "tool_choice_schedule": "auto",
+      "client_model_attempts": 1,
+      "http_status": 400,
+      "error_code": "automatic-tool-parser-required",
+      "tool_calls": 0,
+      "capture_complete": false
+    },
+    {
+      "endpoint_kind": "existing-self-hosted",
+      "tool_choice_schedule": "forced-first-tool",
+      "client_model_attempts": 1,
+      "http_status": 400,
+      "error_code": "named-tool-parser-required",
+      "tool_calls": 0,
+      "capture_complete": false
+    },
+    {
+      "endpoint_kind": "existing-self-hosted",
+      "source_revision": "3e333a69d1c8e36a2ac4704a51fccdd0428d47f8",
+      "tool_choice_schedule": "auto",
+      "model_calls": 2,
+      "actual_upstream_model_calls": 2,
+      "native_tool_calls": 1,
+      "independently_observed_receiver_records": 1,
+      "capture_complete": true,
+      "verification_passed": true,
+      "request_response_digests_match": true,
+      "actual_native_function_call_matches_wire": true,
+      "actual_tool_reply_in_next_model_context": true,
+      "stage_order_verified": true,
+      "candidate_wheel_sha256": "0a3aa6b016ee39bf5a725001cc7dd549ceb0c980e1d26a93c1210c90cb436ee8"
+    }
+  ],
+  "live_qualified": true,
+  "live_blocker": null,
+  "candidate_wheel_sources_match": true,
+  "native_environment_modified": false,
+  "infrastructure_deployed": false,
+  "remaining_remote_forwarders": 0,
+  "credential_matches_in_artifacts": 0,
+  "private_permission_violations": 0,
+  "judge_accuracy": null,
+  "autonomous_tool_selection_qualified": false,
+  "boundary_evaluated": false,
+  "release_eligible": false,
+  "live_qualification_scope": "One harmless marker task through native SimpleAgent, automatic model tool choice, local file receiver and independent observation; not broad autonomy, robustness, judge or containment qualification.",
+  "existing_serving_configuration_updated": true,
+  "serving_update_scope": "User-selected existing model service; enabled automatic tool choice and qwen3_xml parser on the owning LLMInferenceService; managed one-replica stop/start; readiness and otherwise-identical owner specification verified.",
+  "serving_ready_replicas": 1,
+  "new_infrastructure_resources": 0,
+  "fallback_inventory_checked": true,
+  "fallback_inference_used": false
+}

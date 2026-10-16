@@ -15,6 +15,7 @@ This page is the index; it does not duplicate what each page already says.
 | Decide which of the three interfaces (probes / assessment / legacy runners) fits your question | [tools-and-use-cases.md](tools-and-use-cases.md) |
 | Generate cultural-bias or harm probes | [probe-generation.md](probe-generation.md), then [../interplay/specs/CONTRIBUTING.md](../interplay/specs/CONTRIBUTING.md) to add a comparison |
 | Run TAP, PAIR, Crescendo, GOAT, SLIP, Multimodal or Garak against a target, optionally with a panel of judges | [attacks/README.md](attacks/README.md) |
+| Capture native agent tool activity and environment outcomes | [nemo-gym-target.md](nemo-gym-target.md) |
 | Get a probe → response → evidence-cited verdict record for a custom criterion | [assessment.md](assessment.md) |
 | Read retained campaign evidence without running models | [campaign-reports.md](campaign-reports.md) |
 | Compare two model/configuration profiles on fixed cases | [benchmark-comparisons.md](benchmark-comparisons.md) |
@@ -32,6 +33,7 @@ README.md (this page)
 ├── tools-and-use-cases.md ─── which of the 3 interfaces to use, and their current limits
 ├── probe-generation.md ────── every pipeline mode/spec, the diverse-dataset helper, output columns
 ├── assessment.md ──────────── description-driven campaigns (interplay.assessment)
+├── nemo-gym-target.md ─────── optional pinned SimpleAgent target and effect capture
 ├── campaign-reports.md ────── private offline HTML summaries, lineage and judge evidence
 ├── benchmark-comparisons.md ─ fixed-case manifests, paired deltas and offline recovery
 ├── judge-calibration.md ───── human labeling, bounded judge collection and offline metrics
