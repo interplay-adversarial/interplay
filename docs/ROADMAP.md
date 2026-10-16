@@ -13,7 +13,7 @@ the current task state. There are no delivery-date commitments.
 | --- | --- | --- | --- | --- |
 | 1 | [QUAL-01 / #59](https://github.com/interplay-adversarial/interplay/issues/59) | Repeatable CLI conformance and bounded live qualification for every runner, with interruption/recovery where supported | In progress: live PAIR/TAP/Crescendo/GOAT/SLIP continuation passes in recorded configurations; real Garak loopback passes; vision and Garak live remain pending | Existing evidence contracts; Garak dependency blocker [#68](https://github.com/interplay-adversarial/interplay/issues/68) |
 | 2 | [JUDGE-01 / #60](https://github.com/interplay-adversarial/interplay/issues/60) | Human-labeled calibration of single judges and panels, with accuracy, coverage and uncertainty | In progress: rubric, 60 synthetic cases, human-label workflow, bounded collector and offline metrics; actual human reviews and two-model run pending | QUAL-01; independent human labels |
-| 3 | [BENCH-01 / #61](https://github.com/interplay-adversarial/interplay/issues/61) | Reproducible paired comparisons of models/configurations under equal query budgets | In progress: fixed-probe manifest, paired runner/imports, resource deltas and offline recovery | QUAL-01; JUDGE-01 for accuracy-sensitive conclusions |
+| 3 | [BENCH-01 / #61](https://github.com/interplay-adversarial/interplay/issues/61) | Reproducible paired comparisons of models/configurations under equal query budgets | Implemented in this increment: fixed-probe manifests, paired runner/imports, offline recovery and bounded live comparison | QUAL-01; JUDGE-01 for accuracy-sensitive conclusions |
 | 4 | [AGENT-01 / #62](https://github.com/interplay-adversarial/interplay/issues/62) | Optional instrumented NeMo Gym TargetAdapter with captured tool and environment outcomes | Planned | QUAL-01; optional Gym environment |
 | 5 | [REPORT-01 / #63](https://github.com/interplay-adversarial/interplay/issues/63) | Offline readable reports with lineage, citations, errors and judge disagreements | Completed in merged [#71](https://github.com/interplay-adversarial/interplay/pull/71) | QUAL-01 schemas |
 | 6 | [BOUNDARY-01 / #64](https://github.com/interplay-adversarial/interplay/issues/64) | Reviewed gate source admission and explicit bindings to independently observed effects | Planned; coordinate gate-side work | QUAL-01; AGENT-01 where applicable |
@@ -77,7 +77,9 @@ equal target query/token/timeout caps, with an optional shared judge. It retains
 partial outcomes, observed resources and paired deltas, and can import exact-match
 native exports or recover interrupted journals offline. Legacy resource usage is
 unavailable. Adaptive search parity and calibrated accuracy are not established.
-See [benchmark comparisons](benchmark-comparisons.md).
+The fixture regression and an eight-request installed-CLI live comparison pass.
+See [benchmark comparisons](benchmark-comparisons.md) and its sanitized machine-readable
+receipt; private raw captures are not published.
 
 ## Release checkpoint
 

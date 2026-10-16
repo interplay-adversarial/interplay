@@ -122,5 +122,11 @@ no confidence interval, population improvement or release decision is inferred.
 All artifacts contain private evidence and endpoint metadata; review before sharing.
 
 Constructed HTTP fixture tests cover paired outcomes, resource availability,
-input/source binding and interruption recovery. A bounded installed-CLI live check
-is recorded separately from these fixtures and does not establish judge accuracy.
+input/source binding and interruption recovery. A [bounded installed-CLI live check](evidence/benchmark-live-20261016.json) on
+2026-10-16 compared temperature 0.0 with 0.6 on the same self-hosted model: two
+harmless marker cases, eight upstream chat requests, two success judgments per
+variant, 444 observed total tokens per variant, and unavailable cost. Raw private
+packets match every request/response digest and usage count. Offline comparison
+ran with network/provider-import guards and no credentials; the tunnel was closed
+and cleanup/privacy checks passed. The same-model judge is not independent; this
+check does not establish accuracy or general robustness.
