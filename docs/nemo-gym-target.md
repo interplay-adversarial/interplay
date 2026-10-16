@@ -186,13 +186,27 @@ manifest and actual request packets record this schedule. It tests native tool
 execution and observation plumbing; it does not qualify autonomous tool selection.
 Named and automatic calling have different serving requirements; see the
 [vLLM tool-calling documentation](https://docs.vllm.ai/en/v0.15.0/features/tool_calling/).
-No serving flags or deployments are changed by this drill.
+No serving flags or deployments are changed by the conformance script.
 
 The [2026-10-16 machine-readable qualification record](evidence/gym-target-20261016.json)
-records passing native complete/exhausted/truncated fixtures and three retained
-incomplete live attempts. The existing hosted route was unavailable (subsequent
-inventory HTTP 503). The self-hosted endpoint rejected automatic and named tool
-choice with HTTP 400 because its tool parser is disabled. No tool ran in these live
-attempts. A live model-backed rollout with an observed receiver effect remains
-pending an existing tool-capable endpoint; no serving deployment or environment
-was changed. These failures are not promoted to a live qualification pass.
+records passing native complete/exhausted/truncated fixtures and a successful
+bounded model-backed rollout on an existing self-hosted model service. With
+automatic tool choice, two actual model requests produced one native tool call
+and one independently observed file-receiver record. Readback checks match the
+actual model call ID/arguments to the native tool event and receiver binding,
+confirm its tool reply appears in the next model request, and verify request/response
+digests, stage order, complete capture, tunnel cleanup and private artifact checks.
+
+The existing model service needed automatic tool choice and its installed
+`qwen3_xml` parser enabled. The operator applied those flags to the owning
+LLMInferenceService and performed a managed one-replica restart, then verified
+readiness and the otherwise-identical owner specification. This was a separately
+user-selected existing-server configuration change; the conformance script itself
+does not configure infrastructure. No new inference resources were created.
+
+Three earlier incomplete attempts remain in the record: an unavailable hosted
+route (subsequent inventory HTTP 503) and self-hosted automatic/named tool requests
+rejected with HTTP 400 before parser configuration. Their zero-tool outcomes
+are retained. The successful automatic-tool rollout is one synthetic integration
+check, with no broader autonomy, judge accuracy, adversarial robustness or
+containment qualification.

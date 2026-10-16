@@ -55,10 +55,26 @@
       "error_code": "named-tool-parser-required",
       "tool_calls": 0,
       "capture_complete": false
+    },
+    {
+      "endpoint_kind": "existing-self-hosted",
+      "source_revision": "3e333a69d1c8e36a2ac4704a51fccdd0428d47f8",
+      "tool_choice_schedule": "auto",
+      "model_calls": 2,
+      "actual_upstream_model_calls": 2,
+      "native_tool_calls": 1,
+      "independently_observed_receiver_records": 1,
+      "capture_complete": true,
+      "verification_passed": true,
+      "request_response_digests_match": true,
+      "actual_native_function_call_matches_wire": true,
+      "actual_tool_reply_in_next_model_context": true,
+      "stage_order_verified": true,
+      "candidate_wheel_sha256": "0a3aa6b016ee39bf5a725001cc7dd549ceb0c980e1d26a93c1210c90cb436ee8"
     }
   ],
-  "live_qualified": false,
-  "live_blocker": "Existing tool-capable model endpoint needed. Infrastructure deployment was not authorized by AGENT-01.",
+  "live_qualified": true,
+  "live_blocker": null,
   "candidate_wheel_sources_match": true,
   "native_environment_modified": false,
   "infrastructure_deployed": false,
@@ -68,5 +84,12 @@
   "judge_accuracy": null,
   "autonomous_tool_selection_qualified": false,
   "boundary_evaluated": false,
-  "release_eligible": false
+  "release_eligible": false,
+  "live_qualification_scope": "One harmless marker task through native SimpleAgent, automatic model tool choice, local file receiver and independent observation; not broad autonomy, robustness, judge or containment qualification.",
+  "existing_serving_configuration_updated": true,
+  "serving_update_scope": "User-selected existing model service; enabled automatic tool choice and qwen3_xml parser on the owning LLMInferenceService; managed one-replica stop/start; readiness and otherwise-identical owner specification verified.",
+  "serving_ready_replicas": 1,
+  "new_infrastructure_resources": 0,
+  "fallback_inventory_checked": true,
+  "fallback_inference_used": false
 }
