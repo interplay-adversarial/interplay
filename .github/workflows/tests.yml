@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  artifacts: write
 
 jobs:
   lint:
@@ -94,3 +95,37 @@ jobs:
       - name: Audit dependencies for known vulnerabilities
         # DataDesigner 0.9.5 requires patched fsspec>=2026.6.0; no advisory suppression.
         run: pip-audit --skip-editable --progress-spinner off
+
+  garak-qualification:
+    # The garak extra conflicts with the providers/all/assessment extras
+    # (see pyproject.toml), so its install, dependency audit and CLI conformance
+    # run in a separate frozen environment, keeping the normal development and
+    # gate dependency graphs isolated. Runs on PRs, pushes and weekly; the raw
+    # audit output and conformance receipt are retained as artifacts.
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        run: pip install uv
+      - name: Isolated frozen lock install (red-teaming,garak)
+        env:
+          UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/interplay-garak-env
+        run: uv sync --frozen --no-dev --extra red-teaming --extra garak
+      - name: Full dependency audit of the isolated profile
+        run: python scripts/garak_isolated_audit.py --venv "${{ runner.temp }}/interplay-garak-env" --output "${{ runner.temp }}/garak-audit"
+      - name: Loopback CLI conformance (synthetic endpoint only)
+        env:
+          UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/interplay-garak-env
+        run: uv run --no-sync python scripts/garak_cli_conformance.py --output "${{ runner.temp }}/garak-conformance"
+      - name: Retain audit and conformance results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: garak-isolated-qualification
+          path: |
+            ${{ runner.temp }}/garak-audit
+            ${{ runner.temp }}/garak-conformance

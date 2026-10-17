@@ -17,7 +17,7 @@ panel calibration and broader model/provider coverage open.
 | GOAT | Pass | Pass: two conversation turns and structured strategy selection | Pass: two live conversation turns and structured strategy selection | Wider strategy pools; distinct models/providers |
 | SLIP | Pass | Pass: lexical insertion then refiner call | Pass: live insertion and refiner continuation | Wider lexical frontiers; distinct models/providers |
 | Multimodal | Pass: text-only | Pass: 3 transforms × 3 controls, six real PNG payloads | Recorded text-only smoke | Vision-model execution with real images |
-| Garak | Pass: real 0.17.0 CLI, one loopback generation | Scanner-native semantics | Pending: dependency blocker [#68](https://github.com/interplay-adversarial/interplay/issues/68) | Clean dependency profile and bounded live scanner run |
+| Garak | Pass: real 0.17.1 CLI, one loopback generation | Scanner-native semantics | Pending: live smoke; isolated dependency audit now clean (one documented disposition) | Bounded live scanner run |
 
 All six fixture checks passed on 2026-10-15 against installed package 0.3.1,
 whose Python sources matched merged main `c9b8348` byte-for-byte. The drill
@@ -124,25 +124,41 @@ resolve same-model judge reliability or qualify other sampling settings.
 
 ## Real Garak compatibility and dependency status
 
-Garak 0.17.0 is installed in a separate frozen optional environment. The real
+Garak 0.17.1 is installed in a separate frozen optional environment. The real
 scanner, OpenAICompatible generator and `any.AnyOutput` detector pass one
 authenticated loopback `test.Blank` generation. The native evaluated attempt,
 detector result, completion and final digest are retained. A valid final JSON
 object without a newline is accepted; a torn tail stays incomplete. This
 compatibility result makes no vulnerability or detector-quality claim.
 
-The isolated dependency audit reports three advisories in datasets 3.6.0,
-fsspec 2025.3.0 and nltk 3.10.3. Garak's `datasets<4.0` requirement and the
-selected datasets/DataDesigner fsspec constraints prevent a straightforward
-upgrade to the audit-reported patched versions. NLTK has no fixed version in
-that audit result. [Issue #68](https://github.com/interplay-adversarial/interplay/issues/68)
-tracks remediation and verification. The loopback compatibility pass does
-not establish release-ready dependencies; a live scanner run remains pending.
+The isolated dependency profile is audited on every pull request, push and
+weekly by the `garak-qualification` CI job. The job installs the frozen
+`red-teaming,garak` extras into a separate environment, runs
+`scripts/garak_isolated_audit.py` over the full pinned profile against the
+PyPI/OSV advisory databases, reruns the loopback conformance drill and
+retains the raw audit output and receipts as artifacts. The `garak` extra
+floor is `0.17.1`, the first Garak release that admits patched
+`datasets>=5.0.1`; the frozen profile now resolves to datasets 5.1.0 and
+fsspec 2026.7.0, clearing PYSEC-2026-3716 (datasets 3.6.0) and
+PYSEC-2026-4217 (fsspec 2025.3.0). NLTK 3.10.3 still reports
+PYSEC-2026-3740 (CVE-2026-81726,
+[GHSA-8mgp-746c-j5xp](https://github.com/advisories/GHSA-8mgp-746c-j5xp)); no
+patched release exists yet (upstream patch tracked in
+[nltk/nltk#3826](https://github.com/nltk/nltk/issues/3826)). The audit
+carries an explicit, version-bound disposition for it: the vulnerable APIs
+(`TransitionParser.train`/`parse`, `AveragedPerceptron` save/load,
+`PerceptronTagger.save_to_json`, `save_maxent_params`) are not reachable from
+Garak 0.17.1, and the audit script re-verifies that by scanning the installed
+Garak source on every run. Any new advisory, a changed NLTK pin or a found
+vulnerable-API reference fails the job. The loopback compatibility pass does
+not establish release-ready scanner qualification; a live scanner run remains
+pending.
 
 Repeat the compatibility drill from a checkout using a separate environment:
 
 ```sh
 UV_PROJECT_ENVIRONMENT=/tmp/interplay-garak-env uv sync --frozen --no-dev --extra red-teaming --extra garak
+python scripts/garak_isolated_audit.py --venv /tmp/interplay-garak-env --output /tmp/interplay-garak-audit
 /tmp/interplay-garak-env/bin/python scripts/garak_cli_conformance.py --output /tmp/interplay-garak-conformance
 ```
 
@@ -151,10 +167,10 @@ synthetic credential through the child environment and propagates a Python
 network guard into the scanner subprocess. That guard permits its loopback
 fixture endpoint and records unexpected DNS/connect/sendto operations even if a
 library swallows the error. No model weights are downloaded and no live model
-is called. A pass checks scanner execution and native report interpretation,
-not the dependency audit. The receipt binds the Python/package versions,
-conformance harness digest and actual parser source digest. Review #68 before selecting the
-environment for broader work.
+is called. A conformance pass checks scanner execution and native report
+interpretation; the audit script checks the dependency profile. The receipts
+bind the Python/package versions, conformance harness digest and actual
+parser source digest.
 
 ## Repeat the fixture drill
 
