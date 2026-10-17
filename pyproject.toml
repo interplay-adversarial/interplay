@@ -56,8 +56,11 @@ red-teaming = [
     "judge-kappa>=0.4.0",
 ]
 # The Garak scanner is a separate, heavy install; only the Garak runner needs it.
+# 0.17.1 is the first release whose datasets requirement (>=5.0.1,<6.0) admits the
+# patched datasets (PYSEC-2026-3716); 0.17.0's datasets<4.0 forced vulnerable 3.x,
+# which in turn capped fsspec below the patched 2026.6.0 (PYSEC-2026-4217).
 garak = [
-    "garak>=0.10.0",
+    "garak>=0.17.1",
 ]
 # Only the multimodal runner's image rendering needs Pillow; it is imported
 # lazily there, so a text-only red-teaming consumer never needs this extra.
