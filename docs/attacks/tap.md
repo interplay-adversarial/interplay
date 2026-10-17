@@ -66,7 +66,13 @@ asyncio.run(main())
   bootstrapped confidence interval) across every branch the panel judged, computed from
   those same calls -- never a fixed placeholder, and never requiring a second,
   diagnostic-only re-judging pass. Without at least two total judges, `irr_report` is
-  `None` with `irr_unavailable_reason` set (for example `"insufficient-judges"`). Every
+  `None` with `irr_unavailable_reason` set (for example `"insufficient-judges"`).
+  When the panel judged at least two branches but gave the same verdict on every one,
+  `irr_report` is present and `irr_report["alpha"]` is `None` with
+  `irr_report["alpha_not_estimated_reason"] == "no_score_variation"`: unanimous judges
+  that never vary have not shown that they agree, so this is not reported as `1.0`.
+  The confidence interval (`alpha_ci_low`/`alpha_ci_high`) needs at least 5 judged
+  branches and is `None` below that. Requires `judge-kappa>=0.4.0`. Every
   judge's individual verdict and reasoning for a branch is retained on that branch's
   trial as `judge_panel_json`, not collapsed away by the aggregation.
 - **No automatic retries.** A target or judge call that fails, times out, or exceeds

@@ -507,7 +507,17 @@ class JudgePanel:
         """Krippendorff's alpha over every case this panel has scored, computed once
         at campaign end. ``(None, reason)`` with fewer than 2 judges (impossible via
         this class's own constructor, kept as a defensive guard) or fewer than 2
-        scored cases -- never a fixed placeholder value."""
+        scored cases -- never a fixed placeholder value.
+
+        Otherwise the report is judge-kappa's ``AgreementResult`` as a dict, and its
+        ``alpha`` can itself be ``None``: when every judge gave the same verdict on
+        every case there is no variation to measure agreement against, so judge-kappa
+        (0.4.0 and later) reports ``alpha=None`` with ``alpha_not_estimated_reason``
+        (``"no_score_variation"``) instead of the ``1.0`` that earlier releases
+        returned, which read as perfect agreement. Read the reason from the report
+        rather than treating ``None`` as missing data. The 95% bootstrap interval
+        (``alpha_ci_low``/``alpha_ci_high``) needs at least 5 judged cases and is
+        ``None`` below that."""
         if len(self.scorers) < 2:
             return None, "insufficient-judges"
         cases = {v.eval_case_id for v in self._verdicts}

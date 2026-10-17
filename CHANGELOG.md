@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- The judge panel's inter-rater-reliability report now requires `judge-kappa>=0.4.0` (the floor was `>=0.2`; `uv.lock` moves 0.2.1 to 0.4.0, changing only that package). **Behaviour change in `irr_report`:** when every judge gives the same verdict on every case, `irr_report["alpha"]` is now `None` with `irr_report["alpha_not_estimated_reason"] == "no_score_variation"` instead of `1.0`. Judges that never vary have not shown that they agree, and `1.0` read as perfect agreement. A panel with real disagreement is unchanged, and `irr_report` is still `None` with `irr_unavailable_reason` for fewer than two judges or fewer than two judged cases. Code that formats `irr_report["alpha"]` must handle `None`; nothing in this repository does.
+
+### Fixed
+- The docs said `irr_report` carries a bootstrapped confidence interval without saying when. judge-kappa computes the interval (`alpha_ci_low`/`alpha_ci_high`) only from 5 judged cases, so a short campaign gets `None` there; `docs/METHODOLOGY.md`, `docs/tools-and-use-cases.md`, `docs/attacks/tap.md` and `JudgePanel.agreement_report()` now say so.
+
+### Added
+- Tests that pin the new `irr_report` semantics against the real library: no-variation panels report `alpha=None` with a reason, and the interval appears at exactly 5 judged cases.
+
 ## [0.3.1] - 2026-10-15
 
 ### Changed
