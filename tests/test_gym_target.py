@@ -240,7 +240,15 @@ def test_missing_or_failed_environment_capture_cannot_complete(setup, tmp_path, 
 @pytest.mark.parametrize("mode", ["cancelled", "late"])
 def test_cooperative_deadline_preserves_tool_effect_and_late_response(setup, tmp_path, mode):
     setup[2]["mode"] = mode
-    observation = make(setup, tmp_path).observe(PROBE, ATTEMPT, deadline=time.monotonic() + 2.02)
+    # deadline - observation_seconds is the rollout budget: with the default
+    # observation_seconds=2 a +2.02 deadline leaves 20 ms, which a machine may
+    # spend just dispatching the model call, so the tool post (and therefore the
+    # tool effect) would race the budget. One second of observation keeps a
+    # ~1 s rollout budget that covers both dispatches with margin yet expires
+    # long before the fixture episode's 5 s completion.
+    observation = make(setup, tmp_path, observation_seconds=1).observe(
+        PROBE, ATTEMPT, deadline=time.monotonic() + 2.02
+    )
     assert not observation.capture_complete
     assert json.loads(observation.logs_json)["environment_outcome"] == {"marker": "MARKER"}
     assert observation.response == "MARKER" and setup[2]["closed"]
