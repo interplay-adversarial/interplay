@@ -112,12 +112,17 @@ tool-to-boundary/recovery pilot. BOUNDARY-01 stays open until that work passes.
 
 ## Release checkpoint
 
-[Runner hardening #57](https://github.com/interplay-adversarial/interplay/pull/57)
+Fifteen PRs merged after the v0.3.1 release, from
+[runner hardening #57](https://github.com/interplay-adversarial/interplay/pull/57)
 and [judge-format compatibility #58](https://github.com/interplay-adversarial/interplay/pull/58)
-merged after the v0.3.1 release. Cut a subsequent patch release through the
-[TestPyPI-first process](RELEASING.md) after reviewing the intended release scope
-and package smoke results. Source-main capability must not be inferred from an
-older published version. This roadmap does not itself publish a release.
+through the [Gym deadline-test fix #80](https://github.com/interplay-adversarial/interplay/pull/80).
+That scope includes four new user-facing capabilities — `interplay report`
+(#71), `interplay calibration` (#72), `interplay benchmark` (#73) and the
+optional `NeMoGymTarget` (#74, #76) — so the next release is a minor bump,
+v0.4.0, not a patch. Cut it through the [TestPyPI-first
+process](RELEASING.md) after reviewing the intended release scope and package
+smoke results. Source-main capability must not be inferred from an older
+published version. This roadmap does not itself publish a release.
 
 ## Research tracks
 
