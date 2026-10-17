@@ -1,3 +1,3 @@
 """Interplay Adversarial: adversarial and red-teaming library."""
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
