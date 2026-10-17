@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.4.0] - 2026-10-17
+## [0.4.1] - 2026-10-17
 
 ### Added
 - `interplay report SOURCE --output NEW_DIRECTORY`: turns retained assessment and runner exports (version-1 and version-2 JSONL, Parquet and Arrow) into a private standalone HTML report plus a matching JSON summary, offline, without provider imports or model calls. Incomplete and error attempts, parent lineage, captured evidence, citation-resolution checks and panel disagreements stay visible; search scores and model judgments remain distinct from independently verified effects. Unknown schemas and ambiguous record bindings are rejected, the source snapshot is bound by SHA-256, captured content is escaped, the report uses no scripts or remote assets, and existing output is never overwritten (roadmap REPORT-01; closes #63).
@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Garak 0.17.0 exits successfully with a valid final digest object and no trailing newline, which Interplay treated as a truncated native report. A valid final JSON object is now accepted while torn tails and invalid committed rows remain incomplete or rejected, with regression coverage for completion/digest tails, torn digests and invalid JSON entry types (#69).
 - The docs said `irr_report` carries a bootstrapped confidence interval without saying when. judge-kappa computes the interval (`alpha_ci_low`/`alpha_ci_high`) only from 5 judged cases, so a short campaign gets `None` there; `docs/METHODOLOGY.md`, `docs/tools-and-use-cases.md`, `docs/attacks/tap.md` and `JudgePanel.agreement_report()` now say so.
 - `tests/test_gym_target.py::test_cooperative_deadline_preserves_tool_effect_and_late_response` raced the rollout budget: the `+2.02` deadline minus the default `observation_seconds=2` left 20 ms for the rollout, so on slower machines the fixture's tool dispatch hit the recording client's deadline guard before recording its effect and the `environment_outcome` assertion failed. The test now uses `observation_seconds=1`, a ~1 s rollout budget that still expires long before the fixture episode's 5 s completion.
+- `scripts/smoke_install.py`'s "garak missing gives an install hint" check called `run_garak('http://x/v1', ...)`; `http://` to a non-loopback host is itself rejected by `ModelEndpoint`'s SSRF-style validation, so the check never reached the missing-scanner path and failed with a raw `pydantic` `ValidationError` instead. It now uses `http://localhost/v1`, a URL `ModelEndpoint` accepts, so the check exercises the actual missing-`garak` `RuntimeError`. Separately, that `RuntimeError` named the wrong extra set (`interplay-adversarial[red-teaming,garak]`); `interplay.red_teaming` cannot be imported at all without `red-teaming` already installed, so the only extra still missing at that point is `garak` -- the hint now says `interplay-adversarial[garak]`. Found on 0.4.0's TestPyPI publish, which is abandoned per `docs/RELEASING.md`.
 
 ## [0.3.1] - 2026-10-15
 
