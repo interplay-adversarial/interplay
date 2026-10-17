@@ -2409,9 +2409,9 @@ requires-dist = [
     { name = "httpx", marker = "extra == 'all'", specifier = ">=0.27" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27" },
     { name = "httpx", marker = "extra == 'red-teaming'", specifier = ">=0.27" },
-    { name = "judge-kappa", marker = "extra == 'all'", specifier = ">=0.2" },
-    { name = "judge-kappa", marker = "extra == 'dev'", specifier = ">=0.2" },
-    { name = "judge-kappa", marker = "extra == 'red-teaming'", specifier = ">=0.2" },
+    { name = "judge-kappa", marker = "extra == 'all'", specifier = ">=0.4.0" },
+    { name = "judge-kappa", marker = "extra == 'dev'", specifier = ">=0.4.0" },
+    { name = "judge-kappa", marker = "extra == 'red-teaming'", specifier = ">=0.4.0" },
     { name = "numpy", specifier = ">=2.0" },
     { name = "pandas", specifier = ">=2.2" },
     { name = "pillow", marker = "extra == 'all'", specifier = ">=10.0" },
@@ -2431,7 +2431,7 @@ provides-extras = ["all", "assessment", "dev", "garak", "multimodal", "providers
 dev = [
     { name = "any-llm-sdk", specifier = ">=1.33" },
     { name = "httpx", specifier = ">=0.27" },
-    { name = "judge-kappa", specifier = ">=0.2" },
+    { name = "judge-kappa", specifier = ">=0.4.0" },
     { name = "pillow", specifier = ">=10.0" },
     { name = "pip-audit", specifier = ">=2.7" },
     { name = "pytest", specifier = ">=8.0" },
@@ -2737,7 +2737,7 @@ wheels = [
 
 [[package]]
 name = "judge-kappa"
-version = "0.2.1"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "krippendorff" },
@@ -2747,9 +2747,9 @@ dependencies = [
     { name = "scikit-learn" },
     { name = "scipy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/73/62/32a84175b0b6dba01fba26a9d8aa485336a95cced89851108e094c129511/judge_kappa-0.2.1.tar.gz", hash = "sha256:f0c888ebbd5025bc2dc30249deb6d626573e9151bcf3d3f9d4fd0615e18394db", size = 126652, upload-time = "2026-08-23T19:07:58.975Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/91/61/05b7656cb544841e666cfd25f6c686529a567755a220ebb3d462fb03fce9/judge_kappa-0.4.0.tar.gz", hash = "sha256:f37e764f1f9c9279e93e4b27e8d0e18fcc38dbd7ce695e4e4f4177b1b7c1cfe1", size = 221431, upload-time = "2026-10-12T19:43:05.919Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ce/d9/12ef7b223ba1d026d58ad2f5dcb80b7fd15e0a7e9adcf88242deb482f122/judge_kappa-0.2.1-py3-none-any.whl", hash = "sha256:d23a296f787788dde456c8788fc1fd77fe4f946baa132793c3387057d157dc31", size = 64351, upload-time = "2026-08-23T19:07:57.687Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/0c/7d79c78f928612fb8ac9f1f6dd788bee2f4cf12b3b56a36be8d77bb3d2c8/judge_kappa-0.4.0-py3-none-any.whl", hash = "sha256:26d69841b508d210f1879c7c394c9dbf5bd5cf709aef4e1afba39e1f3d162536", size = 106208, upload-time = "2026-10-12T19:43:04.441Z" },
 ]
 
 [[package]]

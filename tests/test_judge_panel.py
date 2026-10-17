@@ -146,6 +146,51 @@ async def test_agreement_report_reflects_real_disagreement():
     assert report["alpha"] < 1.0
 
 
+async def test_agreement_report_alpha_is_not_estimated_when_judges_never_vary():
+    # Every judge says "success" on every case: judge-kappa >= 0.4.0 reports alpha=None
+    # with a reason, not the 1.0 ("perfect agreement") that 0.2.x returned for no variation.
+    panel = make_panel(["success", "success", "success"])
+    for n in range(3):
+        await score_panel(panel, Observation(response=f"case {n}"))
+    report, reason = panel.agreement_report()
+    assert reason is None  # the report exists; it is alpha itself that is undefined
+    assert report["n_judges"] == 3
+    assert report["n_cases"] == 3
+    assert report["alpha"] is None
+    assert report["alpha_not_estimated_reason"] == "no_score_variation"
+
+
+async def _score_with_verdicts(panel: JudgePanel, per_case: list[list[str]]) -> None:
+    for n, verdicts in enumerate(per_case):
+        for scorer, verdict in zip(panel.scorers, verdicts, strict=True):
+            scorer._raw["verdict"] = verdict
+        await score_panel(panel, Observation(response=f"case {n}"))
+
+
+async def test_agreement_report_interval_needs_five_judged_cases():
+    four = [
+        ["success", "success"],
+        ["failure", "failure"],
+        ["success", "failure"],
+        ["failure", "failure"],
+    ]
+    panel = make_panel(["success", "success"])
+    await _score_with_verdicts(panel, four)
+    report, reason = panel.agreement_report()
+    assert reason is None
+    assert report["alpha"] is not None
+    assert report["alpha_ci_low"] is None and report["alpha_ci_high"] is None
+
+    panel = make_panel(["success", "success"])
+    await _score_with_verdicts(panel, [*four, ["success", "success"]])
+    report, reason = panel.agreement_report()
+    assert reason is None
+    assert report["n_cases"] == 5
+    assert report["alpha_not_estimated_reason"] is None
+    assert report["alpha_ci_low"] is not None and report["alpha_ci_high"] is not None
+    assert report["alpha_ci_low"] <= report["alpha"] <= report["alpha_ci_high"]
+
+
 def test_constructor_rejects_fewer_than_two_endpoints():
     with pytest.raises(ValueError, match="judge-panel-needs-at-least-two-judges"):
         JudgePanel([ModelEndpoint(base_url="https://judge.example/v1", model="m")], api_key="k")

@@ -66,7 +66,10 @@ All five (TAP, Crescendo, GOAT, SLIP, Multimodal -- not PAIR) accept more than
 one judge model as a panel and report inter-rater reliability: a real,
 N-capable Krippendorff's alpha with a bootstrapped confidence interval
 (`result.irr_report`), computed from the same judge calls that decided the
-verdict, not a separate re-judging pass or a fixed placeholder. The verdict
+verdict, not a separate re-judging pass or a fixed placeholder. When every
+judge gave the same verdict on every case there is nothing to measure
+agreement against, so `alpha` is `None` with `alpha_not_estimated_reason`
+rather than a perfect `1.0`. The verdict
 itself follows a configurable aggregation rule, `"majority"` or
 `"unanimous"`. See [tap.md § Current behavior](attacks/tap.md#current-behavior)
 for the full semantics.
