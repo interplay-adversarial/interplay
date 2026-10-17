@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - The docs said `irr_report` carries a bootstrapped confidence interval without saying when. judge-kappa computes the interval (`alpha_ci_low`/`alpha_ci_high`) only from 5 judged cases, so a short campaign gets `None` there; `docs/METHODOLOGY.md`, `docs/tools-and-use-cases.md`, `docs/attacks/tap.md` and `JudgePanel.agreement_report()` now say so.
+- `tests/test_gym_target.py::test_cooperative_deadline_preserves_tool_effect_and_late_response` raced the rollout budget: the `+2.02` deadline minus the default `observation_seconds=2` left 20 ms for the rollout, so on slower machines the fixture's tool dispatch hit the recording client's deadline guard before recording its effect and the `environment_outcome` assertion failed. The test now uses `observation_seconds=1`, a ~1 s rollout budget that still expires long before the fixture episode's 5 s completion.
 
 ### Added
 - Tests that pin the new `irr_report` semantics against the real library: no-variation panels report `alpha=None` with a reason, and the interval appears at exactly 5 judged cases.
