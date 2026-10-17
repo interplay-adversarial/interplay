@@ -20,6 +20,6 @@ def test_run_garak_without_garak_installed_gives_install_hint(monkeypatch):
     monkeypatch.setenv("OPENAICOMPATIBLE_API_KEY", "synthetic-key")
     with (
         patch("subprocess.Popen", side_effect=FileNotFoundError("garak")),
-        pytest.raises(RuntimeError, match=r"interplay-adversarial\[red-teaming,garak\]"),
+        pytest.raises(RuntimeError, match=r"interplay-adversarial\[garak\]"),
     ):
         run_garak("http://localhost/v1", "test.Test")

@@ -18,6 +18,8 @@ from pathlib import Path
 from ..assessment.models import ModelEndpoint
 from ..assessment.runner import redact
 
+_GARAK_MISSING_HINT = "Install the scanner: pip install 'interplay-adversarial[garak]'"
+
 
 def run_garak(
     target_url: str,
@@ -81,9 +83,7 @@ def run_garak(
                 cmd, stdout=stdout, stderr=stderr, env=env, start_new_session=True, cwd=root
             )
         except FileNotFoundError as exc:
-            raise RuntimeError(
-                "Install scanner in an isolated environment: pip install 'interplay-adversarial[red-teaming,garak]'"
-            ) from exc
+            raise RuntimeError(_GARAK_MISSING_HINT) from exc
         deadline = time.monotonic() + campaign_seconds
         try:
             while process.poll() is None:
