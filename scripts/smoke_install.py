@@ -247,7 +247,8 @@ def main() -> int:
             [
                 s.bin("python"),
                 "-c",
-                "from interplay.red_teaming import run_garak; run_garak('http://localhost/v1','p')",
+                "from interplay.red_teaming import run_garak; "
+                "run_garak('http://localhost/v1','p',api_key='synthetic-key')",
             ]
         )
         s.check(
