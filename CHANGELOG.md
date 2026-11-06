@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `data-designer` is capped at `<0.11` (floors unchanged: `>=0.9.4`, and `>=0.9.5` for the `assessment` extra), and `uv.lock` and CI move from 0.9.5 to 0.10.0. The full test suite passes unchanged on 0.10.0. **Compatibility:** Data Designer 0.10 itself requires `pillow>=13,<14`, so an environment that must keep Pillow below 13 stays on Data Designer 0.9.x, which the unchanged floors still allow. The `validate.yml` install is capped the same way so it cannot move to an untested major.
+
+### Fixed
+- `interplay assess` (and the `tests` CI job) failed with `DataDesignerProfilingError: float() argument must be a string or a real number, not 'NAType'` on pandas 3.1.x: Data Designer 0.10.0 allows `pandas<4` but its dataset profiler breaks on 3.1, and the judge step then reports `judge-failed`. `pandas` is capped at `<3.1` until a Data Designer release handles it. **Compatibility:** an environment that needs pandas 3.1 alongside Interplay must wait for that release; pandas 2.2 to 3.0 keep working, and the lock already used 3.0.6.
+
+### Security
+- The isolated `red-teaming,garak` audit (`garak-qualification`) was failing on the locked versions. Refreshed `uv.lock`: Pillow 12.3.0 to 13.0.0 and OpenTelemetry 1.43 to 1.45 (both arrive with Data Designer 0.10), `pyasn1` 0.6.4 to 0.6.5, `setuptools` 84.0.0 to 84.2.1 and `filelock` 3.32.7 to 4.2.9. `filelock` 4 needed `together` and `litellm` to move *down* in the lock (`together` 2.40.0 to 2.36.0, `litellm` 1.105.0 to 1.103.10) because `together` 2.40.0 requires `filelock<4`; the audit of the `providers`/`all`/`assessment` profiles finds no advisory in either. This only affects the lock and CI. Installs through `pip` keep resolving from the unpinned ranges in `pyproject.toml`.
+
 ## [0.4.2] - 2026-10-17
 
 ### Added
