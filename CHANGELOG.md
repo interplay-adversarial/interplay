@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- A probe quality gate (`interplay/probe_quality.py`) on every probe-generation mode. For rows whose `target_language` is not English, an MQM-style audit counts language-quality errors by severity (`translation_audit`), the score is computed from those counts (`translation_mqm_score`: 100 minus 25 per critical, 5 per major, 1 per minor error), and a row below 80 or judged to be in the wrong language gets one rewrite (`probe_rewrite`) that is audited again (`rewrite_audit`, `rewrite_mqm_score`). The rewrite replaces the original only if it scores strictly higher. `final_probe` is the probe to use, with `final_mqm_score` and `rewrite_applied`; `probe_text` keeps the original probe next to it. The pattern follows the translate/evaluate/self-correct loop of NVIDIA's `data-designer-nemotron-indic-translation` plugin, built from public Data Designer columns.
+- `probe_quality_score` now carries five dimensions instead of one: `quality` (unchanged), `mode_consistency`, `category_fit`, `premise_leakage` and `self_sufficiency`. It scores `final_probe`. A new `probe_accepted` flag is true when every dimension meets its minimum and, for non-English rows, the translation gate passes. Rows are never dropped; filtering stays with the caller.
+- `PROBE_JUDGE_ALIAS` selects a different model alias for the audit, rewrite and judge (default: the generator's `cultural-bias-model`, which grades its own output). `PROBE_TRANSLATION_AUDIT=0` skips the audit and rewrite calls.
+- `examples/diverse_dataset.py` exports `final_probe` and `probe_accepted`, and takes `--accepted-only`.
+
+### Changed
+- **Output change:** `concept_definition` now stays in the generated dataset (the `cleanup` processor that dropped it is removed). The probe and judge prompts read it, and Data Designer's profiler re-renders each prompt against the final dataset, so dropping it made the profiler log "Error during column profile calculation" for every LLM column and lose its input-token statistics. `PROBE_DROP_CONCEPT_DEFINITION=1` restores the previous output and accepts those warnings.
+- `PROBE_JUDGE_LEVEL=basic` keeps the judge to the single `quality` dimension the pipeline scored before the gate (default `full`, five dimensions). A judge model that fails its structured output makes Data Designer drop the row without an error, so a weaker judge model needs the shorter rubric.
+- See "Upgrading" in `docs/probe-generation.md` for each change, who it affects and how to keep working.
+
+### Fixed
+- Adversarial probes now honor `target_language`. The adversarial template never referenced it and its system prompt said "always write in English", so regional-language adversarial probes were written in English while being labelled with another language. They are now asked to write in the target language and return an `english_translation`, as benign probes already did. **Behavior change:** datasets generated before this fix contain English text for those rows. Only the Singapore categories (`singapore`, `combined`) and comparison specs that list non-English languages are affected; `sdg-hub-harm` and the built-in comparison specs are English-only. `adversarial_probe.english_translation` carries the English text.
+
 ## [0.4.2] - 2026-10-17
 
 ### Added
