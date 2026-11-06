@@ -27,7 +27,10 @@ dependencies = [
     "data-designer>=0.9.4,<0.11",
     "pydantic>=2.0",
     "numpy>=2.0",
-    "pandas>=2.2",
+    # Data Designer 0.10.0 allows pandas<4 but its dataset profiler raises "float() argument must be ...
+    # not 'NAType'" on pandas 3.1.x (DataDesignerProfilingError), which fails `interplay assess`.
+    # Lift this cap once a Data Designer release handles pandas 3.1.
+    "pandas>=2.2,<3.1",
     "python-dotenv>=1.0",
     "pyyaml>=6.0",
 ]

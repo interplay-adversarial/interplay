@@ -311,8 +311,7 @@ all = [
     { name = "anthropic", extra = ["vertex"], marker = "extra == 'extra-21-interplay-adversarial-all' or extra == 'extra-21-interplay-adversarial-assessment' or extra != 'extra-21-interplay-adversarial-garak' or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
     { name = "any-llm-platform-client" },
     { name = "azure-ai-inference" },
-    { name = "boto3", version = "1.43.111", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version != '3.13.*' and extra == 'extra-21-interplay-adversarial-providers') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-all') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-assessment') or (python_full_version == '3.13.*' and extra != 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-    { name = "boto3", version = "1.43.125", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version != '3.13.*' and extra == 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-providers') or (python_full_version != '3.13.*' and extra == 'extra-21-interplay-adversarial-assessment' and extra != 'extra-21-interplay-adversarial-providers') or (python_full_version != '3.13.*' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
+    { name = "boto3" },
     { name = "cerebras-cloud-sdk" },
     { name = "cohere" },
     { name = "google-cloud-storage" },
@@ -436,53 +435,13 @@ wheels = [
 
 [[package]]
 name = "boto3"
-version = "1.43.111"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.14' and sys_platform == 'win32'",
-    "python_full_version >= '3.14' and sys_platform == 'emscripten'",
-    "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-    "python_full_version == '3.13.*' and sys_platform == 'win32'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-    "python_full_version < '3.13' and sys_platform == 'win32'",
-    "python_full_version < '3.13' and sys_platform == 'emscripten'",
-    "python_full_version < '3.13' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
-dependencies = [
-    { name = "botocore", version = "1.43.111", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version != '3.13.*' and extra == 'extra-21-interplay-adversarial-providers') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-all') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-assessment') or (python_full_version == '3.13.*' and extra != 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-    { name = "jmespath", version = "1.0.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.13' and extra == 'extra-21-interplay-adversarial-providers') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-all') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-assessment') or (python_full_version == '3.13.*' and extra != 'extra-21-interplay-adversarial-garak') or (python_full_version < '3.13' and extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version < '3.13' and extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-    { name = "jmespath", version = "1.1.0", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak')" },
-    { name = "s3transfer", marker = "(python_full_version != '3.13.*' and extra == 'extra-21-interplay-adversarial-providers') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-all') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-assessment') or (python_full_version == '3.13.*' and extra != 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/59/d3/fa092ae1c109100d0c5c14c69a316cd6d53c05fb57183fa77b1fcdef86ce/boto3-1.43.111.tar.gz", hash = "sha256:5ae342a16c848909cd42d4be404f69d9082e5705460198d4d3327eca5f6cddcb", size = 112656, upload-time = "2026-10-09T19:27:48.995Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/3b/bca42f8f7b76e567c66cc39bacc6bf31b353c9edfbb0fb1f5c534fc65369/boto3-1.43.111-py3-none-any.whl", hash = "sha256:c79994619c8d89e45f6fd0edc5c5b5a70c9358f00423f4c99cb64931f89ecf37", size = 140042, upload-time = "2026-10-09T19:27:47.599Z" },
-]
-
-[[package]]
-name = "boto3"
 version = "1.43.125"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.14' and sys_platform == 'win32' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version >= '3.14' and sys_platform == 'emscripten' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version >= '3.14' and sys_platform == 'win32' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version >= '3.14' and sys_platform == 'emscripten' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.13' and sys_platform == 'win32' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.13' and sys_platform == 'emscripten' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.13' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-]
 dependencies = [
-    { name = "botocore", version = "1.43.125", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version != '3.13.*' and extra != 'extra-21-interplay-adversarial-providers') or extra == 'extra-21-interplay-adversarial-garak'" },
-    { name = "jmespath", version = "1.0.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.13' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version < '3.13' and extra != 'extra-21-interplay-adversarial-providers') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-    { name = "jmespath", version = "1.1.0", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra != 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-    { name = "s3transfer", marker = "(python_full_version != '3.13.*' and extra != 'extra-21-interplay-adversarial-providers') or extra == 'extra-21-interplay-adversarial-garak'" },
+    { name = "botocore" },
+    { name = "jmespath", version = "1.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14' or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
+    { name = "jmespath", version = "1.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14' or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
+    { name = "s3transfer" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f2/c2/9285c749ca49c213ad90aa239884d0c5cbbdc58f02c4c44bcc4a3bf59023/boto3-1.43.125.tar.gz", hash = "sha256:5a635a0fbbd51f319e465b809cf043668705defbb9dddaf26ae66747f70b2a49", size = 112651, upload-time = "2026-11-05T20:24:13.843Z" }
 wheels = [
@@ -491,53 +450,13 @@ wheels = [
 
 [[package]]
 name = "botocore"
-version = "1.43.111"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.14' and sys_platform == 'win32'",
-    "python_full_version >= '3.14' and sys_platform == 'emscripten'",
-    "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-    "python_full_version == '3.13.*' and sys_platform == 'win32'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-    "python_full_version < '3.13' and sys_platform == 'win32'",
-    "python_full_version < '3.13' and sys_platform == 'emscripten'",
-    "python_full_version < '3.13' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-]
-dependencies = [
-    { name = "jmespath", version = "1.0.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.13' and extra == 'extra-21-interplay-adversarial-providers') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-all') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-assessment') or (python_full_version == '3.13.*' and extra != 'extra-21-interplay-adversarial-garak') or (python_full_version < '3.13' and extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version < '3.13' and extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-    { name = "jmespath", version = "1.1.0", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak')" },
-    { name = "python-dateutil", marker = "(python_full_version != '3.13.*' and extra == 'extra-21-interplay-adversarial-providers') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-all') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-assessment') or (python_full_version == '3.13.*' and extra != 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-    { name = "urllib3", marker = "(python_full_version != '3.13.*' and extra == 'extra-21-interplay-adversarial-providers') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-all') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-assessment') or (python_full_version == '3.13.*' and extra != 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/6c/43/257e97270ddd6833fd54b11e544a09b441b02f8c731bdeb29b90479be565/botocore-1.43.111.tar.gz", hash = "sha256:44d5e80962ac6cb9e85af72667b77c9586451e3328ab0ce33195380767e213d8", size = 16321685, upload-time = "2026-10-09T19:27:44.19Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ad/5b/c3ce1b227954eb0313e76e6e7c0b5b24d4c553f0e8a03e5828ff5a5918dc/botocore-1.43.111-py3-none-any.whl", hash = "sha256:f1f4c28cb2a096bf246d0bb24cbb1a01c5cb696ef499fa71b155adda7b94c90b", size = 16018923, upload-time = "2026-10-09T19:27:40.066Z" },
-]
-
-[[package]]
-name = "botocore"
 version = "1.43.125"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.14' and sys_platform == 'win32' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version >= '3.14' and sys_platform == 'emscripten' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version >= '3.14' and sys_platform == 'win32' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version >= '3.14' and sys_platform == 'emscripten' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-21-interplay-adversarial-all' and extra != 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.13' and sys_platform == 'win32' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.13' and sys_platform == 'emscripten' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-    "python_full_version < '3.13' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-21-interplay-adversarial-garak' and extra != 'extra-21-interplay-adversarial-providers'",
-]
 dependencies = [
-    { name = "jmespath", version = "1.0.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.13' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version < '3.13' and extra != 'extra-21-interplay-adversarial-providers') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-    { name = "jmespath", version = "1.1.0", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.14' and extra == 'extra-21-interplay-adversarial-garak') or (python_full_version >= '3.14' and extra != 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-    { name = "python-dateutil", marker = "(python_full_version != '3.13.*' and extra != 'extra-21-interplay-adversarial-providers') or extra == 'extra-21-interplay-adversarial-garak'" },
-    { name = "urllib3", marker = "(python_full_version != '3.13.*' and extra != 'extra-21-interplay-adversarial-providers') or extra == 'extra-21-interplay-adversarial-garak'" },
+    { name = "jmespath", version = "1.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14' or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
+    { name = "jmespath", version = "1.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14' or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
+    { name = "python-dateutil" },
+    { name = "urllib3" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ad/57/6d638614c940c73a750b8a4203989b3edbde5ff7f83cd9031e65cb97d69b/botocore-1.43.125.tar.gz", hash = "sha256:e3ae5ebbfa8033015958a9cb16cef67a0592902ca8afb46ef06e8ae77475183f", size = 16520959, upload-time = "2026-11-05T20:24:08.59Z" }
 wheels = [
@@ -1582,7 +1501,7 @@ dependencies = [
     { name = "anthropic" },
     { name = "avidtools" },
     { name = "backoff" },
-    { name = "boto3", version = "1.43.125", source = { registry = "https://pypi.org/simple" } },
+    { name = "boto3" },
     { name = "cmd2" },
     { name = "cohere" },
     { name = "colorama" },
@@ -2342,7 +2261,7 @@ requires-dist = [
     { name = "judge-kappa", marker = "extra == 'dev'", specifier = ">=0.4.0" },
     { name = "judge-kappa", marker = "extra == 'red-teaming'", specifier = ">=0.4.0" },
     { name = "numpy", specifier = ">=2.0" },
-    { name = "pandas", specifier = ">=2.2" },
+    { name = "pandas", specifier = ">=2.2,<3.1" },
     { name = "pillow", marker = "extra == 'all'", specifier = ">=10.0" },
     { name = "pillow", marker = "extra == 'dev'", specifier = ">=10.0" },
     { name = "pillow", marker = "extra == 'multimodal'", specifier = ">=10.0" },
@@ -2863,7 +2782,7 @@ version = "1.103.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
-    { name = "boto3", version = "1.43.125", source = { registry = "https://pypi.org/simple" } },
+    { name = "boto3" },
     { name = "certifi" },
     { name = "click" },
     { name = "fastuuid" },
@@ -5563,8 +5482,7 @@ name = "s3transfer"
 version = "0.19.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "botocore", version = "1.43.111", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version != '3.13.*' and extra == 'extra-21-interplay-adversarial-providers') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-all') or (python_full_version == '3.13.*' and extra == 'extra-21-interplay-adversarial-assessment') or (python_full_version == '3.13.*' and extra != 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-all' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-garak') or (extra == 'extra-21-interplay-adversarial-assessment' and extra == 'extra-21-interplay-adversarial-providers') or (extra == 'extra-21-interplay-adversarial-garak' and extra == 'extra-21-interplay-adversarial-providers')" },
-    { name = "botocore", version = "1.43.125", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version != '3.13.*' and extra != 'extra-21-interplay-adversarial-providers') or extra == 'extra-21-interplay-adversarial-garak'" },
+    { name = "botocore" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/76/43/35e4d8aa320bffe8287fe8f65f578fa2d2db0a64212f0e710dce58267854/s3transfer-0.19.2.tar.gz", hash = "sha256:ba0309fd86be3c27dbf78cdd813c13c5e1df16e5874b99d2535ebbdfb9892993", size = 165592, upload-time = "2026-07-22T19:30:44.432Z" }
 wheels = [
