@@ -24,7 +24,7 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "data-designer>=0.9.4",
+    "data-designer>=0.9.4,<0.11",
     "pydantic>=2.0",
     "numpy>=2.0",
     "pandas>=2.2",
@@ -37,7 +37,7 @@ interplay = "interplay.cli:main"
 
 [project.optional-dependencies]
 assessment = [
-    "data-designer>=0.9.5",
+    "data-designer>=0.9.5,<0.11",
     "any-llm-sdk>=1.33",
 ]
 dev = [
