@@ -8,18 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - A probe quality gate (`interplay/probe_quality.py`) on every probe-generation mode. For rows whose `target_language` is not English, an MQM-style audit counts language-quality errors by severity (`translation_audit`), the score is computed from those counts (`translation_mqm_score`: 100 minus 25 per critical, 5 per major, 1 per minor error), and a row below 80 or judged to be in the wrong language gets one rewrite (`probe_rewrite`) that is audited again (`rewrite_audit`, `rewrite_mqm_score`). The rewrite replaces the original if it scores strictly higher, or if it passes the gate and the original does not. `final_probe` is the probe to use, with `final_mqm_score` and `rewrite_applied`; `probe_text` keeps the original probe next to it. The pattern follows the translate/evaluate/self-correct loop of NVIDIA's `data-designer-nemotron-indic-translation` plugin, built from public Data Designer columns.
 - `probe_quality_score` now carries five dimensions instead of one: `quality` (unchanged), `mode_consistency`, `category_fit`, `premise_leakage` and `self_sufficiency`. It scores `final_probe`. A new `probe_accepted` flag is true when every dimension meets its minimum and, for non-English rows, the translation gate passes. Rows are never dropped; filtering stays with the caller.
 - `PROBE_JUDGE_ALIAS` selects a different model alias for the audit, rewrite and judge (default: the generator's `cultural-bias-model`, which grades its own output). `PROBE_TRANSLATION_AUDIT=0` skips the audit and rewrite calls.
 - `examples/diverse_dataset.py` exports `final_probe` and `probe_accepted`, and takes `--accepted-only`.
 
 ### Changed
+
 - **Output change:** `concept_definition` now stays in the generated dataset (the `cleanup` processor that dropped it is removed). The probe and judge prompts read it, and Data Designer's profiler re-renders each prompt against the final dataset, so dropping it made the profiler log "Error during column profile calculation" for every LLM column and lose its input-token statistics. `PROBE_DROP_CONCEPT_DEFINITION=1` restores the previous output and accepts those warnings.
 - `PROBE_JUDGE_LEVEL=basic` keeps the judge to the single `quality` dimension the pipeline scored before the gate (default `full`, five dimensions). A judge model that fails its structured output makes Data Designer drop the row without an error, so a weaker judge model needs the shorter rubric.
 - See "Upgrading" in `docs/probe-generation.md` for each change, who it affects and how to keep working.
+- `data-designer` is capped at `<0.11` (floors unchanged: `>=0.9.4`, and `>=0.9.5` for the `assessment` extra), and `uv.lock` and CI move from 0.9.5 to 0.10.0. The full test suite passes unchanged on 0.10.0. **Compatibility:** Data Designer 0.10 itself requires `pillow>=13,<14`, so an environment that must keep Pillow below 13 stays on Data Designer 0.9.x, which the unchanged floors still allow. The `validate.yml` install is capped the same way so it cannot move to an untested major.
 
 ### Fixed
+
 - Adversarial probes now honor `target_language`. The adversarial template never referenced it and its system prompt said "always write in English", so regional-language adversarial probes were written in English while being labelled with another language. They are now asked to write in the target language and return an `english_translation`, as benign probes already did. **Behavior change:** datasets generated before this fix contain English text for those rows. Only the Singapore categories (`singapore`, `combined`) and comparison specs that list non-English languages are affected; `sdg-hub-harm` and the built-in comparison specs are English-only. `adversarial_probe.english_translation` carries the English text.
+- `interplay assess` (and the `tests` CI job) failed with `DataDesignerProfilingError: float() argument must be a string or a real number, not 'NAType'` on pandas 3.1.x: Data Designer 0.10.0 allows `pandas<4` but its dataset profiler breaks on 3.1, and the judge step then reports `judge-failed`. `pandas` is capped at `<3.1` until a Data Designer release handles it. **Compatibility:** an environment that needs pandas 3.1 alongside Interplay must wait for that release; pandas 2.2 to 3.0 keep working, and the lock already used 3.0.6.
+
+### Security
+
+- The isolated `red-teaming,garak` audit (`garak-qualification`) was failing on the locked versions. Refreshed `uv.lock`: Pillow 12.3.0 to 13.0.0 and OpenTelemetry 1.43 to 1.45 (both arrive with Data Designer 0.10), `pyasn1` 0.6.4 to 0.6.5, `setuptools` 84.0.0 to 84.2.1 and `filelock` 3.32.7 to 4.2.9. `filelock` 4 needed `together` and `litellm` to move *down* in the lock (`together` 2.40.0 to 2.36.0, `litellm` 1.105.0 to 1.103.10) because `together` 2.40.0 requires `filelock<4`; the audit of the `providers`/`all`/`assessment` profiles finds no advisory in either. This only affects the lock and CI. Installs through `pip` keep resolving from the unpinned ranges in `pyproject.toml`.
 
 ## [0.4.2] - 2026-10-17
 

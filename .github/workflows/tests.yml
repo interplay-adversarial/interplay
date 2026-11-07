@@ -92,7 +92,7 @@ jobs:
       - name: Install the project and the test dependencies
         run: pip install -e ".[dev]"
       - name: Audit dependencies for known vulnerabilities
-        # DataDesigner 0.9.5 requires patched fsspec>=2026.6.0; no advisory suppression.
+        # DataDesigner >=0.9.5 requires patched fsspec>=2026.6.0; no advisory suppression.
         run: pip-audit --skip-editable --progress-spinner off
 
   garak-qualification:

@@ -60,8 +60,10 @@ HTTPS is required except for local HTTP fixtures. Optional `operator_revision`,
 `request_seconds` (1–120), `max_tokens` (64–4096) and `temperature` (0–2) are retained.
 `--validate` checks configuration without model calls or credentials.
 
-The assessment extra requires DataDesigner 0.9.5, whose engine permits patched
-fsspec. It cannot share an environment with Garak's older dependency constraints;
+The assessment extra requires DataDesigner 0.9.5 or later (below 0.11), whose engine
+permits patched fsspec; CI and `uv.lock` run 0.10.0. DataDesigner 0.10 itself requires
+Pillow 13, so an environment that pins Pillow below 13 must stay on DataDesigner 0.9.x.
+It cannot share an environment with Garak's older dependency constraints;
 use a separate Garak installation. Existing cultural pipelines and attack runners
 remain available through their original interfaces.
 
