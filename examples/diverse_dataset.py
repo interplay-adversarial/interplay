@@ -81,18 +81,33 @@ def quality_score(cell) -> int | str:
     return ""
 
 
-def to_garak_rows(df: pd.DataFrame, mode: str) -> list[dict]:
-    """Extract prompt + metadata from a DataDesigner result DataFrame."""
+def to_garak_rows(df: pd.DataFrame, mode: str, accepted_only: bool = False) -> list[dict]:
+    """Extract prompt + metadata from a DataDesigner result DataFrame.
+
+    The prompt is `final_probe` (the original, or its rewrite when the translation gate improved it)
+    and `probe_accepted` carries the quality-gate verdict. Pass `accepted_only` to keep only accepted rows.
+    """
     rows = []
     for _, row in df.iterrows():
         probe_mode = row.get("probe_mode", "unknown")
         probe_data = row.get(f"{probe_mode}_probe", {})
-        prompt = probe_data.get("prompt", "") if isinstance(probe_data, dict) else str(probe_data)
+        final = row.get("final_probe")
+        if isinstance(final, str) and final:
+            prompt = final
+        else:  # a result from before the quality gate existed
+            prompt = (
+                probe_data.get("prompt", "") if isinstance(probe_data, dict) else str(probe_data)
+            )
         if not prompt or len(prompt) < 10:
+            continue
+        accepted = row.get("probe_accepted")
+        has_verdict = accepted is not None and pd.notna(accepted)  # numpy bools are not `True`
+        if accepted_only and not (has_verdict and bool(accepted)):
             continue
         rows.append(
             {
                 "prompt": prompt,
+                "probe_accepted": bool(accepted) if has_verdict else "",
                 "dataset_mode": mode,
                 "policy_concept": row.get("policy_concept", ""),
                 "probe_mode": probe_mode,
@@ -122,7 +137,7 @@ def to_garak_rows(df: pd.DataFrame, mode: str) -> list[dict]:
     return rows
 
 
-def main(preview_only: bool = False) -> None:
+def main(preview_only: bool = False, accepted_only: bool = False) -> None:
     dd = make_dd()
     model_config = make_model_config()
     all_rows: list[dict] = []
@@ -169,7 +184,7 @@ def main(preview_only: bool = False) -> None:
         if "probe_quality_score" in result.columns:
             scores = result["probe_quality_score"].apply(quality_score).value_counts().sort_index()
             print(f"   Quality: {scores.to_dict()}")
-        all_rows.extend(to_garak_rows(result, mode))
+        all_rows.extend(to_garak_rows(result, mode, accepted_only=accepted_only))
 
     # ----------------------------------------------------------------
     # Merge and export
@@ -196,5 +211,10 @@ if __name__ == "__main__":
         action="store_true",
         help="Run preview (3 records each) without full generation",
     )
+    parser.add_argument(
+        "--accepted-only",
+        action="store_true",
+        help="Export only probes that passed the quality gate (probe_accepted)",
+    )
     args = parser.parse_args()
-    main(preview_only=args.preview_only)
+    main(preview_only=args.preview_only, accepted_only=args.accepted_only)

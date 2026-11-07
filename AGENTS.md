@@ -19,6 +19,7 @@ Both modes produce adversarial + benign probes in a single DataDesigner run via 
 pipeline.py          # thin shim for `data-designer ... pipeline.py` from a clone (imports interplay/pipeline.py)
 interplay/           # the installable package (distribution name: interplay-adversarial)
   pipeline.py        # DataDesigner pipeline — load_config_builder() is the data-designer entry point
+  probe_quality.py   # quality gate: translation audit/rewrite (non-English rows) + validity judge + probe_accepted
   cli.py             # `interplay` command: modes, pipeline-path, probes validate|preview|create
   specs/
     __init__.py      # load_spec(slug) + list_specs()
@@ -87,6 +88,17 @@ See `interplay/specs/CONTRIBUTING.md` for the full spec template and requirement
   (DataDesigner structured output degrades with nested schemas)
 - `generator_params` in `CustomColumnConfig` is the correct way to pass runtime data
   to generators — never use closures or global state
+- Put arithmetic and selection in custom column generators, not Jinja `ExpressionColumnConfig`.
+  Data Designer rejects templates deeper than 10 AST levels, and an expression column silently
+  *drops the row* when it renders empty or fails (logged, not raised). Jinja is for prompts.
+- A column that reads both `adversarial_probe` and `benign_probe` needs `propagate_skip=False`:
+  exactly one of them is always skipped, and skips propagate to dependents by default.
+- `required_columns` on a custom generator is static: if a column may not exist in some
+  configuration, use a separate function for that configuration.
+- Tests that run the pipeline must assert the row count: dropped rows do not raise.
+- Do not drop (`drop=True`, `DropColumnsProcessorConfig`) a column that a prompt reads. Data Designer's
+  profiler re-renders prompts against the final dataset and logs "Error during column profile calculation"
+  for each dependent column; `run_pipeline` in `tests/test_probe_quality.py` fails on it.
 
 ## What NOT to do
 
