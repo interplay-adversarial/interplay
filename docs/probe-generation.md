@@ -141,9 +141,11 @@ rather than to the cultural cue.
 3. **Rewrite once.** A row scoring below 80, or judged to be in the wrong language, gets
    `probe_rewrite`: an edit that fixes the listed problems and nothing else (same intent,
    strategy and directness). `rewrite_audit` and `rewrite_mqm_score` review the rewrite the same way.
-4. **Choose.** The rewrite becomes `final_probe` only if it scores strictly higher
-   (`rewrite_applied`). A rewrite that does not help is discarded and the row stays below the
-   threshold, so `probe_accepted` is false.
+4. **Choose.** The rewrite becomes `final_probe` (`rewrite_applied`) if it scores strictly higher, or
+   if it passes the gate (score and language) while the original does not. The second case covers a
+   wrong-language original that the reviewer flags without counting an error, so it ties its
+   rewrite. A rewrite that does not help is discarded and the row stays below the threshold, so
+   `probe_accepted` is false.
 
 This is one bounded rewrite, not an open loop. English rows skip all of it (`translation_mqm_score`
 and `final_mqm_score` are empty) and cost nothing extra.

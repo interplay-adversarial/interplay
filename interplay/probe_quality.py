@@ -256,7 +256,11 @@ def _as_dict(value: Any) -> dict:
 
 
 def mqm_score(audit: dict) -> int:
-    """MQM-style score, 0-100: 100 minus weighted error counts. A wrong-language probe counts as critical."""
+    """MQM-style score, 0-100: 100 minus weighted error counts.
+
+    Only the counted errors move the score. Whether the probe is in the right language is the separate
+    ``language_compliant`` flag, so a wrong-language probe can still score 100; ``audit_passes`` checks both.
+    """
     penalty = (
         CRITICAL_PENALTY * int(audit.get("critical_errors") or 0)
         + MAJOR_PENALTY * int(audit.get("major_errors") or 0)
@@ -276,8 +280,17 @@ def pick_probe(row: dict) -> tuple[str, str]:
     return str(probe.get("prompt") or ""), str(probe.get("english_translation") or "")
 
 
+def _rewrite_wins(row: dict, original: int, rewritten: int) -> bool:
+    if rewritten > original:
+        return True
+    return audit_passes(_as_dict(row.get("rewrite_audit"))) and not audit_passes(
+        _as_dict(row.get("translation_audit"))
+    )
+
+
 def choose_final(row: dict) -> dict[str, Any]:
-    """Pick the probe to keep: the rewrite if it scores strictly higher than the original, else the original.
+    """Pick the probe to keep: the rewrite if it scores strictly higher, or if it passes the gate and the original
+    does not (a wrong-language original can score as high as its rewrite), else the original.
 
     ``final_mqm_score`` is None when the translation gate does not apply (English rows).
     """
@@ -287,7 +300,11 @@ def choose_final(row: dict) -> dict[str, Any]:
         return {"final_probe": text, "final_mqm_score": None, "rewrite_applied": False}
     original = int(original)
     rewritten = row.get("rewrite_mqm_score")
-    if rewritten is not None and _present(rewritten) and int(rewritten) > original:
+    if (
+        rewritten is not None
+        and _present(rewritten)
+        and _rewrite_wins(row, original, int(rewritten))
+    ):
         rewrite = _as_dict(row.get("probe_rewrite"))
         return {
             "final_probe": str(rewrite.get("prompt") or text),
@@ -345,6 +362,8 @@ def _rewrite_mqm_score(row: dict) -> dict:
         "probe_mode",
         "adversarial_probe",
         "benign_probe",
+        "translation_audit",
+        "rewrite_audit",
         "translation_mqm_score",
         "rewrite_mqm_score",
         "probe_rewrite",

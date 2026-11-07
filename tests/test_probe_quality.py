@@ -163,6 +163,32 @@ def test_an_equal_or_worse_rewrite_is_discarded(rewritten):
     assert result == {"final_probe": "ORIGINAL", "final_mqm_score": 70, "rewrite_applied": False}
 
 
+PASSING = {"language_compliant": True, "critical_errors": 0, "major_errors": 0, "minor_errors": 0}
+WRONG_LANGUAGE = {**PASSING, "language_compliant": False}
+
+
+def test_a_compliant_rewrite_replaces_a_wrong_language_original_with_the_same_score():
+    # The reviewer can flag the wrong language without counting an error, so both score 100.
+    row = final_row(100, 100, translation_audit=WRONG_LANGUAGE, rewrite_audit=PASSING)
+    assert pq.choose_final(row) == {
+        "final_probe": "REWRITE",
+        "final_mqm_score": 100,
+        "rewrite_applied": True,
+    }
+
+
+def test_a_compliant_rewrite_wins_even_with_a_lower_score_than_a_wrong_language_original():
+    row = final_row(
+        100, 90, translation_audit=WRONG_LANGUAGE, rewrite_audit={**PASSING, "minor_errors": 10}
+    )
+    assert pq.choose_final(row)["rewrite_applied"] is True
+
+
+def test_an_equal_score_rewrite_that_is_still_wrong_language_is_discarded():
+    row = final_row(100, 100, translation_audit=WRONG_LANGUAGE, rewrite_audit=WRONG_LANGUAGE)
+    assert pq.choose_final(row)["rewrite_applied"] is False
+
+
 def test_a_better_score_with_an_empty_rewrite_falls_back_to_the_original_text():
     row = final_row(70, 90)
     row["probe_rewrite"] = {"prompt": ""}
