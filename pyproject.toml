@@ -33,6 +33,10 @@ dependencies = [
     "pandas>=2.2,<3.1",
     "python-dotenv>=1.0",
     "pyyaml>=6.0",
+    # Data Designer's CLI (run by `interplay probes create`) fails on typer 0.29.0+ with
+    # "Option() got an unexpected keyword argument 'click_type'". Lift this cap once a Data Designer
+    # release supports it.
+    "typer>=0.12,<0.29",
 ]
 
 [project.scripts]
