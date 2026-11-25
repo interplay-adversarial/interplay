@@ -41,37 +41,9 @@ PINNED_KEY_PACKAGES = ("garak", "datasets", "fsspec", "nltk", "data-designer")
 # Explicitly dispositioned advisories, keyed by (package, advisory ID).
 # Each record must be re-verified whenever the pinned version of the package
 # changes; a blanket "ignore everything" is deliberately not representable.
-DISPOSITIONED_ADVISORIES = {
-    ("nltk", "PYSEC-2026-3740"): {
-        "aliases": ["CVE-2026-81726", "GHSA-8mgp-746c-j5xp"],
-        "status": "explicit-disposition-not-applicable",
-        "no_fixed_release": True,
-        "verified_against": "3.10.3",
-        "rationale": (
-            "The advisory (file-sandbox bypass in NLTK model-artifact APIs) "
-            "covers TransitionParser.train/parse, AveragedPerceptron.save/load, "
-            "PerceptronTagger.save_to_json and save_maxent_params, and requires "
-            "pathsec enforcement plus untrusted workflows choosing model "
-            "import/export paths. Garak uses nltk only for corpus access "
-            "(stopwords, wordnet, words), word_tokenize, the default POS "
-            "tagger (a fixed internal resource loaded through the pathsec-aware "
-            "data loader), jaro_winkler_similarity and corpus download; neither "
-            "Garak nor interplay references the vulnerable APIs or enables "
-            "pathsec."
-        ),
-        "upstream_evidence": [
-            "https://github.com/advisories/GHSA-8mgp-746c-j5xp",
-            "https://github.com/nltk/nltk/issues/3826",
-        ],
-        "verified_garak_version": "0.17.1",
-        "vulnerable_apis": [
-            "TransitionParser",
-            "AveragedPerceptron",
-            "PerceptronTagger",
-            "save_maxent_params",
-        ],
-    }
-}
+# Empty since NLTK 3.10.4 fixed PYSEC-2026-3740 (the previous disposition was
+# removed rather than kept stale); add a record only for an advisory with no fix.
+DISPOSITIONED_ADVISORIES = {}
 
 
 def require(condition, reason):
