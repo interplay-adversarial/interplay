@@ -8,3 +8,7 @@ updates:
       interval: weekly
     commit-message:
       prefix: "ci"
+    groups:
+      actions-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
