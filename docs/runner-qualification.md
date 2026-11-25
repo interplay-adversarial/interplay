@@ -140,17 +140,12 @@ retains the raw audit output and receipts as artifacts. The `garak` extra
 floor is `0.17.1`, the first Garak release that admits patched
 `datasets>=5.0.1`; the frozen profile now resolves to datasets 5.1.0 and
 fsspec 2026.7.0, clearing PYSEC-2026-3716 (datasets 3.6.0) and
-PYSEC-2026-4217 (fsspec 2025.3.0). NLTK 3.10.3 still reports
+PYSEC-2026-4217 (fsspec 2025.3.0). NLTK 3.10.4 (locked) fixes
 PYSEC-2026-3740 (CVE-2026-81726,
-[GHSA-8mgp-746c-j5xp](https://github.com/advisories/GHSA-8mgp-746c-j5xp)); no
-patched release exists yet (upstream patch tracked in
-[nltk/nltk#3826](https://github.com/nltk/nltk/issues/3826)). The audit
-carries an explicit, version-bound disposition for it: the vulnerable APIs
-(`TransitionParser.train`/`parse`, `AveragedPerceptron` save/load,
-`PerceptronTagger.save_to_json`, `save_maxent_params`) are not reachable from
-Garak 0.17.1, and the audit script re-verifies that by scanning the installed
-Garak source on every run. Any new advisory, a changed NLTK pin or a found
-vulnerable-API reference fails the job. The loopback compatibility pass does
+[GHSA-8mgp-746c-j5xp](https://github.com/advisories/GHSA-8mgp-746c-j5xp)), so
+the audit carries no dispositions: it fails on any advisory and on any stale
+disposition, and an advisory with no upstream fix needs a documented,
+version-bound disposition added to the script. The loopback compatibility pass does
 not establish release-ready scanner qualification; a live scanner run remains
 pending.
 
