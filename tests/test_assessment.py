@@ -327,6 +327,10 @@ def test_native_designer_adversarial_target_judge_and_exports(endpoint, tmp_path
     summary = json.loads(result.stdout)
     assert summary["records"] == 2 and summary["successes"] == 2
     rows = records(out)
+    # The campaign record names the identity the target was actually sent.
+    assert json.loads(rows[0]["provenance_json"])["target_identity"]["headers"] == {
+        "User-Agent": "Interplay-Assessment/1.0"
+    }
     assert all(
         row["generation_trace_json"]
         and row["judge_trace_json"]

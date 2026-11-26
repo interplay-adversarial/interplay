@@ -6,7 +6,16 @@ import re
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
+
+from ..identity import IdentityProfile
 
 
 class StrictModel(BaseModel):
@@ -105,6 +114,18 @@ class ModelEndpoint(StrictModel):
     request_seconds: Annotated[int, Field(ge=1, le=120)] = 30
     max_tokens: Annotated[int, Field(ge=64, le=4096)] = 2048
     temperature: Annotated[float, Field(ge=0, le=2, allow_inf_nan=False)] = 0.0
+    # Request identity for target traffic only; see interplay.identity. None means the
+    # default ``Interplay-Assessment/1.0``. Rejected on adversarial and judge roles.
+    identity: IdentityProfile | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_identity(self, handler):
+        # Unset identity stays out of dumps so manifests and digests built from
+        # ``model_dump()`` before this field existed are unchanged.
+        data = handler(self)
+        if data.get("identity") is None:
+            data.pop("identity", None)
+        return data
 
     @field_validator("base_url")
     @classmethod
@@ -141,6 +162,12 @@ class CampaignConfig(StrictModel):
     target: ModelEndpoint
     judge: ModelEndpoint
     adversarial_model_kind: Literal["abliterated"] = "abliterated"
+
+    @model_validator(mode="after")
+    def identity_is_target_only(self):
+        if self.adversarial.identity is not None or self.judge.identity is not None:
+            raise ValueError("assessment-identity-target-only")
+        return self
 
 
 class AssessmentRecord(StrictModel):

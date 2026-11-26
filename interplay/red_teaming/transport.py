@@ -28,6 +28,7 @@ from ..assessment.judgments import parse_judge_output as _judge_output
 from ..assessment.models import JudgeOutput, ModelEndpoint, Observation, StrictModel
 from ..assessment.runner import evidence_supported, redact
 from ..assessment.storage import AssessmentStore, json_bytes
+from ..identity import resolve_identity
 from ..runner_records import RUNNER_SCHEMA_VERSION, RunnerRecord
 
 RoleName = Literal["attacker", "target", "evaluator", "judge"]
@@ -156,6 +157,7 @@ class AuthenticatedTarget:
         self.endpoint = ModelEndpoint.model_validate(endpoint)
         self.api_key = api_key
         self.capabilities = frozenset(capabilities)
+        self.identity = resolve_identity(self.endpoint.identity)
 
     def request(
         self,
@@ -197,7 +199,7 @@ class AuthenticatedTarget:
             "stream": False,
         }
         end = time.monotonic() + remaining
-        headers = {"Accept-Encoding": "identity"}
+        headers = {**self.identity.headers, "Accept-Encoding": "identity"}
         if self.api_key:
             headers["Authorization"] = "Bearer " + self.api_key
         with (
@@ -591,7 +593,16 @@ def role_provenance(roles: dict[str, ModelEndpoint]) -> str:
     """Record which base_url/model resolved each role; never the credential."""
     return json_bytes(
         {
-            role: {"base_url": endpoint.base_url, "model": endpoint.model}
+            role: {
+                "base_url": endpoint.base_url,
+                "model": endpoint.model,
+                # What the target was sent, not what was configured; never a credential.
+                **(
+                    {"identity": resolve_identity(endpoint.identity).record}
+                    if role == "target"
+                    else {}
+                ),
+            }
             for role, endpoint in roles.items()
         }
     ).decode()

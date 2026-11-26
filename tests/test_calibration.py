@@ -554,6 +554,18 @@ def test_collection_requires_explicit_key_before_output_or_network(tmp_path, inp
     assert not (tmp_path / "collection").exists()
 
 
+def test_collection_rejects_a_request_identity_on_judge_endpoints(tmp_path, inputs, monkeypatch):
+    monkeypatch.setenv("CALIBRATION_TEST_KEY", "synthetic-key")
+    config = collector_config(tmp_path, "http://127.0.0.1:1/v1")
+    value = json.loads(config.read_text())
+    value["judges"][0]["endpoint"]["identity"] = {"mode": "declared"}
+    config.write_text(json.dumps(value))
+    config.chmod(0o600)
+    with pytest.raises(ValueError, match="calibration-identity-unsupported"):
+        collect(tmp_path / "cases.jsonl", config, tmp_path / "collection")
+    assert not (tmp_path / "collection").exists()
+
+
 def test_collection_deadline_retains_error_without_retry(
     tmp_path, inputs, collector_endpoint, monkeypatch
 ):

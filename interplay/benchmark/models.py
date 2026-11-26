@@ -23,6 +23,8 @@ def profile(value):
     if not isinstance(data, dict) or set(data) != {"endpoint", "extra_body_json"}:
         raise ValueError("benchmark-profile-invalid")
     endpoint = ModelEndpoint.model_validate(data["endpoint"])
+    if endpoint.identity is not None:
+        raise ValueError("benchmark-identity-unsupported")
     if endpoint.model is None:
         raise ValueError("benchmark-model-required")
     extra = _json(data["extra_body_json"])

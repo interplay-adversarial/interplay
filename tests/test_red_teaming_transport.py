@@ -120,6 +120,41 @@ async def test_pair_attack_attaches_authorization_to_the_target_only(endpoint):
 
 
 @pytest.mark.asyncio
+async def test_pair_attack_sends_the_target_identity_from_role_endpoints(endpoint):
+    """The runner CLI passes identity through role_endpoints; the target must use it."""
+    from interplay.red_teaming.pair_runner import pair_attack
+
+    base_url, calls = endpoint
+    target = ModelEndpoint(
+        base_url=base_url,
+        model="target-model",
+        identity={"mode": "browser-pool", "id": "pair-check", "entry": "firefox-linux"},
+    )
+    with patch(
+        "any_llm.acompletion",
+        new=AsyncMock(
+            return_value=MagicMock(choices=[MagicMock(message=MagicMock(content="0.0"))])
+        ),
+    ):
+        result = await pair_attack(
+            goal="test goal",
+            target_url=base_url,
+            attacker_model="openai/test",
+            judge_model="openai/test",
+            target_model="target-model",
+            max_queries=1,
+            api_key="target-secret",
+            role_endpoints={"target": target},
+        )
+    assert result.query_count == 1 and len(calls) == 1
+    assert calls[0]["headers"]["User-Agent"].endswith("Firefox/140.0")
+    # With role_endpoints the target credential is the role's own, not the shared api_key.
+    assert calls[0]["headers"]["Authorization"] == "Bearer not-required"
+    provenance = json.loads(result.records[0].role_provenance_json)
+    assert provenance["target"]["identity"]["entry"] == "firefox-linux"
+
+
+@pytest.mark.asyncio
 async def test_pair_attack_retains_prior_trials_on_target_failure_instead_of_raising(endpoint):
     """A malformed/failed target reply on a later iteration must not discard the
     trials already gathered, and must stop the campaign rather than retry."""
@@ -297,7 +332,19 @@ def test_role_provenance_never_includes_credentials():
     provenance = role_provenance(roles)
     assert "secret" not in provenance
     assert json.loads(provenance) == {
-        "target": {"base_url": "https://target.example/v1", "model": "m"}
+        "target": {
+            "base_url": "https://target.example/v1",
+            "model": "m",
+            # The target role also records the request identity it was sent.
+            "identity": {
+                "profile": "interplay-default",
+                "version": 1,
+                "mode": "declared",
+                "pool": None,
+                "entry": None,
+                "headers": {"User-Agent": "Interplay-Assessment/1.0"},
+            },
+        }
     }
 
 

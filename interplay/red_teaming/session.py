@@ -17,7 +17,7 @@ from types import SimpleNamespace
 from typing import Annotated
 from uuid import uuid4
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from ..assessment.models import JudgeOutput, ModelEndpoint, Observation, StrictModel
 from ..assessment.runner import redact
@@ -41,6 +41,12 @@ class JudgeMember(StrictModel):
 
     judge_id: Annotated[str, Field(min_length=1, max_length=200)]
     endpoint: ModelEndpoint
+
+    @model_validator(mode="after")
+    def identity_unsupported(self):
+        if self.endpoint.identity is not None:
+            raise ValueError("runner-identity-target-only")
+        return self
 
 
 def current_session():
@@ -149,6 +155,12 @@ class RunnerSession:
         }
         if any(role not in ("attacker", "target", "evaluator", "judge") for role in self.roles):
             raise ValueError("runner-role-invalid")
+        if any(
+            endpoint.identity is not None
+            for role, (endpoint, _) in self.roles.items()
+            if role != "target"
+        ):
+            raise ValueError("runner-identity-target-only")
         self.judge_members = judge_members
         if judge_members:
             if len(judge_members) > 16 or len({m.judge_id for m in judge_members}) != len(
