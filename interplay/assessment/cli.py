@@ -44,6 +44,7 @@ def main(argv):
             if args.validate:
                 print('{"valid":true,"release_eligible":false}')
                 return 0
+            from ..identity import resolve_identity
             from .designer import DataDesignerBackend
             from .endpoint import OpenAIEndpointTarget
             from .runner import run_assessment
@@ -54,6 +55,7 @@ def main(argv):
             provenance = {
                 "adversarial": adversarial.model_dump(exclude={"api_key_env"}),
                 "target": target.model_dump(exclude={"api_key_env"}),
+                "target_identity": resolve_identity(target.identity).record,
                 "judge": judge.model_dump(exclude={"api_key_env"}),
                 "adversarial_model_kind": "abliterated",
                 "abliteration_attestation": "operator-declared-unverified",

@@ -3,6 +3,7 @@
 import json
 import time
 
+from ..identity import resolve_identity
 from .models import ModelEndpoint, Observation
 from .storage import json_bytes
 
@@ -11,6 +12,7 @@ class OpenAIEndpointTarget:
     def __init__(self, endpoint: ModelEndpoint, *, api_key: str):
         self.endpoint = ModelEndpoint.model_validate(endpoint)
         self.api_key = api_key
+        self.identity = resolve_identity(self.endpoint.identity)
 
     def observe(self, probe, attempt_id, *, deadline):
         import httpx
@@ -32,7 +34,11 @@ class OpenAIEndpointTarget:
                 "POST",
                 self.endpoint.base_url + "/chat/completions",
                 json=request,
-                headers={"Authorization": "Bearer " + self.api_key, "Accept-Encoding": "identity"},
+                headers={
+                    **self.identity.headers,
+                    "Authorization": "Bearer " + self.api_key,
+                    "Accept-Encoding": "identity",
+                },
             ) as response,
         ):
             response.raise_for_status()

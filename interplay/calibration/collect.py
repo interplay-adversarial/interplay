@@ -54,6 +54,8 @@ def collect(cases_path, config_path, output, *, max_cases=5, campaign_seconds=60
             raise ValueError("calibration-collection-config-invalid")
         identity = JudgeIdentity.model_validate(row["identity"])
         endpoint = ModelEndpoint.model_validate(row["endpoint"])
+        if endpoint.identity is not None:
+            raise ValueError("calibration-identity-unsupported")
         if endpoint.model != identity.model:
             raise ValueError("calibration-model-identity-mismatch")
         # Explicit env names only; never inherit ambient provider credentials.

@@ -40,7 +40,7 @@ Keep configuration private (`0600`). Its structure is:
     "api_key_env": "ADVERSARIAL_API_KEY"
   },
   "target": {
-    "base_url": "https://target.example/v1",
+    "base_url": "https://example.com/target/v1",
     "api_key_env": "TARGET_API_KEY"
   },
   "judge": {
@@ -66,6 +66,57 @@ Pillow 13, so an environment that pins Pillow below 13 must stay on DataDesigner
 It cannot share an environment with Garak's older dependency constraints;
 use a separate Garak installation. Existing cultural pipelines and attack runners
 remain available through their original interfaces.
+
+## Request identity
+
+Every request to the target, from `interplay assess` and from the method runners
+(`runner-run`), carries a `User-Agent`. The default is `Interplay-Assessment/1.0`, so a
+defender can write one stable rule for it. Before this setting the library default
+(`python-httpx/<version>`) went out unrecorded.
+
+Set `identity` on the **target** endpoint to change it. It is rejected on the adversarial
+and judge roles, on runner attacker/evaluator/judge roles and in `interplay benchmark` and
+`interplay calibration` endpoints, because none of those send target traffic.
+
+```json
+{ "target": { "base_url": "https://example.com/target/v1", "model": "target-model",
+    "identity": { "mode": "declared", "user_agent": "Interplay-Assessment/1.0 (engagement=EX-42)" } } }
+```
+
+```json
+{ "target": { "base_url": "https://example.com/target/v1", "model": "target-model",
+    "identity": { "mode": "browser-pool", "id": "detection-check-1", "entry": "chrome-windows" } } }
+```
+
+`browser-pool` takes its `User-Agent` and the companion headers that a real browser of
+that family sends (`Accept-Language` and, for Chromium browsers, the matching `sec-ch-ua*`
+set) from the named pool `browser-ua-pool/1`. Pin one with `entry`, or pass a `seed` to
+select one reproducibly; with neither, the profile `id` is the seed. The same profile
+always resolves to the same entry, so a replayed campaign sends the same identity.
+
+Use the browser pool to check whether a detection depends on the client label instead of
+on behavior: run the same campaign with `declared` and `browser-pool` and compare what the
+defender saw. Use it only against systems you are authorized to test.
+
+What does not change:
+
+- The label is never an authorization input. A target that allows or blocks traffic by
+  `User-Agent` has not authorized anything, and the label proves nothing about who sent it.
+- Only `User-Agent` and the fixed companion headers of the chosen entry are added.
+  `Authorization`, `Content-Type`, `Accept-Encoding` and the other protocol headers are
+  never configurable and are applied last.
+- The pool holds generic browser families only, no crawlers, vendor agents or named
+  services. It is a frozen snapshot and does not claim to track current browser releases.
+  A refreshed pool is published as a new name (`browser-ua-pool/2`), never edited in place.
+
+Known limits: requests still send `Accept-Encoding: identity`, so a defender keying on
+that difference from a real browser still sees it; selection is per profile, not per
+request or per session; and adversary and judge model calls made through Data Designer or
+the judge scorer are not covered.
+
+The identity that was actually sent is retained: `provenance_json` carries
+`target_identity` (assessments) and `role_provenance_json` carries `identity` under the
+`target` role (runners), each with the profile, pool entry and full header set.
 
 ## Observations and judgments
 
